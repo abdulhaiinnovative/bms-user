@@ -1,0 +1,103 @@
+{
+  "name": "Elegant Salon",
+  "tags": ["female", "haircut", "bridal makeup"],
+  "rating": {
+    "star": 4.5,
+    "reviews": [
+      {
+        "user": "Alice",
+        "review": "Great experience! The staff was very professional.",
+        "star": 5
+      },
+      {
+        "user": "Bob",
+        "review": "The haircut was decent, but the wait time was long.",
+        "star": 3
+      },
+      {
+        "user": "Charlie",
+        "review": "Loved the bridal makeup service. Highly recommend!",
+        "star": 4
+      }
+    ]
+  },
+  "location": {
+    "address": "123 Beauty Lane, Glamour City, CA",
+    "lat": 34.0522,
+    "long": -118.2437
+  },
+  "staff": [
+    {
+      "name": "Sophia",
+      "image_url": "https://example.com/images/sophia.jpg"
+    },
+    {
+      "name": "Liam",
+      "image_url": "https://example.com/images/liam.jpg"
+    },
+    {
+      "name": "Olivia",
+      "image_url": "https://example.com/images/olivia.jpg"
+    }
+  ],
+  "services": [
+    {
+      "title": "Haircut",
+      "description": "Professional haircut and styling.",
+      "price": 50.00,
+      "sale_percent": 10,
+      "discounted_price": 45.00
+    },
+    {
+      "title": "Bridal Makeup",
+      "description": "Elegant bridal makeup for your special day.",
+      "price": 120.00,
+      "sale_percent": 15,
+      "discounted_price": 102.00
+    },
+    {
+      "title": "Hair Coloring",
+      "description": "High-quality hair coloring and highlights.",
+      "price": 80.00,
+      "sale_percent": 5,
+      "discounted_price": 76.00
+    },
+    {
+      "title": "Manicure",
+      "description": "Relaxing manicure with premium nail polish.",
+      "price": 30.00,
+      "sale_percent": 20,
+      "discounted_price": 24.00
+    },
+    {
+      "title": "Pedicure",
+      "description": "Pampering pedicure with foot massage.",
+      "price": 35.00,
+      "sale_percent": 10,
+      "discounted_price": 31.50
+    }
+  ],
+  "deals": [
+    {
+      "title": "Summer Special",
+      "description": "Get a free manicure with any haircut.",
+      "price": 50.00,
+      "sale_percent": 20,
+      "discounted_price": 40.00
+    },
+    {
+      "title": "Bridal Package",
+      "description": "Includes bridal makeup and a free hair treatment.",
+      "price": 150.00,
+      "sale_percent": 10,
+      "discounted_price": 135.00
+    },
+    {
+      "title": "Hair Color + Cut",
+      "description": "Get a discount when you book hair coloring and haircut together.",
+      "price": 120.00,
+      "sale_percent": 15,
+      "discounted_price": 102.00
+    }
+  ]
+}

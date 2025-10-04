@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>87062363095-d2ak3lfdnbk9l2a4b83v4pjtu5tort17.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.87062363095-d2ak3lfdnbk9l2a4b83v4pjtu5tort17</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>87062363095-429onp362emqfk9ehv03l5n9j1pl9b2j.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyCKHDQXgXVQpsyNhEEAN-OMsc2xPoLeim4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>87062363095</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.bookmyspot.salonbooking</string>
+	<key>PROJECT_ID</key>
+	<string>bookmyspot-c8bdb</string>
+	<key>STORAGE_BUCKET</key>
+	<string>bookmyspot-c8bdb.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:87062363095:ios:dfc8f26f5ac5d0ec9ce992</string>
+	<key>DATABASE_URL</key>
+	<string>https://bookmyspot-c8bdb.firebaseio.com</string>
+</dict>
+</plist>

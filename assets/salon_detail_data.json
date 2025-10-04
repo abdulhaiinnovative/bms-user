@@ -1,0 +1,206 @@
+{
+  "name": "Elegant Salon",
+  "id": "321",
+  "images": ["https://i.pinimg.com/1200x/a1/a6/d8/a1a6d8dcea0ac96c66d86388b73ca278.jpg",  "https://i.pinimg.com/564x/f3/b4/68/f3b468c2aa943aee0bd37041baaf534e.jpg", "https://i.pinimg.com/564x/00/e7/62/00e76210732e10be1a82ea509a3bbb4d.jpg"],
+  "created_at": "2-12-2023",
+  "gender": "female",
+  "logo": "321",
+  "star": "4.9",
+  "tags": ["Female", "Haircut", "Bridal makeup"],
+
+  "sections": [
+    {
+    "name": "Our Services",
+    "type": "2",
+    "data": [
+      {
+        "id": "1",
+        "title": "Summer Special",
+        "description": "Get a free manicure with any haircut.",
+        "price": 50,
+        "sale_percent": 20,
+        "discounted_price": 40
+      },
+      {
+        "id": "1",
+        "title": "Summer Special",
+        "description": "Get a free manicure with any haircut.",
+        "price": 50,
+        "sale_percent": 20,
+        "discounted_price": 40
+      },
+      {
+        "id": "1",
+        "title": "Summer Special",
+        "description": "Get a free manicure with any haircut.",
+        "price": 50,
+        "sale_percent": 20,
+        "discounted_price": 40
+      },
+      {
+        "id": "1",
+        "title": "Summer Special",
+        "description": "Get a free manicure with any haircut.",
+        "price": 50,
+        "sale_percent": 20,
+        "discounted_price": 40
+      }
+    ]
+  },
+    {
+      "name": "Deals",
+      "type": "2",
+      "data": [
+        {
+          "id": "1",
+          "title": "Summer Special",
+          "description": "Get a free manicure with any haircut.",
+          "price": 50,
+          "sale_percent": 20,
+          "discounted_price": 40
+        },
+        {
+          "id": "1",
+          "title": "Summer Special",
+          "description": "Get a free manicure with any haircut.",
+          "price": 50,
+          "sale_percent": 20,
+          "discounted_price": 40
+        },
+        {
+          "id": "1",
+          "title": "Summer Special",
+          "description": "Get a free manicure with any haircut.",
+          "price": 50,
+          "sale_percent": 20,
+          "discounted_price": 40
+        },
+        {
+          "id": "1",
+          "title": "Summer Special",
+          "description": "Get a free manicure with any haircut.",
+          "price": 50,
+          "sale_percent": 20,
+          "discounted_price": 40
+        }
+      ]
+    },
+    {
+      "name": "Reviews",
+      "type": "3",
+      "data": [
+        {
+          "image": "https://cdn-aiheb.nitrocdn.com/dPUaMsfRlIzkbsDbREnTZjUIdmcLNUaY/assets/images/optimized/rev-097217d/wp-content/uploads/2023/03/portrait-young-pretty-positive-girl-smiling.jpg",
+          "createdAt": "Sept 8 2024",
+          "user": "Huma",
+          "review": "Great experience! The staff was very professional.",
+          "star": 5
+        },
+        {
+          "image": "",
+          "createdAt": "Sept 8 2024",
+          "user": "Muhammad Usman",
+          "review": "The haircut was decent, but the wait time was long. The haircut was decent, but the wait time was long.",
+          "star": 3
+        },
+        {
+          "image": "",
+          "createdAt": "Sept 8 2024",
+          "user": "Usman",
+          "review": "The haircut was decent, but the wait time was long. The haircut was decent, but the wait time was long.",
+          "star": 3
+        },
+        {
+          "image": "https://cdn-aiheb.nitrocdn.com/dPUaMsfRlIzkbsDbREnTZjUIdmcLNUaY/assets/images/optimized/rev-097217d/wp-content/uploads/2023/03/portrait-young-pretty-positive-girl-smiling.jpg",
+          "createdAt": "Sept 8 2024",
+          "user": "ABC",
+          "review": "Loved the bridal makeup service. Highly recommend!",
+          "star": 4
+        }
+      ]
+    },
+    {
+      "name": "Our Staff",
+      "type": "4",
+      "data": [
+        {
+          "name": "Sophia",
+          "id": "1",
+          "image_url": "https://img.freepik.com/free-vector/profile-picture-design_742173-13765.jpg",
+          "speciality": "Expert in hair cut"
+        },
+        {
+          "name": "Liam",
+          "id": "2",
+          "image_url": "https://img.freepik.com/free-vector/profile-picture-design_742173-13765.jpg",
+          "speciality": "Makeup"
+        },
+        {
+          "name": "Olivia",
+          "id": "3",
+          "image_url": "https://img.freepik.com/free-vector/profile-picture-design_742173-13765.jpg",
+          "speciality": "Bridal makeup"
+        }
+      ]
+    },
+    {
+      "name": "About",
+      "type": "5",
+      "data": [
+        {
+          "desc": "Our salon is a modern salon dedicated to providing top-quality beauty services, including haircuts, makeup, skincare, and more. With a team of skilled professionals and a welcoming atmosphere, Nisha Beauty Salon aims to offer a relaxing and personalized experience for every client. Their services are tailored to meet individual beauty needs, ensuring customers leave looking and feeling their best.",
+          "opening_timings": [
+            {
+              "day": "Mon",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            },{
+              "day": "Tue",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+          ,{
+              "day": "Wed",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+          ,{
+              "day": "Thu",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+          ,{
+              "day": "Fri",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+          ,{
+              "day": "Sat",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+          ,{
+              "day": "Sun",
+              "start_time":  "10AM",
+              "end_time":  "10AM"
+            }
+
+          ],
+          "address": "Gulshan e Iqbal Karachi",
+          "lat_long": "10.0, 11.0"
+        }
+      ]
+    }
+
+  ],
+
+  "location": {
+    "address": "123 Beauty Lane, Glamour City, CA",
+    "lat": 34.0522,
+    "long": -118.2437
+  }
+
+
+}
+
+
