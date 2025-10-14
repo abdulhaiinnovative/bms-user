@@ -318,7 +318,7 @@ class _SalonDetailsScrollingTabsEffectB
               textAlign: TextAlign.start,
               style: Theme.of(context)
                   .textTheme
-                  .headline5
+                  .headlineLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             )),
         Container(
@@ -388,7 +388,7 @@ class _SalonDetailsScrollingTabsEffectB
             "About Us",
             style: Theme.of(context)
                 .textTheme
-                .subtitle1
+                .bodyMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
 
@@ -475,7 +475,7 @@ class _SalonDetailsScrollingTabsEffectB
         alignment: Alignment.centerLeft, // Align text to the left
         child: Text(
           name,
-          style: Theme.of(context).textTheme.headline6?.copyWith(
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.bold,
               //fontSize: 22
           ),

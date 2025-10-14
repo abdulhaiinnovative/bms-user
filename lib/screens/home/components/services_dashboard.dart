@@ -32,7 +32,7 @@ class ServicesDashboard extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                 child: SectionTitle(
                   title: section.heading,
                   press: () {},
@@ -50,7 +50,7 @@ class ServicesDashboard extends StatelessWidget {
                       title: '${item.name}' ?? 'No Title',
                       //image: item.image ?? logo,
                       image: "",
-                      salon: item.salon! ,
+                      salon: item.salon!,
                       desc: item.name ?? '',
                       width: 320,
                       press: () {
@@ -65,17 +65,16 @@ class ServicesDashboard extends StatelessWidget {
                         // log('Tapped Deal:image   ${item.salon?.image}');
                         // log('Tapped Deal:address   ${item.salon?.address}');
 
-
                         log('==================================');
-                        Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: item);
+                        Navigator.pushNamed(
+                            context, SalonCategoryAndServicesList.routeName,
+                            arguments: item);
                         log('Tapped Deal: ${item.name}');
                         log('Tapped Deal:salon id   ${item.salon?.id}');
                         log('Tapped Deal:name   ${item.salon?.name}');
                         log('Tapped Deal:image   ${item.salon?.image}');
                         log('Tapped Deal:address   ${item.salon?.address}');
                         log('----------------------------------');
-
-
                       },
                     );
                   },
@@ -89,9 +88,7 @@ class ServicesDashboard extends StatelessWidget {
   }
 }
 
-
 class ServicesCard extends StatelessWidget {
-
   const ServicesCard({
     Key? key,
     required this.title,
@@ -110,25 +107,19 @@ class ServicesCard extends StatelessWidget {
   final GestureTapCallback press;
   final double? width;
 
-
   @override
   Widget build(BuildContext context) {
     return Container(
-
-
-
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
-
       child: GestureDetector(
         onTap: press, // Attach the press callback here
         child: Container(
           width: width,
           height: 150,
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(kRadius),
-
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,7 +133,7 @@ class ServicesCard extends StatelessWidget {
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(width: 5),
+              const SizedBox(width: 5),
               Text(
                 desc,
                 style: const TextStyle(
@@ -151,10 +142,9 @@ class ServicesCard extends StatelessWidget {
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               Row(
                 children: [
-
                   ClipOval(
                     child: Image.network(
                       salon.image!,
@@ -163,43 +153,33 @@ class ServicesCard extends StatelessWidget {
                       fit: BoxFit.cover,
                     ),
                   ),
-
-                  SizedBox(width: 5),
-
-                  Expanded( // Use this if inside a Row
+                  const SizedBox(width: 5),
+                  Expanded(
+                    // Use this if inside a Row
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           salon.name ?? '',
                           style: const TextStyle(
-                            color: Colors.black87,
-                            fontWeight: FontWeight.bold
-                          ),
+                              color: Colors.black87,
+                              fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                         Text(
                           salon.address ?? '',
                           style: const TextStyle(
-                            color: Colors.black54,
-                            fontSize: 12
-                          ),
+                              color: Colors.black54, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                       ],
                     ),
                   )
-
-
-
                 ],
               ),
-              Spacer(),
-
-
-
+              const Spacer(),
               Row(
                 children: [
                   Text(
@@ -207,12 +187,11 @@ class ServicesCard extends StatelessWidget {
                     style: const TextStyle(
                         color: kPrice,
                         fontSize: 18,
-                        fontWeight: FontWeight.bold
-                    ),
+                        fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
 
                   if (service.discountType != null)
                     Text(
@@ -225,20 +204,17 @@ class ServicesCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                  Spacer(),
+                  const Spacer(),
 
                   if (service.discountType == 'price')
                     BookNow()
-                    ////SaleAmount(sale: service.discountAmount ?? 0)
+                  ////SaleAmount(sale: service.discountAmount ?? 0)
                   else if (service.discountType == 'percentage')
                     BookNow()
-                    ///SalePercentage(off: service.percentageDiscount ?? 0, type:  '',),
 
-
+                  ///SalePercentage(off: service.percentageDiscount ?? 0, type:  '',),
                 ],
               ),
-
-
             ],
           ),
         ),

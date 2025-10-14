@@ -1,21 +1,16 @@
-import 'dart:convert';
 import 'dart:developer' as developer;
 import 'dart:developer';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart' as FB_User;
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/constants.dart';
 
 import 'package:flutter/material.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import '../../api_services/check_user_already_registered_api.dart';
 import '../../models/CreateUserViewModel.dart';
-import '../../models/CustomReturn.dart';
 import '../../models/UserIsAlreadyRegisteredModel.dart';
-import '../../models/UserIsAlreadyRegisteredModelResponse.dart' as API_User;
 import '../../models/create_user/CreateUserResponse.dart';
 import '../../my_widget/CustomButton.dart';
 import '../../my_widget/CustomButtonGoogle.dart';
@@ -23,14 +18,10 @@ import '../../utlis/DialogUtils.dart';
 import '../../utlis/MyUtils.dart';
 import '../../utlis/UtilsExtra.dart';
 import '../complete_profile/complete_profile_screen.dart';
-import '../home/home_screen.dart';
 import '../init_screen.dart';
-
-
 
 class SignInScreenB extends StatelessWidget {
   static String routeName = "/sign_in_b";
-
 
   // Sign in to Firebase with the OAuth credential
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -40,11 +31,8 @@ class SignInScreenB extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
-
-
     return ChangeNotifierProvider(
-      create: (_) => CreateUserViewModel(), // Replace with your ViewModel class
+      create: (_) => CreateUserViewModel(), 
       child: Consumer<CreateUserViewModel>(
         builder: (context, viewModel, _) {
           return Scaffold(
@@ -57,10 +45,10 @@ class SignInScreenB extends StatelessWidget {
                     color: kScreenBg,
                     child: Column(
                       children: [
-                        SizedBox(height: 50),
+                        const SizedBox(height: 50),
                         Row(
                           children: [
-                            Spacer(),
+                            const Spacer(),
                             TextButton(
                               onPressed: () {
                                 // Navigator.pushReplacement(
@@ -68,7 +56,7 @@ class SignInScreenB extends StatelessWidget {
                                 //   MaterialPageRoute(builder: (context) => DashboardScreen()),
                                 // );
                               },
-                              child: Text("Skip for now"),
+                              child: const Text("Skip for now"),
                             ),
                           ],
                         ),
@@ -77,7 +65,7 @@ class SignInScreenB extends StatelessWidget {
                           width: 230,
                           height: 150,
                         ),
-                        Spacer(),
+                        const Spacer(),
                         const Text(
                           'Last Minute Brought \nto Life',
                           textAlign: TextAlign.center,
@@ -87,7 +75,7 @@ class SignInScreenB extends StatelessWidget {
                             fontWeight: FontWeight.w700,
                           ),
                         ),
-                        Spacer(),
+                        const Spacer(),
                       ],
                     ),
                   ),
@@ -110,7 +98,7 @@ class SignInScreenB extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(height: 5),
+                        const SizedBox(height: 5),
                         Container(
                           child: Text(
                             'Already have an account? Login here',
@@ -122,23 +110,22 @@ class SignInScreenB extends StatelessWidget {
                             ),
                           ),
                         ),
-                        SizedBox(height: 24),
+                        const SizedBox(height: 24),
                         CustomButtonGoogle(
                           text: 'Continue with Google',
                           color: Colors.white,
                           onPressed: () => handleGoogleSignIn(context),
-
                         ),
-                        SizedBox(height: 10),
+                        const SizedBox(height: 10),
                         CustomButton(
                           text: 'Continue with Apple',
                           color: Colors.black,
                           onPressed: () async {
                             // _signInWithApple(context);
                             try {
-
                               // if(isConnected){
-                              DialogLoadingUtils.showLoadingDialog(context, message: 'Please wait');
+                              DialogLoadingUtils.showLoadingDialog(context,
+                                  message: 'Please wait');
                               await _signInWithAppleNew(context);
 
                               // print('isConnected:: $isConnected');
@@ -146,7 +133,6 @@ class SignInScreenB extends StatelessWidget {
                               //   print('isConnected- $isConnected');
                               // _checkConnectivity();
                               // }
-
                             } catch (e) {
                               print('SignInWithAppleButton Error: $e');
                             }
@@ -184,7 +170,6 @@ class SignInScreenB extends StatelessWidget {
                           onPressed: () async {
                             log('signInWithGoogle....');
                             //DialogLoadingUtils.showLoadingDialog(context);
-
                           },
                         ),
                       ],
@@ -197,41 +182,40 @@ class SignInScreenB extends StatelessWidget {
         },
       ),
     );
-
   }
-
 
   Future<void> handleGoogleSignIn(BuildContext context) async {
     developer.log("googleSignIn..");
     try {
-      // final GoogleSignIn _googleSignIn = GoogleSignIn(
-      //   //ios
-      //   // clientId: '87062363095-d2ak3lfdnbk9l2a4b83v4pjtu5tort17.apps.googleusercontent.com',
-      //   //android
-      //   clientId: '87062363095-mrde6nmhi2d2v9ptrfotoqdpgu2a26pr.apps.googleusercontent.com',
-      //   scopes: ['email', 'profile', 'openid'],
-      // );
-      final GoogleSignIn _googleSignIn = GoogleSignIn(
-        clientId: Platform.isIOS
-            ? '87062363095-d2ak3lfdnbk9l2a4b83v4pjtu5tort17.apps.googleusercontent.com' // iOS
-            : '87062363095-mrde6nmhi2d2v9ptrfotoqdpgu2a26pr.apps.googleusercontent.com', // Android
-        scopes: ['email', 'profile', 'openid'],
-      );
-      var result = await _googleSignIn.signIn();
+      // Simple alternative implementation using Firebase Auth directly
+      final GoogleAuthProvider googleProvider = GoogleAuthProvider();
+
+      // Add scopes if needed
+      googleProvider.addScope('email');
+      googleProvider.addScope('profile');
+
+      final UserCredential userCredential =
+          await FirebaseAuth.instance.signInWithPopup(googleProvider);
+      final User? user = userCredential.user;
+
       developer.log("====--- try");
-      developer.log('result: $result');
-      if (result != null) {
+      developer.log('result: $user');
+
+      if (user != null) {
         DialogLoadingUtils.showLoadingDialog(context);
+
         CreateUserResponse? ss = await CreateUserViewModel.createUser(
           "google",
-          result.id,
-          result.id,
-          result.email ?? '-',
+          user.uid,
+          user.uid,
+          user.email ?? '',
           "1234",
           "-",
-          result.displayName ?? '-',
-          result.displayName?.split(' ')[0] ?? '-',
-          result.displayName?.split(' ')[1] ?? '-',
+          user.displayName ?? '-',
+          user.displayName?.split(' ').first ?? '-',
+          (user.displayName?.split(' ').length ?? 0) > 1
+              ? user.displayName?.split(' ')[1] ?? '-'
+              : '-',
           "-",
         );
         // DialogLoadingUtils.dismissDialog(context);
@@ -241,19 +225,17 @@ class SignInScreenB extends StatelessWidget {
         developer.log('Token:New: $s');
         final mUser = await UtilsExtra.getUserDetails();
         if (mUser != null) {
-
           UserIsAlreadyRegisteredModel userIsAlreadyRegisteredModel =
-          UserIsAlreadyRegisteredModel(
+              UserIsAlreadyRegisteredModel(
             id: '${mUser.id}',
             first_name: '${mUser.firstName}',
-            last_name:  '${mUser.lastName}',
-            name:  "${mUser.firstName} ${mUser.lastName}".trim(),
-            email: "${mUser.email}" ?? "",
+            last_name: '${mUser.lastName}',
+            name: "${mUser.firstName} ${mUser.lastName}".trim(),
+            email: mUser.email ?? "",
             profile_image: '',
           );
 
           await _saveUserProfile(context, userIsAlreadyRegisteredModel);
-
         } else {
           developer.log('No user details found.');
         }
@@ -270,7 +252,6 @@ class SignInScreenB extends StatelessWidget {
     }
   }
 
-
   Future<bool> _checkUserInFirestore(String uid) async {
     final userDoc = await _firestore.collection('users').doc(uid).get();
     return userDoc.exists;
@@ -284,7 +265,6 @@ class SignInScreenB extends StatelessWidget {
     }
     return null;
   }
-
 
   Future<void> _signInWithAppleNew(BuildContext context) async {
     try {
@@ -303,29 +283,23 @@ class SignInScreenB extends StatelessWidget {
       );
 
       final UserCredential userCredential =
-      await _auth.signInWithCredential(oauthCredential);
-
-
-
+          await _auth.signInWithCredential(oauthCredential);
 
       FB_User.User? user = userCredential.user;
-
 
       print('user ::email::  ${userCredential.user?.email}');
       print('user ::displayName::  ${userCredential.user?.displayName}');
 
-
       final firstName = credential.givenName?.trim() ?? '';
       final lastName = credential.familyName?.trim() ?? '';
 
-
-      print('user ::firstName::  ${firstName}');
-      print('user ::lastName::  ${lastName}');
-
+      print('user ::firstName::  $firstName');
+      print('user ::lastName::  $lastName');
 
       if (user != null) {
         // Check if the user exists in Firestore
-        final userExistsInFirestore = await _checkUserInFirestore(credential.userIdentifier.toString());
+        final userExistsInFirestore =
+            await _checkUserInFirestore(credential.userIdentifier.toString());
 
         print('credential.state :  ${credential.state}');
         print('credential.state :  ${credential.email}');
@@ -333,15 +307,14 @@ class SignInScreenB extends StatelessWidget {
         print('credential.givenName :  ${credential.givenName}');
         print('credential.userIdentifier :  ${credential.userIdentifier}');
         print('credential.identityToken :  ${credential.identityToken}');
-        print('credential.authorizationCode :  ${credential.authorizationCode}');
-        print('credential.user :  ${user}');
+        print(
+            'credential.authorizationCode :  ${credential.authorizationCode}');
+        print('credential.user :  $user');
         print('credential.user.uid :  ${user.uid}');
 
-
         if (userExistsInFirestore) {
-
-
-          final userData = await _getUserFromFirestore(credential.userIdentifier.toString());
+          final userData =
+              await _getUserFromFirestore(credential.userIdentifier.toString());
           if (userData != null) {
             print('User data from Firestore: $userData');
 
@@ -368,47 +341,43 @@ class SignInScreenB extends StatelessWidget {
 
           // Check if the user exists in the server database
           UserIsAlreadyRegisteredModel userIsAlreadyRegisteredModel =
-          UserIsAlreadyRegisteredModel(
-            id: '${ userData?['uid'].toString() ?? ""}',
-            name:  '-',//'${ userData?['name'].toString() ?? ""}',
-            first_name:  '-',//'${ userData?['firstName'].toString() ?? ""}',
-            last_name:  '-',//'${ userData?['familyName'].toString() ?? ""}',
-            email: "${userData?['email']}" ?? "",
-            profile_image: '-',//'',
+              UserIsAlreadyRegisteredModel(
+            id: userData?['uid'].toString() ?? "",
+            name: '-', //'${ userData?['name'].toString() ?? ""}',
+            first_name: '-', //'${ userData?['firstName'].toString() ?? ""}',
+            last_name: '-', //'${ userData?['familyName'].toString() ?? ""}',
+            email: userData?['email']?.toString() ?? "",
+            profile_image: '-', //'',
           );
 
           await _saveUserProfile(context, userIsAlreadyRegisteredModel);
-
-        }else{
-
+        } else {
           await _saveUserInFirestore(
             user,
             userCredential.user?.email ?? 'no-email',
-            "${userCredential.user?.displayName ?? ''}",
-            "${credential.familyName ?? '' }",
+            userCredential.user?.displayName ?? '',
+            credential.familyName ?? '',
             credential.userIdentifier.toString(),
           );
 
-          print('userNotExistsInFirestore :  ${userExistsInFirestore}');
-          print('userNotExistsInFirestore :  ${userExistsInFirestore}');
-          print('userNotExistsInFirestore :  ${userExistsInFirestore}');
-          print('userNotExistsInFirestore :  ${userExistsInFirestore}');
-
+          print('userNotExistsInFirestore :  $userExistsInFirestore');
+          print('userNotExistsInFirestore :  $userExistsInFirestore');
+          print('userNotExistsInFirestore :  $userExistsInFirestore');
+          print('userNotExistsInFirestore :  $userExistsInFirestore');
 
           // Check if the user exists in the server database
           UserIsAlreadyRegisteredModel userIsAlreadyRegisteredModel =
-          UserIsAlreadyRegisteredModel(
-            id: '${credential.userIdentifier.toString()}',
-            name:  "${credential.givenName ?? ''} ${credential.familyName ?? ''}".trim(),
-            email: "${credential.email}" ?? "",
+              UserIsAlreadyRegisteredModel(
+            id: credential.userIdentifier.toString(),
+            name: "${credential.givenName ?? ''} ${credential.familyName ?? ''}"
+                .trim(),
+            email: credential.email ?? "",
             profile_image: '',
           );
 
           await _saveUserProfile(context, userIsAlreadyRegisteredModel);
-
         }
-
-      }else{
+      } else {
         print('Else error signing in with Apple:');
       }
     } catch (e) {
@@ -417,9 +386,8 @@ class SignInScreenB extends StatelessWidget {
     }
   }
 
-
-  Future<void> _saveUserInFirestore(FB_User.User user, String email, String firstName, String lastName, String userIdentifier) async {
-
+  Future<void> _saveUserInFirestore(FB_User.User user, String email,
+      String firstName, String lastName, String userIdentifier) async {
     await _firestore.collection('users').doc(userIdentifier).set({
       'uid': userIdentifier,
       'email': email,
@@ -430,23 +398,16 @@ class SignInScreenB extends StatelessWidget {
     });
   }
 
-
-  Future<void> _saveUserProfile(BuildContext context, UserIsAlreadyRegisteredModel userIsAlreadyRegisteredModel) async {
-
+  Future<void> _saveUserProfile(BuildContext context,
+      UserIsAlreadyRegisteredModel userIsAlreadyRegisteredModel) async {
     try {
-
       userIsAlreadyRegisteredModel.profile_image =
-      userIsAlreadyRegisteredModel.profile_image == null
-          ? ''
-          : userIsAlreadyRegisteredModel.profile_image;
-
+          userIsAlreadyRegisteredModel.profile_image ?? '';
 
       log('==--userIsAlreadyRegisteredModel::  ${userIsAlreadyRegisteredModel.toJson()}');
 
-
-
-      final response = await CheckUserRegistered()
-          .checkUserRegistered(userIsAlreadyRegisteredModel: userIsAlreadyRegisteredModel);
+      final response = await CheckUserRegistered().checkUserRegistered(
+          userIsAlreadyRegisteredModel: userIsAlreadyRegisteredModel);
 
       log('==--customReturn::  ${response.data}');
       log('==--customReturn:accessToken:  ${response.data.accessToken}');
@@ -454,10 +415,7 @@ class SignInScreenB extends StatelessWidget {
       UtilsExtra.saveToken(response.data.accessToken);
 
       if (response.status) {
-
         print('----------------${response.data.toString()}');
-
-
 
         print('==-- 4====');
         print('----------------52');
@@ -467,38 +425,26 @@ class SignInScreenB extends StatelessWidget {
           print('----------------6 -- ${userIsAlreadyRegisteredModel.id}');
           log('==-- 7');
 
-
-          ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Complete your profile to continue.'))
-          );
-
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('Complete your profile to continue.')));
 
           MyUtils.hideLoadingDialog(context);
-          await Future.delayed(Duration(seconds: 2));
+          await Future.delayed(const Duration(seconds: 2));
 
           Navigator.pushNamed(
             context,
             CompleteProfileScreen.routeName,
             arguments: userIsAlreadyRegisteredModel,
           );
-
-
-
-
-
         } else {
           print('----------------7');
 
-
           await MyUtils.instance.saveUser(response.data.user);
-          await MyUtils.instance
-              .saveUserId('${response.data.user.id}');
+          await MyUtils.instance.saveUserId('${response.data.user.id}');
           MyUtils.hideLoadingDialog(context);
           //await Future.delayed(Duration(seconds);
 
           Navigator.pushNamed(context, InitScreen.routeName);
-
-
         }
       } else {
         MyUtils.hideLoadingDialog(context);
@@ -511,22 +457,11 @@ class SignInScreenB extends StatelessWidget {
     } catch (error) {
       MyUtils.hideLoadingDialog(context);
       print('----------------9');
-      log(
-          'saveUserId:1: model resp:  ${error}');
+      log('saveUserId:1: model resp:  $error');
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Errors: $error')),
       );
     }
   }
-
-
-
-
-
 }
-
-
-
-
-

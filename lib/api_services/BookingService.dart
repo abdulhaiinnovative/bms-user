@@ -6,7 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/home/Professional.dart';
-import '../../models/HomePageResponse.dart';
 
 class BookingService {
   Future<void> createBooking({
@@ -21,7 +20,9 @@ class BookingService {
     // Log all relevant values
     log('BookingService - createBooking values:');
     log('  salon_id: 1');
-    log('  profession_id: ${selectedProfessionals.isNotEmpty ? selectedProfessionals.map((p) => p.id ?? 0).toList() : [0]}');
+    log('  profession_id: ${selectedProfessionals.isNotEmpty ? selectedProfessionals.map((p) => p.id ?? 0).toList() : [
+        0
+      ]}');
     log('  time: ${selectedTime != null && selectedDay != null ? "$selectedTime, ${DateFormat('yyyy-MM-dd').format(selectedDay)}" : "Not selected"}');
     log('  payment_status: ${paymentMethod == 'Cash' ? true : false}');
     log('  total_price: ${cartItems?.entries.fold<double>(0, (sum, entry) => sum + (entry.key.price ?? 0) * entry.value) ?? 0}');
@@ -37,7 +38,7 @@ class BookingService {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
+      builder: (context) => const AlertDialog(
         content: Row(
           children: [
             CircularProgressIndicator(),
@@ -49,9 +50,7 @@ class BookingService {
     );
 
     try {
-
       // Prepare the payload
-
 
       final Map<String, dynamic> payload = {
         "salon_id": 1,
@@ -63,26 +62,26 @@ class BookingService {
             : null,
         "payment_status": paymentMethod == 'Cash',
         "total_price": cartItems?.entries.fold<double>(
-          0,
+              0,
               (sum, entry) => sum + (entry.key.price ?? 0) * entry.value,
-        ) ??
+            ) ??
             0,
         "booking_type": bookingType,
       };
 
       // Debugging
       print('====== cartItems?.length: ${cartItems?.length}');
-      print('====== bookingType == appointment: ${bookingType == 'appointment'}');
+      print(
+          '====== bookingType == appointment: ${bookingType == 'appointment'}');
       print('====== cartItems != null: ${cartItems != null}');
 
       // Booking type specific fields
       if (bookingType == 'appointment' && cartItems != null) {
-        payload["service_id"] = cartItems.keys
-            .map((service) => service.id ?? 0)
-            .toList();
+        payload["service_id"] =
+            cartItems.keys.map((service) => service.id ?? 0).toList();
 
-        payload["qty"] = cartItems.map((service, qty) =>
-            MapEntry(service.id?.toString() ?? '0', qty));
+        payload["qty"] = cartItems.map(
+            (service, qty) => MapEntry(service.id?.toString() ?? '0', qty));
 
         print('Appointment payload: $payload');
       } else if (bookingType == 'deal') {
@@ -95,14 +94,11 @@ class BookingService {
       log('payload:: $payload');
       log('payload:jsonEncode: ${jsonEncode(payload)}');
 
-
       log('Token:: $s');
-
 
       final headers = {
         'Content-Type': 'application/json',
-        'Authorization':
-        'Bearer $s'
+        'Authorization': 'Bearer $s'
       };
       // Make the POST API call
       final response = await http.post(
@@ -122,12 +118,12 @@ class BookingService {
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('Success'),
+              title: const Text('Success'),
               content: Text(
                   responseData['message'] ?? 'Booking created successfully!'),
               actions: [
                 TextButton(
-                  child: Text('OK'),
+                  child: const Text('OK'),
                   onPressed: () {
                     Navigator.pop(context);
                     // Optionally navigate back
@@ -142,12 +138,12 @@ class BookingService {
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('Error'),
-              content: Text(
-                  responseData['message'] ?? 'Failed to create booking.'),
+              title: const Text('Error'),
+              content:
+                  Text(responseData['message'] ?? 'Failed to create booking.'),
               actions: [
                 TextButton(
-                  child: Text('Close'),
+                  child: const Text('Close'),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
@@ -157,62 +153,50 @@ class BookingService {
       } else {
         // Show error dialog for non-200 status code
 
-        if(response.statusCode == 422){
-
-          print('${response.body}');
+        if (response.statusCode == 422) {
+          print(response.body);
           final responseData = jsonDecode(response.body);
           final message = responseData['message'] ?? 'Something went wrong.';
 
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('Oops!'),
-              content:
-              Text('Failed to create booking.\n${message}'),
+              title: const Text('Oops!'),
+              content: Text('Failed to create booking.\n$message'),
               actions: [
                 TextButton(
-                  child: Text('No'),
+                  child: const Text('No'),
                   onPressed: () => Navigator.pop(context),
                 ),
-
                 TextButton(
-                  child: Text('Yes'),
+                  child: const Text('Yes'),
                   onPressed: () => {
                     Navigator.pop(context),
-                    Navigator.pushNamed(context, CompleteProfileScreen.routeName)
+                    Navigator.pushNamed(
+                        context, CompleteProfileScreen.routeName)
                   },
-
-
-
-
                 ),
-
               ],
             ),
           );
-
-        }else{
-
-          print('${response.body}');
+        } else {
+          print(response.body);
           final responseData = jsonDecode(response.body);
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
-              title: Text('Error'),
-              content: Text(
-                  responseData['message'] ?? 'Failed to create booking.'),
+              title: const Text('Error'),
+              content:
+                  Text(responseData['message'] ?? 'Failed to create booking.'),
               actions: [
                 TextButton(
-                  child: Text('Close'),
+                  child: const Text('Close'),
                   onPressed: () => Navigator.pop(context),
                 ),
               ],
             ),
           );
-
         }
-
-
       }
     } catch (e) {
       // Close loading dialog
@@ -222,11 +206,11 @@ class BookingService {
       await showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: Text('Error'),
+          title: const Text('Error'),
           content: Text('An error occurred: $e'),
           actions: [
             TextButton(
-              child: Text('Close'),
+              child: const Text('Close'),
               onPressed: () => Navigator.pop(context),
             ),
           ],

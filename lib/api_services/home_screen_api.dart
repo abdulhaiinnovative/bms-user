@@ -4,8 +4,6 @@ import 'package:http/http.dart' as http;
 
 import '../models/HomePageResponse.dart';
 
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class HomeScreenAPI {
 
