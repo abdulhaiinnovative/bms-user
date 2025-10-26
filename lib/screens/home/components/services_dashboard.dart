@@ -146,12 +146,29 @@ class ServicesCard extends StatelessWidget {
               Row(
                 children: [
                   ClipOval(
-                    child: Image.network(
-                      salon.image!,
-                      height: 30,
-                      width: 30,
-                      fit: BoxFit.cover,
-                    ),
+                    child: (salon.image != null && salon.image!.isNotEmpty)
+                        ? Image.network(
+                            salon.image!,
+                            height: 30,
+                            width: 30,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                height: 30,
+                                width: 30,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.store,
+                                    size: 18, color: Colors.grey),
+                              );
+                            },
+                          )
+                        : Container(
+                            height: 30,
+                            width: 30,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.store,
+                                size: 18, color: Colors.grey),
+                          ),
                   ),
                   const SizedBox(width: 5),
                   Expanded(
@@ -182,26 +199,30 @@ class ServicesCard extends StatelessWidget {
               const Spacer(),
               Row(
                 children: [
-                  Text(
-                    'Rs: ${service.price}',
-                    style: const TextStyle(
-                        color: kPrice,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold),
-                    overflow: TextOverflow.ellipsis,
+                  Flexible(
+                    child: Text(
+                      'Rs: ${service.price}',
+                      style: const TextStyle(
+                          color: kPrice,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
 
                   const SizedBox(width: 15),
 
                   if (service.discountType != null)
-                    Text(
-                      'Rs: ${service.oldPrice}',
-                      style: const TextStyle(
-                        color: kBeforeDiscount,
-                        fontSize: 14,
-                        decoration: TextDecoration.lineThrough,
+                    Flexible(
+                      child: Text(
+                        'Rs: ${service.oldPrice}',
+                        style: const TextStyle(
+                          color: kBeforeDiscount,
+                          fontSize: 14,
+                          decoration: TextDecoration.lineThrough,
+                        ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
 
                   const Spacer(),

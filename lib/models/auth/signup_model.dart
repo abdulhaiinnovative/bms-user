@@ -5,6 +5,8 @@ class SignupModel {
   final String name;
   final String email;
   final String password;
+  final String? address;
+  final String? fcmToken;
 
   SignupModel({
     required this.firstName,
@@ -13,6 +15,8 @@ class SignupModel {
     required this.name,
     required this.email,
     required this.password,
+    this.address,
+    this.fcmToken,
   });
 
   factory SignupModel.fromJson(Map<String, dynamic> json) {
@@ -23,11 +27,13 @@ class SignupModel {
       name: json['name'] ?? '',
       email: json['email'] ?? '',
       password: json['password'] ?? '',
+      address: json['address'],
+      fcmToken: json['fcm_token'],
     );
   }
 
   Map<String, dynamic> toJson() {
-    return {
+    final Map<String, dynamic> data = {
       'first_name': firstName,
       'last_name': lastName,
       'phone': phone,
@@ -35,5 +41,10 @@ class SignupModel {
       'email': email,
       'password': password,
     };
+
+    if (address != null) data['address'] = address;
+    if (fcmToken != null) data['fcm_token'] = fcmToken;
+
+    return data;
   }
 }

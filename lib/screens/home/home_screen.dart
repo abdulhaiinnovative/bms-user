@@ -289,7 +289,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         // SizedBox(height: 20),
                         // SpecialOffers(),
                         //Categories(),
-                        // SectionHeader(title: "Categories", onSeeAllPressed: () {
+                        // SectionHeader(title: N", onSeeAllPressed: () {
                         //   log('See All button pressed');
                         // },),
                         // PopularProducts(),

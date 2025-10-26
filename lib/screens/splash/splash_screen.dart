@@ -1,19 +1,12 @@
+import 'dart:async';
 import 'dart:developer';
-
-import 'package:app/screens/CategoryDetailsFetchAPIData.dart';
-import 'package:app/screens/sign_in/sign_in_screen_b.dart';
-import 'package:app/utlis/UtilsExtra.dart';
 import 'package:flutter/material.dart';
-import 'package:app/screens/home/home_screen.dart';
-// import 'package:google_sign_in/google_sign_in.dart';
-
-import '../../api_services/MyBookingsAPI.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants.dart';
-import '../SalonFetchAPIData.dart';
+import '../../utlis/authutils/auth_manager.dart';
 import '../init_screen.dart';
-import '../sign_in/sign_in_screen.dart';
-import '../test_scroll/salon_category_and_services_list.dart';
-import 'components/splash_content.dart';
+import '../auth/auth_screen.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   static String routeName = "/splash";
@@ -24,120 +17,191 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
-  int currentPage = 0;
-  List<Map<String, String>> splashData = [
-    {
-      "text": "Welcome to BookMySpot\nSalon Booking Made Easy.",
-      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8XxUpkWBocLNW6KTNJnZV1Gb-giGiQ5m77g&usqp=CAU"
-    },
-    {
-      "text":
-          "Ready to Pamper Yourself?\nBook Your Spot Today!",
-      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQen7imq0ciJkw88dNfhtnah86obuK7ed23aA&usqp=CAU"
-    },
-    {
-      "text": "Book My Spot\nWhere Style Meets Convenience!",
-      "image": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQen7imq0ciJkw88dNfhtnah86obuK7ed23aA&usqp=CAU"
-    },
-  ];
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize animations
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
+      ),
+    );
+
+    _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _animationController,
+        curve: const Interval(0.0, 0.6, curve: Curves.easeOutBack),
+      ),
+    );
+
+    // Start animation
+    _animationController.forward();
+
+    // Navigate after delay
+    _navigateToNextScreen();
   }
 
+  Future<void> _navigateToNextScreen() async {
+    // Wait for animation to complete
+    await Future.delayed(const Duration(milliseconds: 2500));
 
+    if (!mounted) return;
 
+    // Check if user has seen onboarding
+    final prefs = await SharedPreferences.getInstance();
+    final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
+    // Check if user is logged in using the new AuthManager
+    final isLoggedIn = await AuthManager.isLoggedIn();
+
+    log('🚀 SplashScreen: hasSeenOnboarding = $hasSeenOnboarding');
+    log('🚀 SplashScreen: isLoggedIn = $isLoggedIn');
+
+    if (!mounted) return;
+
+    // Navigation logic:
+    // 1. If user hasn't seen onboarding -> show onboarding
+    // 2. If user is logged in -> go to home
+    // 3. If user has seen onboarding but not logged in -> go to sign in
+    if (!hasSeenOnboarding) {
+      log('🚀 SplashScreen: Navigating to Onboarding');
+      Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
+    } else if (isLoggedIn) {
+      log('🚀 SplashScreen: Navigating to Home (InitScreen)');
+      Navigator.pushReplacementNamed(context, InitScreen.routeName);
+    } else {
+      log('🚀 SplashScreen: Navigating to Auth (Login/Signup)');
+      Navigator.pushReplacementNamed(context, AuthScreen.routeName);
+    }
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
-      body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              kPrimaryColor.withOpacity(0.1),
+              Colors.white,
+            ],
+          ),
+        ),
+        child: Center(
           child: Column(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: PageView.builder(
-                  onPageChanged: (value) {
-                    setState(() {
-                      currentPage = value;
-                    });
-                  },
-                  itemCount: splashData.length,
-                  itemBuilder: (context, index) => SplashContent(
-                    image: splashData[index]["image"],
-                    text: splashData[index]['text'],
-                  ),
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: <Widget>[
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          splashData.length,
-                          (index) => AnimatedContainer(
-                            duration: kAnimationDuration,
-                            margin: const EdgeInsets.only(right: 5),
-                            height: 6,
-                            width: currentPage == index ? 20 : 6,
-                            decoration: BoxDecoration(
-                              color: currentPage == index
-                                  ? kPrimaryColor
-                                  : const Color(0xFFD8D8D8),
-                              borderRadius: BorderRadius.circular(3),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Animated Logo
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Transform.scale(
+                      scale: _scaleAnimation.value,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: kPrimaryColor.withOpacity(0.3),
+                              blurRadius: 30,
+                              spreadRadius: 5,
+                              offset: const Offset(0, 10),
                             ),
+                          ],
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(20),
+                          child: Image.asset(
+                            'assets/images/bms_logo.jpg',
+                            fit: BoxFit.cover,
                           ),
                         ),
                       ),
-                      const Spacer(flex: 3),
-                      ElevatedButton(
-                        onPressed: () async {
+                    ),
+                  );
+                },
+              ),
 
+              const SizedBox(height: 30),
 
-                           log('============ ${await UtilsExtra.getToken()}');
+              // App Name
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: Column(
+                      children: [
+                        const Text(
+                          'BookMySpot',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: kPrimaryColor,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Your Beauty, Our Priority',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: Colors.grey[600],
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
 
-                           // Navigator.pushNamed(context, SignInScreenB.routeName);
+              const SizedBox(height: 50),
 
-                           UtilsExtra.clearUserDetails();
-
-                          if(await UtilsExtra.getUserDetails() != null){
-                            Navigator.pushNamed(context, InitScreen.routeName);
-                            //Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName);
-                          }else{
-                            Navigator.pushNamed(context, SignInScreenB.routeName);
-                          }
-
-
-                          //
-                          // Navigator.pushNamed(context, InitScreen.routeName);
-
-                          // Navigator.pushNamed(context, SalonFetchAPIData.routeName);
-                          //Navigator.pushNamed(context, CategoryDetailsFetchAPIData.routeName);
-
-                          //Navigator.pushNamed(context, SearchFetchAPIData.routeName);
-
-
-
-
-
-                        },
-                        child: const Text("Continue"),
+              // Loading indicator
+              AnimatedBuilder(
+                animation: _animationController,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: _fadeAnimation.value,
+                    child: const SizedBox(
+                      width: 40,
+                      height: 40,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 3,
+                        valueColor:
+                            AlwaysStoppedAnimation<Color>(kPrimaryColor),
                       ),
-                      const Spacer(),
-                    ],
-                  ),
-                ),
+                    ),
+                  );
+                },
               ),
             ],
           ),
@@ -145,7 +209,4 @@ class _SplashScreenState extends State<SplashScreen> {
       ),
     );
   }
-
-
-
 }

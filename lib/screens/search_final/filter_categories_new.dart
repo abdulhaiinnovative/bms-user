@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-
 class FilterCategoriesNew extends StatefulWidget {
   const FilterCategoriesNew({Key? key}) : super(key: key);
 
@@ -23,12 +22,18 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
 
   Future<void> fetchCategories() async {
     try {
-      final response = await http.get(Uri.parse('https://bms.innovativewidget.com/api/get-categories'));
+      final response = await http.get(
+          Uri.parse('https://bms.innovativewidget.com/api/get-categories'));
+
+      // Check if widget is still mounted before calling setState
+      if (!mounted) return;
+
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         if (data['status'] == true) {
           setState(() {
-            categories = List<Map<String, dynamic>>.from(data['response']['data']);
+            categories =
+                List<Map<String, dynamic>>.from(data['response']['data']);
             isLoading = false;
           });
         } else {
@@ -44,6 +49,9 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
         });
       }
     } catch (e) {
+      // Check if widget is still mounted before calling setState
+      if (!mounted) return;
+
       setState(() {
         error = 'Error fetching categories: $e';
         isLoading = false;
@@ -66,25 +74,27 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
           if (isLoading)
             const Center(child: CircularProgressIndicator())
           else if (error != null)
-            Center(child: Text(error!, style: const TextStyle(color: Colors.red)))
+            Center(
+                child: Text(error!, style: const TextStyle(color: Colors.red)))
           else if (categories.isEmpty)
-              const Center(child: Text('No categories available'))
-            else
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final category = categories[index];
-                    return ListTile(
-                      title: Text(category['name']),
-                      onTap: () {
-                        Navigator.pop(context, {'id': category['id'], 'name': category['name']});
-                      },
-                    );
-                  },
-                ),
+            const Center(child: Text('No categories available'))
+          else
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: categories.length,
+                itemBuilder: (context, index) {
+                  final category = categories[index];
+                  return ListTile(
+                    title: Text(category['name']),
+                    onTap: () {
+                      Navigator.pop(context,
+                          {'id': category['id'], 'name': category['name']});
+                    },
+                  );
+                },
               ),
+            ),
         ],
       ),
     );

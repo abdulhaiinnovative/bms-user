@@ -30,7 +30,7 @@ class DealsDashboard extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                 child: SectionTitle(
                   title: section.heading,
                   press: () {},
@@ -52,7 +52,6 @@ class DealsDashboard extends StatelessWidget {
                       // … other required fields
                     );
 
-
                     return DealsCard(
                       title: '${item.name}' ?? 'No Title',
                       image: item.image ?? logo,
@@ -66,14 +65,14 @@ class DealsDashboard extends StatelessWidget {
                       width: 320,
                       press: () {
                         //Navigator.pushNamed(context, ProductsScreen.routeName);
-                        Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: item);
+                        Navigator.pushNamed(
+                            context, SalonCategoryAndServicesList.routeName,
+                            arguments: item);
                         log('Tapped Deal: ${item.name}');
-                        log('Tapped Deal:salon id   ${item.services?[0]?.salon?.id}');
-                        log('Tapped Deal:name   ${item.services?[0]?.salon?.name}');
-                        log('Tapped Deal:image   ${item.services?[0]?.salon?.image}');
-                        log('Tapped Deal:address   ${item.services?[0]?.salon?.address}');
-
-
+                        log('Tapped Deal:salon id   ${item.services?[0].salon?.id}');
+                        log('Tapped Deal:name   ${item.services?[0].salon?.name}');
+                        log('Tapped Deal:image   ${item.services?[0].salon?.image}');
+                        log('Tapped Deal:address   ${item.services?[0].salon?.address}');
                       },
                     );
                   },
@@ -86,7 +85,6 @@ class DealsDashboard extends StatelessWidget {
     );
   }
 }
-
 
 class DealsCard extends StatelessWidget {
   const DealsCard({
@@ -108,21 +106,18 @@ class DealsCard extends StatelessWidget {
   final int price, discountValue;
   final double? width;
 
-
   final GestureTapCallback press;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
-
       child: GestureDetector(
         onTap: press, // Attach the press callback here
         child: Container(
           width: width,
           height: 175,
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: kCardBG,
             borderRadius: BorderRadius.circular(kRadius),
@@ -146,7 +141,7 @@ class DealsCard extends StatelessWidget {
                 ),
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(width: 5),
+              const SizedBox(width: 5),
               Text(
                 services,
                 style: const TextStyle(
@@ -164,11 +159,10 @@ class DealsCard extends StatelessWidget {
               //   ),
               //   overflow: TextOverflow.ellipsis,
               // ),
-        
-              SizedBox(height: 10),
+
+              const SizedBox(height: 10),
               Row(
                 children: [
-
                   // ClipOval(
                   //   child: Image.network(
                   //     salon.image!,
@@ -178,9 +172,10 @@ class DealsCard extends StatelessWidget {
                   //   ),
                   // ),
 
-                  SizedBox(width: 5),
+                  const SizedBox(width: 5),
 
-                  Expanded( // Use this if inside a Row
+                  Expanded(
+                    // Use this if inside a Row
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -188,17 +183,14 @@ class DealsCard extends StatelessWidget {
                           salon.name ?? '',
                           style: const TextStyle(
                               color: Colors.black87,
-                              fontWeight: FontWeight.bold
-                          ),
+                              fontWeight: FontWeight.bold),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                         Text(
                           salon.address ?? '',
                           style: const TextStyle(
-                              color: Colors.black54,
-                              fontSize: 12
-                          ),
+                              color: Colors.black54, fontSize: 12),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
@@ -207,53 +199,53 @@ class DealsCard extends StatelessWidget {
                   )
                 ],
               ),
-              Spacer(),
-        
-        
-        
+              const Spacer(),
+
               Row(
                 children: [
-                  Text(
-                    'Rs: ${price}',
-                    style: const TextStyle(
-                        color: kPrice,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold
+                  Flexible(
+                    child: Text(
+                      'Rs: $price',
+                      style: const TextStyle(
+                          color: kPrice,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-        
-                  SizedBox(width: 10),
-
-                  if(discountValue != 0)
-                  discountType == 'amount'?
-                  Text(
-                    'Rs: ${(price+discountValue)}',
-                    style: const TextStyle(
-                      color: kBeforeDiscount,
-                      fontSize: 12,
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ):
-                  Text(
-                    'Rs: ${(price + (price * discountValue / 100)).toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      color: kBeforeDiscount,
-                      fontSize: 12,
-                      decoration: TextDecoration.lineThrough,
-                    ),
-                    overflow: TextOverflow.ellipsis,
                   ),
 
-                  Spacer(),
+                  const SizedBox(width: 10),
+
+                  if (discountValue != 0)
+                    Flexible(
+                      child: discountType == 'amount'
+                          ? Text(
+                              'Rs: ${(price + discountValue)}',
+                              style: const TextStyle(
+                                color: kBeforeDiscount,
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            )
+                          : Text(
+                              'Rs: ${(price + (price * discountValue / 100)).toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                color: kBeforeDiscount,
+                                fontSize: 12,
+                                decoration: TextDecoration.lineThrough,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                    ),
+
+                  const Spacer(),
                   BookNow(),
+
                   /// if(discountValue != 0)
                   /// SalePercentage(off: discountValue, type: discountType,),
                 ],
               ),
-        
-        
             ],
           ),
         ),

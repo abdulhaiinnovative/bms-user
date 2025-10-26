@@ -3,6 +3,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/providers/SearchProvider.dart';
+import 'package:app/providers/auth/auth_provider.dart';
+import 'package:app/providers/notification/notification_provider.dart';
 import 'package:app/screens/splash/splash_screen.dart';
 import 'firebase_options.dart';
 import 'routes.dart';
@@ -17,8 +19,10 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => SearchProvider()),
         ChangeNotifierProvider(create: (context) => SearchProviderNew()),
+        ChangeNotifierProvider(create: (context) => NotificationProvider()),
       ],
       child: const MyApp(),
     ),

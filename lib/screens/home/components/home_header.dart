@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 
-import '../../cart/cart_screen.dart';
 import '../../search_final/search_service_screen_new.dart';
-import 'icon_btn_with_counter.dart';
 import 'search_field.dart';
+import 'notification_bell_button.dart';
 
 class HomeHeader extends StatelessWidget {
-
-  TextEditingController searchController = TextEditingController();
+  final TextEditingController searchController = TextEditingController();
 
   HomeHeader({
     Key? key,
@@ -26,13 +24,16 @@ class HomeHeader extends StatelessWidget {
               onTap: () {
                 // your on press action
                 print("SearchField tapped");
-                Navigator.pushNamed(context, SearchServiceScreenNew.routeName,
+                Navigator.pushNamed(
+                  context,
+                  SearchServiceScreenNew.routeName,
                   arguments: {
                     'isFromBottomNav': true,
                   },
                 );
               },
-              child: IgnorePointer( // prevents actual text input
+              child: IgnorePointer(
+                // prevents actual text input
                 child: SearchField(
                   controller: searchController,
                 ),
@@ -45,11 +46,8 @@ class HomeHeader extends StatelessWidget {
           //   press: () => Navigator.pushNamed(context, CartScreen.routeName),
           // ),
           const SizedBox(width: 8),
-          IconBtnWithCounter(
-            svgSrc: "assets/icons/Bell.svg",
-            numOfitem: 0,
-            press: () {},
-          ),
+          // Notification bell with unread badge
+          const NotificationBellButton(),
         ],
       ),
     );

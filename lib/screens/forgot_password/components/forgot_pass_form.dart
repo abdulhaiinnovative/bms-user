@@ -1,9 +1,12 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
-
+import 'package:provider/provider.dart';
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../components/no_account_text.dart';
 import '../../../constants.dart';
+import '../../../providers/auth/auth_provider.dart';
+import '../../verification/verification_screen.dart';
 
 class ForgotPassForm extends StatefulWidget {
   const ForgotPassForm({super.key});
@@ -14,8 +17,83 @@ class ForgotPassForm extends StatefulWidget {
 
 class _ForgotPassFormState extends State<ForgotPassForm> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
   List<String> errors = [];
-  String? email;
+  bool _isLoading = false;
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _handleSubmit() async {
+    if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+        errors.clear();
+      });
+
+      try {
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+        log('📧 ForgotPassword: Requesting reset code for ${_emailController.text.trim()}');
+
+        final success =
+            await authProvider.forgotPassword(_emailController.text.trim());
+
+        if (!mounted) return;
+
+        setState(() {
+          _isLoading = false;
+        });
+
+        if (success) {
+          log('✅ ForgotPassword: Reset code sent successfully');
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Reset code sent to your email!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Navigate to verification screen
+          Navigator.pushNamed(
+            context,
+            VerificationScreen.routeName,
+            arguments: {
+              'email': _emailController.text.trim(),
+              'verificationType': 'password_reset',
+            },
+          );
+        } else {
+          log('❌ ForgotPassword: Failed to send reset code');
+          setState(() {
+            if (!errors.contains(
+                authProvider.errorMessage ?? 'Failed to send reset code')) {
+              errors.add(
+                  authProvider.errorMessage ?? 'Failed to send reset code');
+            }
+          });
+        }
+      } catch (e) {
+        log('💥 ForgotPassword: Error - $e');
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            final errorMsg = e.toString().replaceAll('Exception: ', '');
+            if (!errors.contains(errorMsg)) {
+              errors.add(errorMsg);
+            }
+          });
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Form(
@@ -23,8 +101,8 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
       child: Column(
         children: [
           TextFormField(
+            controller: _emailController,
             keyboardType: TextInputType.emailAddress,
-            onSaved: (newValue) => email = newValue,
             onChanged: (value) {
               if (value.isNotEmpty && errors.contains(kEmailNullError)) {
                 setState(() {
@@ -54,8 +132,6 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
             decoration: const InputDecoration(
               labelText: "Email",
               hintText: "Enter your email",
-              // If  you are using latest version of flutter then lable text and hint text shown like this
-              // if you r using flutter less then 1.20.* then maybe this is not working properly
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
             ),
@@ -63,13 +139,22 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
           const SizedBox(height: 8),
           FormError(errors: errors),
           const SizedBox(height: 8),
-          ElevatedButton(
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                // Do what you want to do
-              }
-            },
-            child: const Text("Continue"),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _isLoading ? null : _handleSubmit,
+              child: _isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text("Continue"),
+            ),
           ),
           const SizedBox(height: 16),
           const NoAccountText(),

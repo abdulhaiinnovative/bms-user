@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../constants.dart';
-import '../screens/sign_up/sign_up_screen.dart';
 
 class NoAccountText extends StatelessWidget {
+  final VoidCallback? onSignUpTap;
+
   const NoAccountText({
     Key? key,
+    this.onSignUpTap,
   }) : super(key: key);
 
   @override
@@ -14,11 +16,15 @@ class NoAccountText extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         const Text(
-          "Don’t have an account? ",
+          "Don't have an account? ",
           style: TextStyle(fontSize: 16),
         ),
         GestureDetector(
-          onTap: () => Navigator.pushNamed(context, SignUpScreen.routeName),
+          onTap: onSignUpTap ??
+              () {
+                // Fallback: Navigate back to auth screen
+                Navigator.pop(context);
+              },
           child: const Text(
             "Sign Up",
             style: TextStyle(fontSize: 16, color: kPrimaryColor),
