@@ -1,21 +1,12 @@
 import 'dart:developer';
 
-import 'package:app/models/SalonServicesCategorizedResponse.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/CustomAppBar.dart';
-import 'package:app/utlis/UtilsExtra.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:lottie/lottie.dart';
-import 'package:remixicon/remixicon.dart';
 // import 'package:app/screens/test_scroll/jewellery_repository.dart';
-import '../../api_services/salon_services_categorized_api.dart';
 import '../../constants.dart';
-import '../../helper/CircularNetworkImage.dart';
 import 'CartSummarySection.dart';
 import 'SelectDateScreen.dart';
-
 
 class SelectProfessionals extends StatefulWidget {
   static String routeName = "/select_professionals";
@@ -32,7 +23,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
   String? salonName;
   String? salonImage;
   String? salonAddress;
-  bool _isLoading = false;
+  final bool _isLoading = false;
 
   @override
   void initState() {
@@ -70,12 +61,13 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
     // Create a list of professionals including "Any"
     List<String> professionals = ['Any'];
     if (service.professionals != null) {
-      professionals.addAll(service.professionals!.map((p) => p.name ?? 'Unknown'));
+      professionals
+          .addAll(service.professionals!.map((p) => p.name ?? 'Unknown'));
     }
 
     return Container(
       width: double.infinity,
-      margin: EdgeInsets.only(right: 12, left: 12, top: 12),
+      margin: const EdgeInsets.only(right: 12, left: 12, top: 12),
       padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 8),
       height: 120,
       decoration: BoxDecoration(
@@ -95,45 +87,43 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
               ),
             ),
           ),
-          Spacer(),
+          const Spacer(),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
               children: professionals.map((professional) {
-                bool isSelected = selectedProfessionals[service] == professional;
+                bool isSelected =
+                    selectedProfessionals[service] == professional;
                 return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: RawChip(
-                    label: Text(
-                      professional,
-                      style: TextStyle(
-                        color: isSelected ? Colors.white : Colors.black,
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: RawChip(
+                      label: Text(
+                        professional,
+                        style: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                        ),
                       ),
-                    ),
-                    selected: isSelected,
-                    selectedColor: kPrimaryDarkColor,
-                    checkmarkColor: Colors.white,
-                    backgroundColor: Colors.transparent,
-                    shape: StadiumBorder(),
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedProfessionals[service] = selected ? professional : null;
-                      });
-                    },
-                  )
-
-                );
+                      selected: isSelected,
+                      selectedColor: kPrimaryDarkColor,
+                      checkmarkColor: Colors.white,
+                      backgroundColor: Colors.transparent,
+                      shape: const StadiumBorder(),
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedProfessionals[service] =
+                              selected ? professional : null;
+                        });
+                      },
+                    ));
               }).toList(),
             ),
           ),
-
         ],
       ),
     );
   }
 
   Widget _buildDealItem(dynamic deal) {
-
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(right: 12, left: 12, top: 12),
@@ -156,39 +146,29 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
               ),
             ),
           ),
-
-          Spacer(),
-
-
-
+          const Spacer(),
           Container(
-            margin: EdgeInsets.only(left: 10),
+            margin: const EdgeInsets.only(left: 10),
             child: RawChip(
-              label: Text(
+              label: const Text(
                 'Any',
                 style: TextStyle(color: Colors.white),
               ),
               selected: true,
               selectedColor: kPrimaryDarkColor,
-            
-              avatar: Icon(
+              avatar: const Icon(
                 Icons.check,
                 color: Colors.white,
                 size: 18,
               ),
-              shape: StadiumBorder(),
+              shape: const StadiumBorder(),
               onSelected: (_) {},
             ),
           )
-
-
-
-
         ],
       ),
     );
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -241,60 +221,57 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
             left: 0,
             right: 0,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    spreadRadius: 2,
-                  ),
-                ],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: CartSummarySection(
-                totalItems: cartItems!.length,
-                totalAmount: cartItems!.entries.fold<double>(
-                  0.0,
-                      (sum, entry) {
-                    final item = entry.key;
-                    final quantity = entry.value;
-                    final price = _getItemPrice(item);
-                    return sum + (price * quantity);
-                  },
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 10,
+                      spreadRadius: 2,
+                    ),
+                  ],
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 ),
-                buttonColor: canProceed ? kPrimaryDarkColor : Colors.grey,
-                onContinue: () {
-                  if (canProceed) {
-                    Navigator.pushNamed(
-                      context,
-                      SelectDateScreen.routeName,
-                      arguments: {
-                        'selectedProfessionals': selectedProfessionals,
-                        'cartItems': cartItems,
-                        'salonName': salonName,
-                        'salonImage': salonImage,
-                        'salonAddress': salonAddress,
-                      },
-                    );
-                  }
-                },
-              )
-            ),
+                child: CartSummarySection(
+                  totalItems: cartItems?.length ?? 0,
+                  totalAmount: cartItems?.entries.fold<double>(
+                        0.0,
+                        (sum, entry) {
+                          final item = entry.key;
+                          final quantity = entry.value;
+                          final price = _getItemPrice(item);
+                          return sum + (price * quantity);
+                        },
+                      ) ??
+                      0.0,
+                  buttonColor: canProceed ? kPrimaryDarkColor : Colors.grey,
+                  onContinue: () {
+                    if (canProceed) {
+                      Navigator.pushNamed(
+                        context,
+                        SelectDateScreen.routeName,
+                        arguments: {
+                          'selectedProfessionals': selectedProfessionals,
+                          'cartItems': cartItems,
+                          'salonName': salonName,
+                          'salonImage': salonImage,
+                          'salonAddress': salonAddress,
+                        },
+                      );
+                    }
+                  },
+                )),
           ),
         ],
       ),
     );
   }
 
-
   double _getItemPrice(dynamic item) {
     if (item is Service) return (item.price ?? 0).toDouble();
     if (item is Deal) return (item.totalPrice ?? 0).toDouble();
     return 0.0;
   }
-
-
-
 }

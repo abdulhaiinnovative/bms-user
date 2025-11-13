@@ -1,8 +1,6 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:app/components/filter_categories.dart';
 import 'package:app/components/filter_location.dart';
 import 'package:app/components/price_range.dart';
@@ -69,7 +67,7 @@ class ServicesHeaderTest extends StatelessWidget {
 
                     InkWell(
                       child: Container(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: const Row(
                           children: <Widget>[
                             Icon(Icons.sort),
@@ -85,7 +83,7 @@ class ServicesHeaderTest extends StatelessWidget {
                             context: context,
                             builder: (BuildContext context)
                             {
-                              return Sorting();
+                              return const Sorting();
 
                             }
                         );
@@ -130,7 +128,7 @@ class ServicesHeaderTest extends StatelessWidget {
                                     context: context,
                                     builder: (BuildContext context)
                                     {
-                                      return FilterCategories();
+                                      return const FilterCategories();
                                     }
                                 )
                               },
@@ -144,7 +142,7 @@ class ServicesHeaderTest extends StatelessWidget {
                                     context: context,
                                     builder: (BuildContext context)
                                     {
-                                      return FilterLocation();
+                                      return const FilterLocation();
                                     }
                                 )
                               },
@@ -159,7 +157,7 @@ class ServicesHeaderTest extends StatelessWidget {
                                     context: context,
                                     builder: (BuildContext context)
                                     {
-                                      return FilterLocation();
+                                      return const FilterLocation();
                                       //LocationPage(),
                                     }
                                 )
@@ -173,7 +171,7 @@ class ServicesHeaderTest extends StatelessWidget {
                                     context: context,
                                     builder: (BuildContext context)
                                     {
-                                      return PriceRange();
+                                      return const PriceRange();
                                     }
                                 )
                               },
@@ -243,7 +241,7 @@ class FilterItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  FilterItem({required this.label, required this.onTap});
+  const FilterItem({super.key, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -263,18 +261,18 @@ class FilterItem extends StatelessWidget {
             children: <Widget>[
               Text(
                 label,
-                style: TextStyle(color: kPrimaryDarkColor,
+                style: const TextStyle(color: kPrimaryDarkColor,
                   fontSize: 18,
                   fontWeight:  FontWeight.w800,
                 ),
               ),
-              SizedBox(width: 2),
+              const SizedBox(width: 2),
 
               IconButton(onPressed: (){
                 log('=--=-=');
 
               },
-                icon: Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
+                icon: const Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
               ),
 
             ],
@@ -296,7 +294,7 @@ class CircleIconButton extends StatelessWidget {
   final double iconSize;
   final double circleSize;
 
-  CircleIconButton({
+  const CircleIconButton({super.key, 
     required this.onPressed,
     required this.icon,
     required this.iconColor,
@@ -320,8 +318,8 @@ class CircleIconButton extends StatelessWidget {
       child: IconButton(
         onPressed: onPressed,
         icon: Icon(icon, color: iconColor, size: iconSize),
-        padding: EdgeInsets.all(0), // Remove default padding
-        constraints: BoxConstraints(), // Remove default constraints
+        padding: const EdgeInsets.all(0), // Remove default padding
+        constraints: const BoxConstraints(), // Remove default constraints
       ),
     );
   }

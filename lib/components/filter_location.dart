@@ -8,7 +8,7 @@ class FilterLocation extends StatelessWidget {
   }) : super(key: key);
 
   static  int _selectedOptionIndex = 0;
-  static  List<String> _sortingOptions = [
+  static  final List<String> _sortingOptions = [
     'PECHS',
     'DHA phase 4',
     'DHA phase 6',
@@ -28,7 +28,7 @@ class FilterLocation extends StatelessWidget {
           return ListTile(
             title: Text(option),
             trailing: _selectedOptionIndex == index
-                ? Icon(Icons.check, color: kPrimaryColor)
+                ? const Icon(Icons.check, color: kPrimaryColor)
                 : null,
             onTap: () {
               //setState(() {

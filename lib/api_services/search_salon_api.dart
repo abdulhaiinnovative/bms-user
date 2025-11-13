@@ -1,8 +1,3 @@
-import 'dart:convert';
-import 'dart:developer';
-import 'package:http/http.dart' as http;
-import 'package:app/models/SearchSalonResponse.dart';
-import '../models/SalonMain.dart';
 
 // Future<List<SalonMain>> searchSalonAPI({required String salon, required String service}) async {
 //   const String url = 'https://bookmyspot.arca9.com/api/salons/search?page=1';

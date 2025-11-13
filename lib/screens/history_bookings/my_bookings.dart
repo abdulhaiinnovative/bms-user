@@ -14,7 +14,8 @@ class MyBookings extends StatefulWidget {
   State<MyBookings> createState() => _MyBookingsState();
 }
 
-class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateMixin {
+class _MyBookingsState extends State<MyBookings>
+    with SingleTickerProviderStateMixin {
   late final TabController _tabController;
   late final ScrollController _allScrollController;
   late final ScrollController _upcomingScrollController;
@@ -52,13 +53,17 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
   }
 
   void _scrollListener() {
-    if (_isLoading || _isLoadingMore || _nextPageUrl == null || _isFetchingMore) return;
+    if (_isLoading || _isLoadingMore || _nextPageUrl == null || _isFetchingMore) {
+      return;
+    }
     final controller = _tabController.index == 0
         ? _allScrollController
         : _tabController.index == 1
-        ? _upcomingScrollController
-        : _pastScrollController;
-    if (controller.hasClients && controller.position.pixels >= controller.position.maxScrollExtent * 0.9) {
+            ? _upcomingScrollController
+            : _pastScrollController;
+    if (controller.hasClients &&
+        controller.position.pixels >=
+            controller.position.maxScrollExtent * 0.9) {
       log('Scroll reached 90% of max extent, fetching more data');
       _isFetchingMore = true;
       _fetchBookings(loadMore: true).then((_) => _isFetchingMore = false);
@@ -81,7 +86,8 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
     });
     try {
       log('Fetching bookings, loadMore: $loadMore, URL: ${_nextPageUrl ?? "initial"}');
-      final bookingResponse = await MyBookingsAPI().getBooking(url: loadMore ? _nextPageUrl : null);
+      final bookingResponse =
+          await MyBookingsAPI().getBooking(url: loadMore ? _nextPageUrl : null);
       if (bookingResponse == null) {
         log('Received null booking response');
         setState(() {
@@ -107,16 +113,36 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
         log('All booking IDs after filtering: ${allBookings.map((b) => b.id).toList()}');
         log('Upcoming booking IDs: ${upcomingBookings.map((b) => b.id).toList()}');
         log('Past booking IDs: ${pastBookings.map((b) => b.id).toList()}');
+
+        // Clear error message if we successfully fetched (even if empty)
+        _errorMessage = null;
         _isLoading = false;
         _isLoadingMore = false;
       });
     } catch (e, stackTrace) {
-      setState(() {
-        _errorMessage = 'Failed to fetch bookings: $e';
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
-      log('Error in MyBookings._fetchBookings: $e\nStack: $stackTrace');
+      // Only show error for actual errors, not for empty booking responses
+      final errorString = e.toString();
+      if (!errorString.contains('404') &&
+          !errorString.contains('No bookings found')) {
+        setState(() {
+          _errorMessage = 'Failed to fetch bookings: $e';
+          _isLoading = false;
+          _isLoadingMore = false;
+        });
+        log('Error in MyBookings._fetchBookings: $e\nStack: $stackTrace');
+      } else {
+        // 404 means no bookings, which is a valid state, not an error
+        log('No bookings found (empty state), clearing error');
+        setState(() {
+          _errorMessage = null;
+          _isLoading = false;
+          _isLoadingMore = false;
+          if (!loadMore) {
+            allBookings.clear();
+          }
+          _filterBookings();
+        });
+      }
     }
   }
 
@@ -178,11 +204,13 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
         dateB = b.date != null ? DateTime.parse(b.date!) : null;
         if (dateA != null && a.time != null) {
           final timeA = DateFormat('HH:mm:ss').parse(a.time!).toLocal();
-          dateA = DateTime(dateA.year, dateA.month, dateA.day, timeA.hour, timeA.minute);
+          dateA = DateTime(
+              dateA.year, dateA.month, dateA.day, timeA.hour, timeA.minute);
         }
         if (dateB != null && b.time != null) {
           final timeB = DateFormat('HH:mm:ss').parse(b.time!).toLocal();
-          dateB = DateTime(dateB.year, dateB.month, dateB.day, timeB.hour, timeB.minute);
+          dateB = DateTime(
+              dateB.year, dateB.month, dateB.day, timeB.hour, timeB.minute);
         }
       } catch (e, stackTrace) {
         log('Error parsing date/time for sorting booking IDs ${a.id} vs ${b.id}: $e\nStack: $stackTrace');
@@ -277,7 +305,8 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildBookingList(List<Booking> bookings, ScrollController controller) {
+  Widget _buildBookingList(
+      List<Booking> bookings, ScrollController controller) {
     if (_isLoading && !_isLoadingMore) {
       log('Showing shimmer for initial loading');
       return _buildShimmer();
@@ -307,7 +336,8 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
           final booking = bookings[index];
           log('Rendering booking ID: ${booking.id}');
           final date = DateTime.tryParse(booking.date ?? '');
-          final formattedDate = date != null ? DateFormat('MMM dd, yyyy').format(date) : 'N/A';
+          final formattedDate =
+              date != null ? DateFormat('MMM dd, yyyy').format(date) : 'N/A';
           String formattedTime = 'N/A';
           String title = booking.title ?? '-';
           if (booking.time != null) {
@@ -322,104 +352,308 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Container(
               decoration: BoxDecoration(
-                color: kCardBG,
-                borderRadius: BorderRadius.circular(kRadius),
-              ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        Hero(
-                          tag: 'salon-logo-${booking.id ?? 'unknown'}',
-                          child: CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.grey[200],
-                            backgroundImage: booking.salon?.logo != null
-                                ? NetworkImage(booking.salon!.logo!)
-                                : null,
-                            child: booking.salon?.logo == null
-                                ? Icon(Icons.store, size: 24, color: Colors.grey[600])
-                                : null,
-                          ),
-                        ),
-                        const SizedBox(width: 15),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                booking.salon?.name ?? 'Unknown Salon',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                booking.salon?.address ?? 'Unknown Address',
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black54,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8,),
-
-                    Divider(color: kScreenBg,),
-
-                    SizedBox(height: 8,),
-
-                    _buildDetailText('Title', title),
-                    _buildDetailText('Date', formattedDate),
-                    _buildDetailText('Time', formattedTime),
-                    _buildDetailText('Status', booking.status ?? 'N/A'),
-                    _buildDetailText('Type', booking.bookingType ?? 'N/A'),
-                    _buildDetailText('Payment', booking.paymentStatus ?? 'N/A'),
-                    _buildDetailText('Team ID', booking.id?.toString() ?? 'N/A'),
-
-                    Container(
-                      child: Text(
-                      'PKR ${booking.payment ?? 0}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: kPrimaryDarkColor,
-                      ),
-                     ),
-                    ),
-
-
-
-
-
-                  ],
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Colors.white, Colors.grey.shade50],
                 ),
-
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: kPrimaryColor.withOpacity(0.1),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
                 onTap: () async {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookingDetailsScreen(booking: booking),
+                      builder: (context) =>
+                          BookingDetailsScreen(booking: booking),
                     ),
                   );
                   if (result == true) {
                     _fetchBookings();
                   }
                 },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Header with salon info
+                      Row(
+                        children: [
+                          Hero(
+                            tag: 'salon-logo-${booking.id ?? 'unknown'}',
+                            child: Container(
+                              width: 56,
+                              height: 56,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(12),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(12),
+                                child: booking.salon?.logo != null
+                                    ? Image.network(
+                                        booking.salon!.logo!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stack) =>
+                                            Container(
+                                          color: Colors.grey[200],
+                                          child: Icon(Icons.store,
+                                              size: 28, color: Colors.grey[600]),
+                                        ),
+                                      )
+                                    : Container(
+                                        color: Colors.grey[200],
+                                        child: Icon(Icons.store,
+                                            size: 28, color: Colors.grey[600]),
+                                      ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  booking.salon?.name ?? 'Unknown Salon',
+                                  style: const TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.black87,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    Icon(Icons.location_on_outlined,
+                                        size: 14, color: Colors.grey[600]),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        booking.salon?.address ?? 'Unknown Address',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey[600],
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          // Status badge
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: _getStatusColor(booking.status).withOpacity(0.15),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: _getStatusColor(booking.status),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: Text(
+                              (booking.status ?? 'N/A').toUpperCase(),
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                                color: _getStatusColor(booking.status),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      Divider(height: 1, color: Colors.grey.shade300),
+                      const SizedBox(height: 16),
+                      
+                      // Booking details
+                      if (title != '-')
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: kPrimaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(Icons.description_outlined,
+                                    size: 18, color: kPrimaryColor),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Service',
+                                      style: TextStyle(
+                                        fontSize: 11,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      title,
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Colors.black87,
+                                      ),
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      
+                      // Date and Time row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoCard(
+                              Icons.calendar_today_outlined,
+                              'Date',
+                              formattedDate,
+                              Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoCard(
+                              Icons.access_time_outlined,
+                              'Time',
+                              formattedTime,
+                              Colors.orange,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 12),
+                      
+                      // Payment and Type row
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoCard(
+                              Icons.payment_outlined,
+                              'Payment',
+                              booking.paymentStatus ?? 'N/A',
+                              Colors.green,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoCard(
+                              Icons.category_outlined,
+                              'Type',
+                              booking.bookingType ?? 'N/A',
+                              Colors.purple,
+                            ),
+                          ),
+                        ],
+                      ),
+                      
+                      const SizedBox(height: 16),
+                      Divider(height: 1, color: Colors.grey.shade300),
+                      const SizedBox(height: 12),
+                      
+                      // Price and action
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Total Amount',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'PKR ${booking.payment ?? 0}',
+                                style: const TextStyle(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.bold,
+                                  color: kPrimaryDarkColor,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 20, vertical: 10),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [kPrimaryColor, kPrimaryDarkColor],
+                              ),
+                              borderRadius: BorderRadius.circular(25),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: kPrimaryColor.withOpacity(0.3),
+                                  blurRadius: 8,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: const [
+                                Text(
+                                  'View Details',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                                Icon(Icons.arrow_forward_rounded,
+                                    color: Colors.white, size: 18),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
           );
@@ -428,28 +662,68 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildDetailText(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
+  Color _getStatusColor(String? status) {
+    switch (status?.toLowerCase()) {
+      case 'booked':
+      case 'confirmed':
+        return Colors.green;
+      case 'completed':
+        return Colors.blue;
+      case 'cancelled':
+        return Colors.red;
+      case 'pending':
+        return Colors.orange;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  Widget _buildInfoCard(IconData icon, String label, String value, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withOpacity(0.2),
+          width: 1,
+        ),
+      ),
       child: Row(
         children: [
-          Text(
-            '$label: ',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(6),
             ),
+            child: Icon(icon, size: 16, color: color),
           ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: Colors.black87,
-              ),
-              //overflow: TextOverflow.ellipsis,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
@@ -484,8 +758,10 @@ class _MyBookingsState extends State<MyBookings> with SingleTickerProviderStateM
           indicatorColor: Colors.white,
           labelColor: Colors.white,
           unselectedLabelColor: Colors.white70,
-          labelStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+          labelStyle:
+              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          unselectedLabelStyle:
+              const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
           tabs: const [
             Tab(text: "All"),
             Tab(text: "Upcoming"),

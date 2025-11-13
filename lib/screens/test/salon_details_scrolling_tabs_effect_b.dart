@@ -1,8 +1,5 @@
-import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +8,7 @@ import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:app/models/SalonDetailApiResponse.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import '../../api_services/salon_detail_api.dart';
+import '../../api_services/favourite_api.dart';
 import '../../components/ratings.dart';
 import '../../constants.dart';
 import '../../helper/CircularNetworkImage.dart';
@@ -19,7 +17,6 @@ import '../../models/HomePageResponse.dart';
 import '../home/components/deals_dashboard.dart';
 import '../home/components/services_dashboard.dart';
 import '../test_scroll/salon_category_and_services_list.dart';
-import 'data_source.dart';
 import 'package:shimmer/shimmer.dart';
 
 class SalonDetailsScrollingTabsEffectB extends StatefulWidget {
@@ -35,25 +32,119 @@ class _SalonDetailsScrollingTabsEffectB
     extends State<SalonDetailsScrollingTabsEffectB>
     with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   final AutoScrollController _autoScrollController = AutoScrollController();
-  late TabController _tabController ;
+  late TabController _tabController;
 
   static String logs = "SalonDetail111   ";
   //late SalonDetailServiceWithGroupModel serviceItems;
 
   bool isExpanded = true;
   final Map<int, bool> _visibleItems = {0: true};
+
   ///late SalonDetailsClass salonDetails ;
 
   SalonData? salonDetailsss;
 
+  // TODO: FAVOURITES STATE - Manage favourite status for salon
+  // Favourite state management
+  // Note: isFavourite is initialized from salonDetailsss?.isFavourite in loadJson()
+  // and then maintained separately to allow immediate UI updates without refetching
+  bool isFavourite = false;
+  bool isTogglingFavourite = false;
+  final FavouriteAPI _favouriteAPI = FavouriteAPI();
+
   Future<void> loadJson(id) async {
     try {
+      log("=== loadJson called with id: $id ===");
       SalonDetailAPI salonDetailAPI = SalonDetailAPI();
       final fetchedData = await salonDetailAPI.fetchSalonDetailData(id);
+
+      // Print complete salon data
+      print("\n════════════════════════════════════════════════════════");
+      print("📍 SALON DETAIL SCREEN - DATA LOADED");
+      print("════════════════════════════════════════════════════════");
+      print("🏢 SALON ID: ${fetchedData?.id}");
+      print("📝 SALON NAME: ${fetchedData?.name}");
+      print("📅 CREATED AT: ${fetchedData?.createdAt}");
+      print("👥 GENDER: ${fetchedData?.gender}");
+      print("🏷️ TYPE: ${fetchedData?.type}");
+      print("🎭 KIND: ${fetchedData?.kind}");
+      print("⭐ RATING: ${fetchedData?.star}");
+      print("💬 REVIEW COUNT: ${fetchedData?.review_count}");
+      print("❤️ IS FAVOURITE: ${fetchedData?.isFavourite}");
+      print("🖼️ LOGO: ${fetchedData?.logo}");
+      print("📸 IMAGES COUNT: ${fetchedData?.images.length}");
+      if (fetchedData?.images.isNotEmpty ?? false) {
+        print("   Images:");
+        fetchedData?.images.asMap().forEach((index, img) {
+          print("   [$index]: $img");
+        });
+      }
+      print("\n📍 LOCATION:");
+      print("   Address: ${fetchedData?.location?.address}");
+      print("   Latitude: ${fetchedData?.location?.lat}");
+      print("   Longitude: ${fetchedData?.location?.long}");
+      print("\n🔗 SOCIAL MEDIA:");
+      print("   Facebook: ${fetchedData?.fackebook}");
+      print("   Instagram: ${fetchedData?.instagram}");
+      print("   Twitter: ${fetchedData?.twitter}");
+      print("   LinkedIn: ${fetchedData?.linkedin}");
+      print("\n📄 ABOUT:");
+      print(fetchedData?.about ?? 'N/A');
+      print("\n📜 POLICY:");
+      print(fetchedData?.policy ?? 'N/A');
+      print("\n📑 SECTIONS (${fetchedData?.sections?.length ?? 0}):");
+      if (fetchedData?.sections != null) {
+        fetchedData?.sections?.asMap().forEach((index, section) {
+          print("   [$index] ${section.name} (Type: ${section.type})");
+          print("       Data items: ${section.data?.length ?? 0}");
+          if (section.data != null &&
+              section.data is List &&
+              section.data!.isNotEmpty) {
+            for (int i = 0; i < section.data.length; i++) {
+              var item = section.data[i];
+              // Handle different section types
+              if (item is Service) {
+                print(
+                    "       - Service $i: ${item.name} (ID: ${item.id}, Price: ${item.price})");
+              } else if (item is Deal) {
+                print(
+                    "       - Deal $i: ${item.name} (ID: ${item.id}, Total: ${item.totalPrice})");
+              } else if (item is Staff) {
+                print(
+                    "       - Staff $i: ${item.name} (ID: ${item.id}, Email: ${item.email})");
+              } else if (item is Review) {
+                print(
+                    "       - Review $i: ${item.comment} (Rating: ${item.rating}, User: ${item.user.name})");
+              } else if (item is About) {
+                print(
+                    "       - About $i: Address: ${item.address}, Desc: ${item.desc?.substring(0, item.desc!.length > 50 ? 50 : item.desc!.length)}...");
+              } else {
+                print("       - Item $i: ${item.toString()}");
+              }
+            }
+          }
+        });
+      }
+      print("════════════════════════════════════════════════════════\n");
+
+      log("Fetched salon data: ${fetchedData?.name}");
+      log("Sections count: ${fetchedData?.sections?.length}");
+      log("Images count: ${fetchedData?.images.length}");
+      log("Is Favourite: ${fetchedData?.isFavourite}");
 
       if (mounted) {
         setState(() {
           salonDetailsss = fetchedData;
+          // TODO: FAVOURITES INIT - Initialize favourite state from API response
+          // Set initial favourite state from API response
+          isFavourite = fetchedData?.isFavourite ?? false;
+          log("✅ Initial favourite state set to: $isFavourite");
+
+          if (salonDetailsss?.sections != null) {
+            for (int i = 0; i < salonDetailsss!.sections!.length; i++) {
+              log("Section $i: ${salonDetailsss!.sections![i].name}, type: ${salonDetailsss!.sections![i].type}, data length: ${salonDetailsss!.sections![i].data?.length}");
+            }
+          }
 
           /// Dispose previous TabController before creating a new one
           _tabController.dispose();
@@ -61,6 +152,7 @@ class _SalonDetailsScrollingTabsEffectB
             length: salonDetailsss?.sections?.length ?? 1,
             vsync: this,
           );
+          log("TabController initialized with ${salonDetailsss?.sections?.length ?? 1} tabs");
 
           _autoScrollController.addListener(() {
             if (mounted) {
@@ -70,9 +162,102 @@ class _SalonDetailsScrollingTabsEffectB
             }
           });
         });
+      } else {
+        log("WARNING: Widget not mounted, skipping setState");
+      }
+    } catch (e, stackTrace) {
+      log("❌ ERROR in loadJson: $e");
+      log("Stack trace: $stackTrace");
+      if (mounted) {
+        // Show error to user
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading salon details: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  // TODO: FAVOURITES TOGGLE - Add/remove salon from favourites
+  // This method calls the API to toggle favourite status
+  // Shows loading state, updates UI, and displays success/error messages
+  /// Toggle favourite status for the salon
+  Future<void> _toggleFavourite() async {
+    if (salonDetailsss?.id == null) {
+      log('❌ Cannot toggle favourite: Salon ID is null');
+      return;
+    }
+
+    if (isTogglingFavourite) {
+      log('Already toggling favourite, please wait...');
+      return;
+    }
+
+    setState(() {
+      isTogglingFavourite = true;
+    });
+
+    try {
+      final result = await _favouriteAPI.toggleFavourite(
+        shareId: salonDetailsss!.id.toString(),
+        shareType: 'salon',
+      );
+
+      if (mounted) {
+        if (result['success'] == true) {
+          setState(() {
+            isFavourite = result['isFavourite'] ?? false;
+            isTogglingFavourite = false;
+          });
+
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Success'),
+              backgroundColor: kPrimaryColor,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+          log('✅ Favourite toggled successfully: $isFavourite');
+        } else {
+          setState(() {
+            isTogglingFavourite = false;
+          });
+
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Failed to update favourite'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+          log('❌ Failed to toggle favourite: ${result['message']}');
+        }
       }
     } catch (e) {
-      log("Error fetching salon details: $e");
+      log('❌ Error toggling favourite: $e');
+      if (mounted) {
+        setState(() {
+          isTogglingFavourite = false;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('An error occurred. Please try again.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 
@@ -95,7 +280,7 @@ class _SalonDetailsScrollingTabsEffectB
       final args = ModalRoute.of(context)?.settings.arguments as String?;
       setState(() {
         log("args:::  $args");
-        loadJson('${args}'); // Fetch data asynchronously
+        loadJson('$args'); // Fetch data asynchronously
       });
     });
   }
@@ -116,65 +301,63 @@ class _SalonDetailsScrollingTabsEffectB
       key: ValueKey(index),
       controller: _autoScrollController,
       index: index,
-      child: child,
       highlightColor: Colors.black.withOpacity(0.1),
+      child: child,
     );
   }
 
   Widget _buildSliverAppbar(BuildContext context) {
-    if (salonDetailsss == null) return SliverToBoxAdapter();
+    if (salonDetailsss == null) return const SliverToBoxAdapter();
     var size = MediaQuery.of(context).size;
     return SliverAppBar(
       backgroundColor: Colors.white,
       pinned: true,
       snap: false,
-      expandedHeight: size.height / 1.80,
+      expandedHeight: size.height / 1.60,
       leading: !isExpanded
           ? IconButton(
-        icon: Icon(
-          Icons.arrow_back,
-          color: blackColor,
-        ),
-        onPressed: () => Navigator.of(context).pop(),
-      )
+              icon: const Icon(
+                Icons.arrow_back,
+                color: blackColor,
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+            )
           : Container(),
-
       title: !isExpanded
           ? Text(
-        salonDetailsss?.name ?? "",
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.w700,
-          color: Colors.black,
-        ),
-        overflow: TextOverflow.ellipsis,
-      )
+              salonDetailsss?.name ?? "",
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: Colors.black,
+              ),
+              overflow: TextOverflow.ellipsis,
+            )
           : Container(),
       flexibleSpace: FlexibleSpaceBar(
         collapseMode: CollapseMode.parallax,
         // title: !isExpanded ? Text("Detail View",style: TextStyle(color: blackColor),) : Container(),
         background: _buildSliverAppbarBackground(context),
       ),
-
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40),
+        preferredSize: const Size.fromHeight(40),
         child: AnimatedOpacity(
-          duration: Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 200),
           opacity: isExpanded ? 0.0 : 1,
           child: TabBar(
             controller: _tabController,
-            labelPadding: EdgeInsets.symmetric(horizontal: 20),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 20),
             padding: const EdgeInsets.fromLTRB(8.0, 0.0, 16.0, 5.0),
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: ShapeDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                   colors: [kPrimaryColor, kPrimaryDarkColor]),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
             labelStyle:
-            TextStyle(color: blackColor, fontWeight: FontWeight.bold),
+                const TextStyle(color: blackColor, fontWeight: FontWeight.bold),
             labelColor: Colors.white,
             //indicatorColor: Colors.white,
             //indicatorWeight: 2.5,
@@ -199,8 +382,7 @@ class _SalonDetailsScrollingTabsEffectB
                 // text: 'Detail Business',
                 // icon: Icon(Icons.three_k,color: whiteColor,),
               );
-            })!.toList(),
-
+            }).toList(),
           ),
         ),
       ),
@@ -210,15 +392,15 @@ class _SalonDetailsScrollingTabsEffectB
 
   Widget _buildSliverAppbarBackground(BuildContext context) {
     var imageList = salonDetailsss?.images;
-    final PageController _pageController = PageController();
+    final PageController pageController = PageController();
     return Column(
       children: [
         Stack(
           children: [
-            Container(
+            SizedBox(
               height: MediaQuery.of(context).size.height / 4,
               child: PageView.builder(
-                controller: _pageController,
+                controller: pageController,
                 itemCount: imageList?.length,
                 itemBuilder: (context, index) {
                   return Center(
@@ -239,10 +421,10 @@ class _SalonDetailsScrollingTabsEffectB
               child: Container(
                 alignment: Alignment.center,
                 // Center the content of the container
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
 
                 child: SmoothPageIndicator(
-                  controller: _pageController, // PageController
+                  controller: pageController, // PageController
                   count: imageList!.length,
                   effect: WormEffect(
                     dotWidth: 12.0,
@@ -254,49 +436,70 @@ class _SalonDetailsScrollingTabsEffectB
                 ),
               ),
             ),
+            // TODO: FAVOURITES UI - Heart icon button for add/remove favourites
+            // Shows filled heart when favourited, outlined when not
+            // Displays loading spinner during API call
+            // Icon reflects backend state (isFavourite from API response)
             Positioned(
-              child: Container(
-                decoration:
-                BoxDecoration(color: whiteColor, shape: BoxShape.circle),
-                child: IconButton(
-                  icon: Icon(Icons.favorite),
-                  color: kPrimaryColor,
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-              ),
               right: 16,
               top: 32,
+              child: Container(
+                decoration: const BoxDecoration(
+                    color: whiteColor, shape: BoxShape.circle),
+                child: isTogglingFavourite
+                    ? const Padding(
+                        padding: EdgeInsets.all(12.0),
+                        child: SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                          ),
+                        ),
+                      )
+                    : IconButton(
+                        icon: Icon(
+                          isFavourite ? Icons.favorite : Icons.favorite_border,
+                        ),
+                        color: kPrimaryColor,
+                        tooltip: isFavourite
+                            ? 'Remove from favourites'
+                            : 'Add to favourites',
+                        onPressed: _toggleFavourite,
+                      ),
+              ),
             ),
             Positioned(
+              left: 16,
+              top: 32,
               child: Container(
-                decoration:
-                BoxDecoration(color: whiteColor, shape: BoxShape.circle),
+                decoration: const BoxDecoration(
+                    color: whiteColor, shape: BoxShape.circle),
                 child: IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
               ),
-              left: 16,
-              top: 32,
             ),
             Positioned(
               left: 0,
               right: 0,
               bottom: 0,
               child: Container(
-                width: MediaQuery.of(context).size.width * 0.45, // 45% of screen width
+                width: MediaQuery.of(context).size.width *
+                    0.45, // 45% of screen width
                 height: 20,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: Colors.white, // Matches background
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     topRight: Radius.circular(40),
                     topLeft: Radius.circular(40),
                   ),
-                  boxShadow: const [
+                  boxShadow: [
                     BoxShadow(
                       color: Colors.black12, // Shadow color
                       offset: Offset(0, -6), // Negative Y offset for top shadow
@@ -309,67 +512,65 @@ class _SalonDetailsScrollingTabsEffectB
             ),
           ],
         ),
-
         Container(
             alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
             child: Text(
               salonDetailsss?.name ?? "",
               textAlign: TextAlign.start,
               style: Theme.of(context)
                   .textTheme
-                  .headlineLarge
+                  .headlineMedium
                   ?.copyWith(fontWeight: FontWeight.bold),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             )),
         Container(
-            alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.location_on, size: 16),
-                SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                    child: Text(
-                      '${salonDetailsss?.location?.address}',
-                      //maxLines: 5,
-                      overflow: TextOverflow.visible,
-                    )),
-              ],
-            ),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              const Icon(Icons.location_on, size: 14),
+              const SizedBox(
+                width: 6,
+              ),
+              Expanded(
+                  child: Text(
+                '${salonDetailsss?.location?.address}',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 13),
+              )),
+            ],
+          ),
         ),
-
-
-
         Container(
           alignment: Alignment.centerLeft,
-          padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
           child: Row(
             children: [
               Icon(
                 salonDetailsss?.gender == 'female'
                     ? Icons.female
                     : salonDetailsss?.gender == 'male'
-                    ? Icons.male
-                    : Icons.transgender,  // For 'unisex' or any other option
+                        ? Icons.male
+                        : Icons.transgender,
                 color: Colors.grey,
+                size: 16,
               ),
-              SizedBox(width: 8), // Adds some space between the icon and the text
+              const SizedBox(width: 4),
               Text(
-                'For ${salonDetailsss!.gender}'  ,
+                'For ${salonDetailsss!.gender}',
                 textAlign: TextAlign.start,
+                style: const TextStyle(fontSize: 13),
               ),
             ],
           ),
         ),
-
-
-
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15),
+          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -378,38 +579,43 @@ class _SalonDetailsScrollingTabsEffectB
             ],
           ),
         ),
-
-
-        SizedBox(height: 10,),
-
-        Divider(thickness: 1),
-        ListTile(
-          title: Text(
-            "About Us",
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
-
-          subtitle: Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.start,
-              mainAxisSize: MainAxisSize.max,
-              children: [
-                Icon(Icons.category, size: 16),
-                SizedBox(
-                  width: 10,
-                ),
-                Expanded(
-                    child: Text(
-                      '${salonDetailsss!.about.toString()}',
-                      //maxLines: 5,
-                      overflow: TextOverflow.visible,
-                    )),
-              ],
-            ),
+        const SizedBox(
+          height: 4,
+        ),
+        const Divider(thickness: 1, height: 1),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "About Us",
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                children: [
+                  const Padding(
+                    padding: EdgeInsets.only(top: 2),
+                    child: Icon(Icons.category, size: 14),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                      child: Text(
+                    salonDetailsss!.about.toString(),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 13),
+                  )),
+                ],
+              ),
+            ],
           ),
         ),
       ],
@@ -417,11 +623,16 @@ class _SalonDetailsScrollingTabsEffectB
   }
 
   Widget _buildServiceCategoryBody() {
-    if (salonDetailsss == null) return SliverToBoxAdapter(); // Prevent crashes
+    log('===== _buildServiceCategoryBody CALLED =====');
+    if (salonDetailsss == null) {
+      log('salonDetailsss is null, returning empty adapter');
+      return const SliverToBoxAdapter(); // Prevent crashes
+    }
 
+    log('Building service body with ${salonDetailsss!.sections?.length ?? 0} sections');
     return SliverList(
       delegate: SliverChildBuilderDelegate(
-            (context, index) {
+        (context, index) {
           return VisibilityDetector(
             //key: Key(serviceItems.data[index].sId),
             key: Key(salonDetailsss!.sections![index].name.toString()),
@@ -443,9 +654,8 @@ class _SalonDetailsScrollingTabsEffectB
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _buildCategoryTitle(context, salonDetailsss!.sections![index].name.toString()),
-
-
+                    _buildCategoryTitle(context,
+                        salonDetailsss!.sections![index].name.toString()),
 
                     ..._buildCategoryItems(context, index),
 
@@ -455,13 +665,13 @@ class _SalonDetailsScrollingTabsEffectB
                     //   ..._buildCategoryItems(context, index),
                     //
                     // ],
-
                   ],
                 ),
               ),
             ),
           );
         },
+
         ///childCount: serviceItems.data.length,
         childCount: salonDetailsss?.sections?.length,
       ),
@@ -476,9 +686,9 @@ class _SalonDetailsScrollingTabsEffectB
         child: Text(
           name,
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.bold,
-              //fontSize: 22
-          ),
+                fontWeight: FontWeight.bold,
+                //fontSize: 22
+              ),
           textAlign: TextAlign.left, // Ensures text is left-aligned
         ),
       ),
@@ -486,24 +696,11 @@ class _SalonDetailsScrollingTabsEffectB
   }
 
   Widget _buildSalonReview(BuildContext context, Review review) {
-    // Generate initials if image is empty
-    String initials = '';
-    if (review.user.image!.isEmpty) {
-      List<String> names = review.user!.name!.split(' ');
-
-      // If the name contains more than one part (e.g., "Muhammad Usman")
-      if (names.length > 1) {
-        initials = names[0].substring(0, 1).toUpperCase() +
-            names[1].substring(0, 1).toUpperCase(); // First letter of first and second name
-      } else {
-        initials = "---=---";
-        //initials = review?.user?.name?.substring(0, 2).toUpperCase(); // First two letters of the single name
-      }
-    }
-
     return Padding(
       padding: const EdgeInsets.only(right: 10.0),
-      child: ReviewCard(review: review,),
+      child: ReviewCard(
+        review: review,
+      ),
     );
 
     // return Container(
@@ -583,72 +780,97 @@ class _SalonDetailsScrollingTabsEffectB
     //           ],
     //         ),
     //       ),
-    //     ],
+    //     ],tall girl short guy
     //   ),
     // );
   }
 
   List<Widget> _buildCategoryItems(BuildContext context, int index) {
     if (salonDetailsss!.sections![index].data!.isEmpty) return [Container()];
+
+    log('Building category items for section $index, type: ${salonDetailsss!.sections![index].type}');
+    log('Data length: ${salonDetailsss!.sections![index].data!.length}');
+
     List<Staff> staff = [];
-    List<Widget> _list = [];
+    List<Widget> list = [];
     for (int i = 0; i < salonDetailsss!.sections![index].data!.length; i++) {
-      if(salonDetailsss!.sections![index].type == '3'){
+      if (salonDetailsss!.sections![index].type == '3') {
         // review Review
-        _list.add(_buildSalonReview(context, salonDetailsss!.sections![index].data?[i]));
+        list.add(_buildSalonReview(
+            context, salonDetailsss!.sections![index].data?[i]));
         //_list.add(_buildSalonServiceItem(context));
 
         // if((i+1) == salonDetailsss?.sections![index].data!.length){
         //   _list.add(_buildSeeAll(context, '1'));
         // }
-
-      }else if(salonDetailsss!.sections![index].type == '6'){
+      } else if (salonDetailsss!.sections![index].type == '6') {
         //deals Offer
         //_list.add(_buildSalonServiceItem(context));
 
         //_list.add(_buildDealsItem(context, salonDetailsss!.sections![index].data?[i]));
-        _list.add(_buildDealsItem(context, salonDetailsss!.sections![index].data?[i]));
+        list.add(_buildDealsItem(
+            context, salonDetailsss!.sections![index].data?[i]));
 
         // if((i+1) == salonDetailsss!.sections![index].data!.length){
         //   _list.add(_buildSeeAll(context, '1'));
         // }
-
-      }else if(salonDetailsss!.sections![index].type == '2'){
+      } else if (salonDetailsss!.sections![index].type == '2') {
         //deals Offer
         //_list.add(_buildSalonServiceItem(context));
 
-        _list.add(_buildServiceItem(context, salonDetailsss!.sections![index].data?[i]));
+        list.add(_buildServiceItem(
+            context, salonDetailsss!.sections![index].data?[i]));
 
         // if((i+1) == salonDetailsss!.sections![index].data!.length){
         //   _list.add(_buildSeeAll(context, '1'));
         // }
-
-      }else if(salonDetailsss!.sections![index].type == '5'){
+      } else if (salonDetailsss!.sections![index].type == '5') {
         //About
-        _list.add(_buildAbout(context, salonDetailsss!.sections![index].data?[i], salonDetailsss!.about ?? ""));
-
-
-
-
-      }else if(salonDetailsss!.sections![index].type == '4'){
+        list.add(_buildAbout(context, salonDetailsss!.sections![index].data?[i],
+            salonDetailsss!.about ?? ""));
+      } else if (salonDetailsss!.sections![index].type == '4') {
         //staff
+        log('Processing staff member $i');
 
-        staff.add(salonDetailsss!.sections![index].data?[i]);
-
-        if((i+1) == salonDetailsss!.sections![index].data?.length) {
-          _list.add(Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: staff.map((item) =>
-                    _buildSpecialistItem(context, item)).toList(),
-              ),
-            ),
-          ));
+        // Cast the data item to Staff type
+        if (salonDetailsss!.sections![index].data?[i] != null) {
+          Staff staffMember = salonDetailsss!.sections![index].data[i] as Staff;
+          log('Staff member: ${staffMember.name}, Image: ${staffMember.image}');
+          staff.add(staffMember);
         }
 
-      }else {
+        // Add the widget when we've collected all staff members
+        if ((i + 1) == salonDetailsss!.sections![index].data?.length) {
+          log('Finished collecting staff. Total: ${staff.length}');
+          if (staff.isNotEmpty) {
+            list.add(Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: staff
+                      .map((item) => _buildSpecialistItem(context, item))
+                      .toList(),
+                ),
+              ),
+            ));
+          } else {
+            // Show a message if no staff available
+            list.add(const Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Center(
+                child: Text(
+                  'No staff members available',
+                  style: TextStyle(
+                    color: kSecondaryColor,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ));
+          }
+        }
+      } else {
         //services
         //_list.add(_buildSalonReview(context, salonDetails.sections[index].data[i]));
       }
@@ -660,11 +882,10 @@ class _SalonDetailsScrollingTabsEffectB
       //
     }
 
-    return _list;
+    return list;
   }
 
   Widget _buildDealsItem(BuildContext context, Deal deal) {
-
     final defaultSalon = Salon(
       name: 'Unknown Salon',
       image: logo,
@@ -678,6 +899,7 @@ class _SalonDetailsScrollingTabsEffectB
         title: '${deal.name}' ?? 'No Title',
         image: deal.image ?? logo,
         salon: deal.salon ?? defaultSalon,
+        deal: deal,
         services: deal.services != null
             ? deal.services!.map((s) => s.name).join(' • ')
             : '',
@@ -686,21 +908,19 @@ class _SalonDetailsScrollingTabsEffectB
         discountType: deal.discountType ?? '-',
         press: () {
           //Navigator.pushNamed(context, ProductsScreen.routeName);
-          Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: deal);
+          Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName,
+              arguments: deal);
           log('Tapped Deal: ${deal.name}');
-          log('Tapped Deal:salon id   ${deal.services?[0]?.salon?.id}');
-          log('Tapped Deal:name   ${deal.services?[0]?.salon?.name}');
-          log('Tapped Deal:image   ${deal.services?[0]?.salon?.image}');
-          log('Tapped Deal:address   ${deal.services?[0]?.salon?.address}');
+          log('Tapped Deal:salon id   ${deal.services?[0].salon?.id}');
+          log('Tapped Deal:name   ${deal.services?[0].salon?.name}');
+          log('Tapped Deal:image   ${deal.services?[0].salon?.image}');
+          log('Tapped Deal:address   ${deal.services?[0].salon?.address}');
         },
       ),
     );
-
-
   }
 
   Widget _buildServiceItem(BuildContext context, Service service) {
-
     return Padding(
       padding: const EdgeInsets.only(right: 10),
       child: ServicesCard(
@@ -708,7 +928,7 @@ class _SalonDetailsScrollingTabsEffectB
         title: '${service.name}' ?? 'No Title',
         //image: item.image ?? logo,
         image: "",
-        salon: service.salon! ,
+        salon: service.salon!,
         desc: service.name ?? '',
         press: () {
           //Navigator.pushNamed(context, ProductsScreen.routeName);
@@ -722,35 +942,32 @@ class _SalonDetailsScrollingTabsEffectB
           // log('Tapped Deal:image   ${item.salon?.image}');
           // log('Tapped Deal:address   ${item.salon?.address}');
 
-
           log('==================================');
-          Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: service);
+          Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName,
+              arguments: service);
           log('Tapped Deal: ${service.name}');
           log('Tapped Deal:salon id   ${service.salon?.id}');
           log('Tapped Deal:name   ${service.salon?.name}');
           log('Tapped Deal:image   ${service.salon?.image}');
           log('Tapped Deal:address   ${service.salon?.address}');
           log('----------------------------------');
-
-
         },
       ),
     );
-
   }
 
   InkWell _buildSeeAll(BuildContext context, String type) {
     return InkWell(
         onTap: () {
           // Action when tapped
-          print("See All clicked ${type}");
+          print("See All clicked $type");
         },
-        child:
-        Padding(
+        child: Padding(
           padding: const EdgeInsets.all(18.0),
           child: Container(
             width: double.infinity, // Makes the button full width
-            padding: EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
+            padding:
+                const EdgeInsets.symmetric(vertical: 14.0, horizontal: 24.0),
             decoration: BoxDecoration(
               color: Colors.white, // Background color
               borderRadius: BorderRadius.circular(10.0), // 5px rounded corners
@@ -759,21 +976,17 @@ class _SalonDetailsScrollingTabsEffectB
                 width: 1.5, // Border width
               ),
             ),
-            child: Center(
+            child: const Center(
               child: Text(
                 'See All',
                 style: TextStyle(
                     color: kPrimaryDarkColor, // Blue border color
                     fontSize: 20.0, // Font size
-                    fontWeight: FontWeight.w700
-                ),
+                    fontWeight: FontWeight.w700),
               ),
             ),
           ),
-        )
-
-    );
-
+        ));
   }
 
   Widget _buildSpecialistItem(BuildContext context, Staff staff) {
@@ -783,42 +996,54 @@ class _SalonDetailsScrollingTabsEffectB
         children: [
           SizedBox(
             width: 160,
-            height: 200,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: kPrimaryDarkColor.withOpacity(0.1), // Background color of the box
+                color: kPrimaryDarkColor
+                    .withOpacity(0.1), // Background color of the box
                 shape: BoxShape.rectangle, // Shape of the box
-                borderRadius: BorderRadius.circular(8.0), // Rounded corners for the box
+                borderRadius:
+                    BorderRadius.circular(12.0), // Rounded corners for the box
                 boxShadow: [
-                  // BoxShadow(
-                  //   color: Colors.grey.withOpacity(0.5), // Light grey shadow color
-                  //   blurRadius: 4.0, // Blur radius of the shadow
-                  //   offset: Offset(0, 4), // Position of the shadow
-                  // ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8.0,
+                    offset: const Offset(0, 2),
+                  ),
                 ],
-
               ),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,  // Centers items vertically
-                crossAxisAlignment: CrossAxisAlignment.center, // Centers items horizontally
+                mainAxisAlignment:
+                    MainAxisAlignment.center, // Centers items vertically
+                crossAxisAlignment:
+                    CrossAxisAlignment.center, // Centers items horizontally
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   CircularNetworkImage(
                     imageUrl: staff.image.toString(),
-                    height: 120,
-                    width: 120,
+                    height: 100,
+                    width: 100,
                     border: 3,
                   ),
-                  const SizedBox(height: 15),
+                  const SizedBox(height: 12),
                   Text(
                     staff.name.toString(),
-                    style: Theme.of(context).textTheme.titleLarge,
-                    textAlign: TextAlign.center, // Ensure text is centered
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 4),
                   Text(
                     staff.experience.toString(),
-                    style: Theme.of(context).textTheme.titleSmall,
-                    textAlign: TextAlign.center, // Ensure text is centered
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: kSecondaryColor,
+                        ),
+                    textAlign: TextAlign.center,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -835,13 +1060,13 @@ class _SalonDetailsScrollingTabsEffectB
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
+          SizedBox(
             width: double.infinity, // Makes the container full width
             //padding: const EdgeInsets.fromLTRB(18.0, 0.0, 18, 118),
             child: Text(
               info.toString(),
               textAlign: TextAlign.left, // Center the text
-              style: TextStyle(
+              style: const TextStyle(
                 color: kPrimaryDarkColor, // Text color
                 fontSize: 16.0, // Font size
                 fontWeight: FontWeight.w500, // Font weight
@@ -857,21 +1082,26 @@ class _SalonDetailsScrollingTabsEffectB
           ),
           const SizedBox(height: 20),
           // Loop through opening timings
-          ...?about.openingTimings?.map((timing) {
+          ...about.openingTimings.map((timing) {
             // Check if the current day matches the opening timing day
             String currentDay = DateFormat('E').format(DateTime.now());
             bool isToday = currentDay == timing.day;
 
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 15),
+              padding:
+                  const EdgeInsets.symmetric(vertical: 6.0, horizontal: 15),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween, // Ensures left-right alignment
+                mainAxisAlignment: MainAxisAlignment
+                    .spaceBetween, // Ensures left-right alignment
                 children: [
                   Row(
                     children: [
                       Icon(
                         Icons.circle_outlined, // Plus icon
-                        color: isToday ? kPrimaryColor : Colors.black.withOpacity(0.6), // Highlight icon if today
+                        color: isToday
+                            ? kPrimaryColor
+                            : Colors.black
+                                .withOpacity(0.6), // Highlight icon if today
                         size: 10.0, // Icon size
                       ),
                       const SizedBox(width: 10),
@@ -879,8 +1109,14 @@ class _SalonDetailsScrollingTabsEffectB
                         timing.day.toString().toUpperCase(),
                         style: TextStyle(
                           fontSize: 16,
-                          fontWeight: isToday ? FontWeight.w900 : FontWeight.w400, // Highlight font weight if today
-                          color: isToday ? kPrimaryColor :Colors.black.withOpacity(0.8),  // Highlight color if today
+                          fontWeight: isToday
+                              ? FontWeight.w900
+                              : FontWeight
+                                  .w400, // Highlight font weight if today
+                          color: isToday
+                              ? kPrimaryColor
+                              : Colors.black
+                                  .withOpacity(0.8), // Highlight color if today
                         ),
                       ),
                     ],
@@ -889,15 +1125,19 @@ class _SalonDetailsScrollingTabsEffectB
                     '${timing.openingTime} - ${timing.closingTime}',
                     style: TextStyle(
                       fontSize: 16,
-                      fontWeight: isToday ? FontWeight.w900 : FontWeight.w400, // Highlight font weight if today
-                      color: isToday ? kPrimaryColor :Colors.black.withOpacity(0.8), // Highlight color if today
+                      fontWeight: isToday
+                          ? FontWeight.w900
+                          : FontWeight.w400, // Highlight font weight if today
+                      color: isToday
+                          ? kPrimaryColor
+                          : Colors.black
+                              .withOpacity(0.8), // Highlight color if today
                     ),
                   ),
                 ],
               ),
             );
           }).toList(),
-
         ],
       ),
     );
@@ -919,33 +1159,33 @@ class _SalonDetailsScrollingTabsEffectB
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
+                          alignment: Alignment.centerLeft,
                           child: Text(
                             ///service.name+"-",
                             "service.name",
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.start,
                           ),
-                          alignment: Alignment.centerLeft,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 8,
                         ),
                         Container(
                           alignment: Alignment.centerLeft,
-                          child: Text(
+                          child: const Text(
                             "service.subTitle",
                             textAlign: TextAlign.start,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 8,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 2.0, horizontal: 4.0),
-                          margin: EdgeInsets.symmetric(
+                          margin: const EdgeInsets.symmetric(
                               vertical: 8.0, horizontal: 4.0),
-                          child: Row(
+                          child: const Row(
                             children: [
                               Text(
                                 "Rs: service.price",
@@ -960,7 +1200,7 @@ class _SalonDetailsScrollingTabsEffectB
                         )
                       ],
                     )),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                 ),
                 Expanded(
@@ -982,12 +1222,13 @@ class _SalonDetailsScrollingTabsEffectB
                               // Light grey shadow color
                               blurRadius: 4.0,
                               // Blur radius of the shadow
-                              offset: Offset(0, 4), // Position of the shadow
+                              offset:
+                                  const Offset(0, 4), // Position of the shadow
                             ),
                           ],
                         ),
                         child: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.favorite_border, // Plus icon
                             color: kPrimaryColor, // Icon color
                             size: 26.0, // Icon size
@@ -997,8 +1238,7 @@ class _SalonDetailsScrollingTabsEffectB
                           },
                         ),
                       ),
-
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       Container(
@@ -1015,12 +1255,13 @@ class _SalonDetailsScrollingTabsEffectB
                               // Light grey shadow color
                               blurRadius: 4.0,
                               // Blur radius of the shadow
-                              offset: Offset(0, 4), // Position of the shadow
+                              offset:
+                                  const Offset(0, 4), // Position of the shadow
                             ),
                           ],
                         ),
                         child: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.add, // Plus icon
                             color: Colors.black, // Icon color
                             size: 26.0, // Icon size
@@ -1036,7 +1277,7 @@ class _SalonDetailsScrollingTabsEffectB
               ],
             ),
           ),
-          Divider(
+          const Divider(
             thickness: 2,
             color: Colors.transparent,
           )
@@ -1080,7 +1321,8 @@ class _SalonDetailsScrollingTabsEffectB
                   const SizedBox(height: 16),
                   // Salon name placeholder
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Container(
                       width: 200,
                       height: 24,
@@ -1089,7 +1331,8 @@ class _SalonDetailsScrollingTabsEffectB
                   ),
                   // Tags placeholder
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Container(
                       width: 100,
                       height: 16,
@@ -1098,7 +1341,8 @@ class _SalonDetailsScrollingTabsEffectB
                   ),
                   // Gender placeholder
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Row(
                       children: [
                         Container(
@@ -1117,7 +1361,8 @@ class _SalonDetailsScrollingTabsEffectB
                   ),
                   // Ratings placeholder
                   Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                     child: Row(
                       children: [
                         Container(
@@ -1136,10 +1381,11 @@ class _SalonDetailsScrollingTabsEffectB
                   ),
                   // Reward points tile placeholder
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                    decoration: BoxDecoration(
+                    margin: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 16),
+                    decoration: const BoxDecoration(
                       color: Colors.white,
-                      borderRadius: const BorderRadius.all(Radius.circular(20)),
+                      borderRadius: BorderRadius.all(Radius.circular(20)),
                     ),
                     child: ListTile(
                       leading: Container(
@@ -1224,7 +1470,7 @@ class _SalonDetailsScrollingTabsEffectB
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-                (context, index) {
+            (context, index) {
               return Shimmer.fromColors(
                 baseColor: Colors.grey[300]!,
                 highlightColor: Colors.grey[100]!,
@@ -1250,8 +1496,9 @@ class _SalonDetailsScrollingTabsEffectB
                           child: Row(
                             children: List.generate(
                               3,
-                                  (i) => Padding(
-                                padding: const EdgeInsets.fromLTRB(10, 0, 10, 10),
+                              (i) => Padding(
+                                padding:
+                                    const EdgeInsets.fromLTRB(10, 0, 10, 10),
                                 child: Container(
                                   width: 160,
                                   height: 200,
@@ -1271,15 +1518,17 @@ class _SalonDetailsScrollingTabsEffectB
                         child: Column(
                           children: List.generate(
                             2,
-                                (i) => Padding(
+                            (i) => Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Expanded(
                                     flex: 4,
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: 150,
@@ -1334,7 +1583,7 @@ class _SalonDetailsScrollingTabsEffectB
                             Container(
                               width: 60,
                               height: 60,
-                              decoration: BoxDecoration(
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
                                 shape: BoxShape.circle,
                               ),
@@ -1359,7 +1608,7 @@ class _SalonDetailsScrollingTabsEffectB
                                   Row(
                                     children: List.generate(
                                       5,
-                                          (i) => Container(
+                                      (i) => Container(
                                         width: 20,
                                         height: 20,
                                         color: Colors.white,
@@ -1406,16 +1655,27 @@ class _SalonDetailsScrollingTabsEffectB
   Widget build(BuildContext context) {
     super.build(context);
 
+    // Log build method execution
+    log('===== BUILD METHOD CALLED =====');
+    log('salonDetailsss is null: ${salonDetailsss == null}');
+    if (salonDetailsss != null) {
+      log('Salon name: ${salonDetailsss!.name}');
+      log('Sections count: ${salonDetailsss!.sections?.length ?? 0}');
+      log('Images count: ${salonDetailsss!.images.length}');
+      log('_autoScrollController hasClients: ${_autoScrollController.hasClients}');
+    }
+    log('================================');
+
     return Scaffold(
       body: salonDetailsss == null
           ? _buildShimmer() // Show shimmer instead of CircularProgressIndicator
           : CustomScrollView(
-        controller: _autoScrollController,
-        slivers: <Widget>[
-          _buildSliverAppbar(context),
-          _buildServiceCategoryBody(),
-        ],
-      ),
+              controller: _autoScrollController,
+              slivers: <Widget>[
+                _buildSliverAppbar(context),
+                _buildServiceCategoryBody(),
+              ],
+            ),
     );
   }
 
@@ -1435,10 +1695,6 @@ class ReviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    String initials = review.user.name != null && review.user.name!.isNotEmpty
-        ? review.user.name!.trim().split(" ").map((e) => e[0]).take(2).join()
-        : "NA";
-
     return Container(
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
       child: Container(
@@ -1455,7 +1711,6 @@ class ReviewCard extends StatelessWidget {
             // Reviewer name & image
             Row(
               children: [
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -1498,14 +1753,12 @@ class ReviewCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
 
-
             const SizedBox(height: 10),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Ratings(rating: review.rating ?? 0),
-
               ],
             ),
           ],
@@ -1514,4 +1767,3 @@ class ReviewCard extends StatelessWidget {
     );
   }
 }
-

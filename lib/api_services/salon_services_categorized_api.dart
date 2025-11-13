@@ -1,44 +1,38 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
-
-import '../models/HomePageResponse.dart';
+import 'package:app/services/protected_http_client.dart';
 import '../models/SalonServicesCategorizedResponse.dart';
 
 class SalonServicesCategorizedAPI {
-  static const String baseURL = 'https://bms.innovativewidget.com/api';
-
   SalonServicesCategorizedAPI();
 
-  Future<SalonServicesCategorizedResponse?> fetchAllServicesAndDealsCategorizedData(String accessToken, int salonId) async {
+  Future<SalonServicesCategorizedResponse?>
+      fetchAllServicesAndDealsCategorizedData(int salonId) async {
     try {
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization':
-        'Bearer $accessToken'
-      };
+      log('SalonServicesCategorizedAPI: Fetching categorized services for salon $salonId');
 
-      final request = http.Request(
-        'POST',
-        Uri.parse('$baseURL/categorized_services'),
+      final response = await ProtectedHttpClient.post(
+        '/categorized_services',
+        body: {"salon_id": salonId},
       );
-      request.body = json.encode({"salon_id": salonId});
-      request.headers.addAll(headers);
-
-      final response = await request.send();
-      final responseBody = await response.stream.bytesToString();
 
       if (response.statusCode == 200) {
-        log('Response---------- $responseBody');
-
-        return SalonServicesCategorizedResponse.fromJson(json.decode(responseBody));
+        log('✅ SalonServicesCategorizedAPI: Data loaded successfully');
+        return SalonServicesCategorizedResponse.fromJson(
+            json.decode(response.body));
       } else {
-        log('Error---------- ${response.reasonPhrase}');
-        throw Exception('Failed to load data---------- ${response.reasonPhrase}');
+        log('❌ SalonServicesCategorizedAPI: Failed with status ${response.statusCode}');
+        throw Exception('Failed to load data: ${response.statusCode}');
       }
+    } on UnauthorizedException catch (e) {
+      log('❌ SalonServicesCategorizedAPI: Unauthorized - $e');
+      rethrow;
+    } on ApiException catch (e) {
+      log('❌ SalonServicesCategorizedAPI: API Error - $e');
+      rethrow;
     } catch (error) {
-      log('Error---------- $error');
-      throw Exception('Failed to load data---------- $error');
+      log('❌ SalonServicesCategorizedAPI: Error - $error');
+      throw Exception('Failed to load data: $error');
     }
   }
 }

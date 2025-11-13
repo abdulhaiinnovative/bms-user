@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../components/custom_surfix_icon.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 import '../../components/form_error.dart';
 import '../../components/no_account_text.dart';
 import '../../constants.dart';
@@ -47,50 +47,108 @@ class _AuthScreenState extends State<AuthScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: const Text("Authentication"),
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(text: "Sign In"),
-            Tab(text: "Sign Up"),
-          ],
-        ),
-      ),
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
+        child: SingleChildScrollView(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  const SizedBox(height: 16),
-                  Text(
-                    _authMode == AuthMode.signIn
-                        ? "Welcome Back"
-                        : "Register Account",
-                    style: headingStyle,
-                  ),
-                  Text(
-                    _authMode == AuthMode.signIn
-                        ? "Sign in to continue"
-                        : "Complete your details to get started",
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 24),
+            child: Column(
+              children: [
+                const SizedBox(height: 30),
 
-                  // Email/Password Form
+                // Logo
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Image.asset(
+                    'assets/images/bms_logo.jpg',
+                    height: 60,
+                    width: 60,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.spa,
+                        size: 60,
+                        color: kPrimaryColor,
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 16),
+
+                // Header Text
+                Text(
                   _authMode == AuthMode.signIn
-                      ? SignInForm(
-                          onSwitchToSignUp: () {
-                            _tabController.animateTo(1);
-                          },
-                        )
-                      : const SignUpForm(),
-                ],
-              ),
+                      ? "Welcome Back!"
+                      : "Join Us Today",
+                  style: const TextStyle(
+                    fontSize: 28,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                Text(
+                  _authMode == AuthMode.signIn
+                      ? "Sign in to continue your beauty journey"
+                      : "Create your account and get started",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+
+                // Tab Bar
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 20),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(30),
+                  ),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicator: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [kPrimaryColor, Color(0xFFFF6B9D)],
+                      ),
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    indicatorSize: TabBarIndicatorSize.tab,
+                    labelColor: Colors.white,
+                    unselectedLabelColor: Colors.grey[600],
+                    labelStyle: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 15,
+                    ),
+                    tabs: const [
+                      Tab(text: "Sign In"),
+                      Tab(text: "Sign Up"),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Form Section
+                _authMode == AuthMode.signIn
+                    ? SignInForm(
+                        onSwitchToSignUp: () {
+                          _tabController.animateTo(1);
+                        },
+                      )
+                    : const SignUpForm(),
+
+                const SizedBox(height: 20),
+              ],
             ),
           ),
         ),
@@ -152,7 +210,7 @@ class _SignInFormState extends State<SignInForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Email Field
+          // Email Field with clean design
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
@@ -174,17 +232,42 @@ class _SignInFormState extends State<SignInForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Email",
               hintText: "Enter your email",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
+              prefixIcon: const Icon(
+                Icons.email_outlined,
+                color: kPrimaryColor,
+              ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
             ),
           ),
 
           const SizedBox(height: 20),
 
-          // Password Field
+          // Password Field with clean design
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
@@ -210,9 +293,14 @@ class _SignInFormState extends State<SignInForm> {
               labelText: "Password",
               hintText: "Enter your password",
               floatingLabelBehavior: FloatingLabelBehavior.always,
+              prefixIcon: const Icon(
+                Icons.lock_outline,
+                color: kPrimaryColor,
+              ),
               suffixIcon: IconButton(
                 icon: Icon(
                   _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                  color: Colors.grey[600],
                 ),
                 onPressed: () {
                   setState(() {
@@ -220,6 +308,28 @@ class _SignInFormState extends State<SignInForm> {
                   });
                 },
               ),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
             ),
           ),
 
@@ -253,23 +363,118 @@ class _SignInFormState extends State<SignInForm> {
           ),
 
           FormError(errors: errors),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
 
-          // Sign In Button
-          SizedBox(
+          // Sign In Button with gradient
+          Container(
             width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kPrimaryColor, Color(0xFFFF6B9D)],
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: kPrimaryColor.withOpacity(0.4),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
             child: ElevatedButton(
               onPressed: authProvider.isLoading ? null : _handleSignIn,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
               child: authProvider.isLoading
                   ? const SizedBox(
-                      height: 20,
-                      width: 20,
+                      height: 24,
+                      width: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
+                        strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text("Sign In"),
+                  : const Text(
+                      "Sign In",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
+
+          // Divider with "OR"
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'OR',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Expanded(child: Divider()),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Google Sign-In Button with enhanced styling
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.grey[300]!, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: OutlinedButton.icon(
+              onPressed: authProvider.isLoading ? null : _handleGoogleSignIn,
+              icon: Image.asset(
+                'assets/images/google-icon.png',
+                height: 24,
+                width: 24,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.g_mobiledata,
+                      size: 28, color: Colors.blue);
+                },
+              ),
+              label: const Text(
+                'Sign in with Google',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: BorderSide.none,
+                foregroundColor: Colors.black87,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
             ),
           ),
 
@@ -314,6 +519,68 @@ class _SignInFormState extends State<SignInForm> {
       }
     } else {
       print('⚠️ AuthScreen: Form validation failed');
+    }
+  }
+
+  Future<void> _handleGoogleSignIn() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      print('🔵 AuthScreen: Starting Google Sign-In...');
+
+      // Get FCM token
+      final fcmToken = await FCMTokenService.getFCMToken();
+      if (fcmToken != null) {
+        print('🔔 AuthScreen: FCM Token retrieved for Google Sign-In');
+      }
+
+      // Sign in with Google
+      final result = await authProvider.signInWithGoogle(fcmToken: fcmToken);
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        print('✅ AuthScreen: Google Sign-In successful');
+
+        if (result['isComplete'] == true) {
+          // Profile is complete, navigate to home
+          print('✅ AuthScreen: Profile complete, navigating to InitScreen...');
+          Navigator.pushReplacementNamed(context, InitScreen.routeName);
+        } else {
+          // Profile is incomplete, navigate to complete profile
+          print(
+              '⚠️ AuthScreen: Profile incomplete, navigating to CompleteProfileScreen...');
+          Navigator.pushReplacementNamed(
+            context,
+            CompleteProfileScreen.routeName,
+            arguments: {
+              'isSocialAuth': true,
+              'socialUser': result['user'],
+              'email': result['user']?.email ?? '',
+            },
+          );
+        }
+      } else {
+        print('❌ AuthScreen: Google Sign-In failed');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ?? 'Google sign-in failed',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ AuthScreen: Google Sign-In error - $e');
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }
@@ -367,6 +634,58 @@ class _SignUpFormState extends State<SignUpForm> {
     }
   }
 
+  Widget _buildStyledTextField({
+    required TextEditingController controller,
+    required String label,
+    required String hint,
+    required IconData icon,
+    required TextInputType keyboardType,
+    required Function(String?) validator,
+    required Function(String) onChanged,
+    bool obscureText = false,
+    Widget? suffixIcon,
+  }) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      obscureText: obscureText,
+      onChanged: onChanged,
+      validator: (value) => validator(value) as String?,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: hint,
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIcon: Icon(
+          icon,
+          color: kPrimaryColor,
+        ),
+        suffixIcon: suffixIcon,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: Colors.red, width: 2),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
@@ -377,8 +696,11 @@ class _SignUpFormState extends State<SignUpForm> {
         mainAxisSize: MainAxisSize.min,
         children: [
           // First Name
-          TextFormField(
+          _buildStyledTextField(
             controller: _firstNameController,
+            label: "First Name",
+            hint: "Enter your first name",
+            icon: Icons.person_outline,
             keyboardType: TextInputType.name,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -392,19 +714,16 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "First Name",
-              hintText: "Enter your first name",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-            ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Last Name
-          TextFormField(
+          _buildStyledTextField(
             controller: _lastNameController,
+            label: "Last Name",
+            hint: "Enter your last name",
+            icon: Icons.person_outline,
             keyboardType: TextInputType.name,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -418,19 +737,16 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Last Name",
-              hintText: "Enter your last name",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-            ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Username
-          TextFormField(
+          _buildStyledTextField(
             controller: _usernameController,
+            label: "Username",
+            hint: "Choose a unique username",
+            icon: Icons.alternate_email,
             keyboardType: TextInputType.text,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -448,49 +764,16 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Username",
-              hintText: "Choose a unique username",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-            ),
           ),
 
-          const SizedBox(height: 20),
-
-          // Phone Number
-          TextFormField(
-            controller: _phoneController,
-            keyboardType: TextInputType.phone,
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                removeError(error: "Phone number is required");
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                addError(error: "Phone number is required");
-                return "";
-              }
-              if (value.length < 10) {
-                addError(error: "Please enter a valid phone number");
-                return "";
-              }
-              return null;
-            },
-            decoration: const InputDecoration(
-              labelText: "Phone Number",
-              hintText: "Enter your phone number",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Phone.svg"),
-            ),
-          ),
-
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Email
-          TextFormField(
+          _buildStyledTextField(
             controller: _emailController,
+            label: "Email",
+            hint: "Enter your email",
+            icon: Icons.email_outlined,
             keyboardType: TextInputType.emailAddress,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -510,19 +793,69 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Email",
-              hintText: "Enter your email",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
-            ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
+
+          // Phone Number with clean design
+          IntlPhoneField(
+            controller: _phoneController,
+            decoration: InputDecoration(
+              labelText: "Phone Number",
+              hintText: "Enter your phone number",
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: Colors.grey[300]!),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
+            ),
+            initialCountryCode: 'PK',
+            onChanged: (phone) {
+              if (phone.completeNumber.isNotEmpty) {
+                removeError(error: "Phone number is required");
+              }
+            },
+            onSaved: (phone) {
+              if (phone != null) {
+                _phoneController.text = phone.completeNumber;
+              }
+            },
+            validator: (phone) {
+              if (phone == null || phone.completeNumber.isEmpty) {
+                addError(error: "Phone number is required");
+                return "";
+              }
+              return null;
+            },
+          ),
+
+          const SizedBox(height: 16),
 
           // Password
-          TextFormField(
+          _buildStyledTextField(
             controller: _passwordController,
+            label: "Password",
+            hint: "Enter your password",
+            icon: Icons.lock_outline,
+            keyboardType: TextInputType.visiblePassword,
             obscureText: _obscurePassword,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -542,28 +875,28 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Password",
-              hintText: "Enter your password",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscurePassword = !_obscurePassword;
-                  });
-                },
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                color: Colors.grey[600],
               ),
+              onPressed: () {
+                setState(() {
+                  _obscurePassword = !_obscurePassword;
+                });
+              },
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
           // Confirm Password
-          TextFormField(
+          _buildStyledTextField(
             controller: _confirmPasswordController,
+            label: "Confirm Password",
+            hint: "Re-enter your password",
+            icon: Icons.lock_outline,
+            keyboardType: TextInputType.visiblePassword,
             obscureText: _obscureConfirmPassword,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -583,53 +916,149 @@ class _SignUpFormState extends State<SignUpForm> {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Confirm Password",
-              hintText: "Re-enter your password",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscureConfirmPassword
-                      ? Icons.visibility_off
-                      : Icons.visibility,
-                ),
-                onPressed: () {
-                  setState(() {
-                    _obscureConfirmPassword = !_obscureConfirmPassword;
-                  });
-                },
+            suffixIcon: IconButton(
+              icon: Icon(
+                _obscureConfirmPassword
+                    ? Icons.visibility_off
+                    : Icons.visibility,
+                color: Colors.grey[600],
               ),
+              onPressed: () {
+                setState(() {
+                  _obscureConfirmPassword = !_obscureConfirmPassword;
+                });
+              },
             ),
           ),
 
           FormError(errors: errors),
           const SizedBox(height: 20),
 
-          // Sign Up Button
-          SizedBox(
+          // Sign Up Button with gradient
+          Container(
             width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [kPrimaryColor, Color(0xFFFF6B9D)],
+              ),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: kPrimaryColor.withOpacity(0.4),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
             child: ElevatedButton(
               onPressed: authProvider.isLoading ? null : _handleSignUp,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
               child: authProvider.isLoading
                   ? const SizedBox(
-                      height: 20,
-                      width: 20,
+                      height: 24,
+                      width: 24,
                       child: CircularProgressIndicator(
-                        strokeWidth: 2,
+                        strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                       ),
                     )
-                  : const Text("Sign Up"),
+                  : const Text(
+                      "Sign Up",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
+
+          // Divider with "OR"
+          Row(
+            children: [
+              const Expanded(child: Divider()),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  'OR',
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              const Expanded(child: Divider()),
+            ],
+          ),
+
+          const SizedBox(height: 20),
+
+          // Google Sign-Up Button with enhanced styling
+          Container(
+            width: double.infinity,
+            height: 56,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(color: Colors.grey[300]!, width: 1.5),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: OutlinedButton.icon(
+              onPressed: authProvider.isLoading ? null : _handleGoogleSignUp,
+              icon: Image.asset(
+                'assets/images/google-icon.png',
+                height: 24,
+                width: 24,
+                errorBuilder: (context, error, stackTrace) {
+                  return const Icon(Icons.g_mobiledata,
+                      size: 28, color: Colors.blue);
+                },
+              ),
+              label: const Text(
+                'Sign up with Google',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: BorderSide.none,
+                foregroundColor: Colors.black87,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+              ),
+            ),
+          ),
+
+          const SizedBox(height: 20),
 
           Text(
             'By continuing you confirm that you agree\nwith our Terms and Conditions',
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodySmall,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
           ),
+
+          const SizedBox(height: 20),
         ],
       ),
     );
@@ -676,6 +1105,68 @@ class _SignUpFormState extends State<SignUpForm> {
       }
     } else {
       print('⚠️ AuthScreen: Form validation failed');
+    }
+  }
+
+  Future<void> _handleGoogleSignUp() async {
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+
+    try {
+      print('🔵 AuthScreen: Starting Google Sign-Up...');
+
+      // Get FCM token
+      final fcmToken = await FCMTokenService.getFCMToken();
+      if (fcmToken != null) {
+        print('🔔 AuthScreen: FCM Token retrieved for Google Sign-Up');
+      }
+
+      // Sign in with Google (same as sign-in, Google auth doesn't differentiate)
+      final result = await authProvider.signInWithGoogle(fcmToken: fcmToken);
+
+      if (!mounted) return;
+
+      if (result['success'] == true) {
+        print('✅ AuthScreen: Google Sign-Up successful');
+
+        if (result['isComplete'] == true) {
+          // Profile is complete, navigate to home
+          print('✅ AuthScreen: Profile complete, navigating to InitScreen...');
+          Navigator.pushReplacementNamed(context, InitScreen.routeName);
+        } else {
+          // Profile is incomplete, navigate to complete profile
+          print(
+              '⚠️ AuthScreen: Profile incomplete, navigating to CompleteProfileScreen...');
+          Navigator.pushReplacementNamed(
+            context,
+            CompleteProfileScreen.routeName,
+            arguments: {
+              'isSocialAuth': true,
+              'socialUser': result['user'],
+              'email': result['user']?.email ?? '',
+            },
+          );
+        }
+      } else {
+        print('❌ AuthScreen: Google Sign-Up failed');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              authProvider.errorMessage ?? 'Google sign-up failed',
+            ),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      print('❌ AuthScreen: Google Sign-Up error - $e');
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('An error occurred: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 }

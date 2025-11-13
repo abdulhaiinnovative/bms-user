@@ -51,10 +51,11 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAMWOBzXQOa1G1rCW5sZITUr-Z4uHXQcU4',
-    appId: '1:87062363095:android:dfc8f26f5ac5d0ec9ce992',
+    appId: '1:87062363095:android:eb4828c773c993a99ce992',
     messagingSenderId: '87062363095',
     projectId: 'bookmyspot-c8bdb',
-    storageBucket: 'bookmyspot-c8bdb.appspot.com',
+    databaseURL: 'https://bookmyspot-c8bdb.firebaseio.com',
+    storageBucket: 'bookmyspot-c8bdb.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

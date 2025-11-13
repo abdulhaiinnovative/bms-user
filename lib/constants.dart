@@ -13,12 +13,12 @@ const Color redColor = Colors.red;
 const Color blueColor = Colors.blue;
 const Color greenAccent = Colors.greenAccent;
 final Color blackAndWhiteDimmedColor =  Colors.transparent.withOpacity(.3);
-final Color blackAndWhiteSuperDimmedColor =  Color(0xaaFFFFFF);
+const Color blackAndWhiteSuperDimmedColor =  Color(0xaaFFFFFF);
 const Color whiteColor = Colors.white;
 const Color amberColor = Colors.amber;
 const Color purpleColor = Colors.purple;
-Color dimmedWhiteColor = Color(0x99FFFFFF);
-Color superDimmedWhiteColor = Color(0x55FFFFFF);
+Color dimmedWhiteColor = const Color(0x99FFFFFF);
+Color superDimmedWhiteColor = const Color(0x55FFFFFF);
 
 //const BASE_URL = "https://bookmyspot.arca9.com";
 const BASE_URL = "https://bms.innovativewidget.com/api";

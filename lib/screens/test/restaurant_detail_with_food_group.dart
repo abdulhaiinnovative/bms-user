@@ -41,10 +41,10 @@ class Data {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['name'] = this.name;
-    data['_id'] = this.sId;
-    data['services'] = this.services.map((v) => v.toJson()).toList();
-    data['extra'] = this.extra;
+    data['name'] = name;
+    data['_id'] = sId;
+    data['services'] = services.map((v) => v.toJson()).toList();
+    data['extra'] = extra;
     return data;
   }
 }
@@ -108,20 +108,20 @@ class Services {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['serviceSpeciality'] = this.serviceSpeciality.map((v) => v.toJson()).toList();
-    data['images'] = this.images;
-    data['keywords'] = this.keywords;
-    data['price'] = this.price;
-    data['discountPercent'] = this.discountPercent;
-    data['discountAmount'] = this.discountAmount;
-    data['minQuantity'] = this.minQuantity;
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['activeImage'] = this.activeImage;
-    data['subTitle'] = this.subTitle;
-    data['calorie'] = this.calorie;
-    data['discountType'] = this.discountType;
-    data['serviceGroup'] = this.serviceGroup;
+    data['serviceSpeciality'] = serviceSpeciality.map((v) => v.toJson()).toList();
+    data['images'] = images;
+    data['keywords'] = keywords;
+    data['price'] = price;
+    data['discountPercent'] = discountPercent;
+    data['discountAmount'] = discountAmount;
+    data['minQuantity'] = minQuantity;
+    data['_id'] = sId;
+    data['name'] = name;
+    data['activeImage'] = activeImage;
+    data['subTitle'] = subTitle;
+    data['calorie'] = calorie;
+    data['discountType'] = discountType;
+    data['serviceGroup'] = serviceGroup;
     //data['salon'] = this.restaurant;
     return data;
   }
@@ -141,8 +141,8 @@ class ServiceSpeciality {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['_id'] = this.sId;
-    data['name'] = this.name;
+    data['_id'] = sId;
+    data['name'] = name;
     return data;
   }
 }
@@ -173,11 +173,11 @@ class Items {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['isCheckDefault'] = this.isCheckDefault;
-    data['quantity'] = this.quantity;
-    data['_id'] = this.sId;
-    data['extraPrice'] = this.extraPrice;
-    data['name'] = this.name;
+    data['isCheckDefault'] = isCheckDefault;
+    data['quantity'] = quantity;
+    data['_id'] = sId;
+    data['extraPrice'] = extraPrice;
+    data['name'] = name;
     return data;
   }
 }

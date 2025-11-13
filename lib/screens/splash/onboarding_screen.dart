@@ -1,8 +1,8 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:app/utlis/UtilsExtra.dart';
 import '../../constants.dart';
+import '../../utlis/authutils/auth_manager.dart';
 import '../init_screen.dart';
 import '../auth/auth_screen.dart';
 import 'components/splash_content.dart';
@@ -37,19 +37,31 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   Future<void> _completeOnboarding() async {
+    log('🎯 OnboardingScreen: Starting onboarding completion...');
+
     // Mark onboarding as seen
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('hasSeenOnboarding', true);
+    final success = await prefs.setBool('hasSeenOnboarding', true);
 
-    // Check if user is logged in
-    log('============ ${await UtilsExtra.getToken()}');
-    final userDetails = await UtilsExtra.getUserDetails();
+    log('🎯 OnboardingScreen: hasSeenOnboarding saved = $success');
+
+    // Verify it was saved correctly
+    final verified = prefs.getBool('hasSeenOnboarding') ?? false;
+    log('🎯 OnboardingScreen: hasSeenOnboarding verified = $verified');
+
+    // Check if user is logged in using AuthManager (consistent with SplashScreen)
+    final isLoggedIn = await AuthManager.isLoggedIn();
+
+    log('🎯 OnboardingScreen: Onboarding complete');
+    log('🎯 OnboardingScreen: isLoggedIn = $isLoggedIn');
 
     if (!mounted) return;
 
-    if (userDetails != null) {
+    if (isLoggedIn) {
+      log('🎯 OnboardingScreen: User is logged in, navigating to InitScreen');
       Navigator.pushReplacementNamed(context, InitScreen.routeName);
     } else {
+      log('🎯 OnboardingScreen: User not logged in, navigating to AuthScreen');
       Navigator.pushReplacementNamed(context, AuthScreen.routeName);
     }
   }

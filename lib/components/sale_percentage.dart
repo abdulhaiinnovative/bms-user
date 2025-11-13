@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
 import 'package:app/constants.dart';
 
 class SalePercentage extends StatelessWidget {
@@ -7,7 +6,7 @@ class SalePercentage extends StatelessWidget {
   final String type ;
 
 
-  SalePercentage({
+  const SalePercentage({super.key, 
     required this.off,
     required this.type,
   });
@@ -15,11 +14,11 @@ class SalePercentage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: kPrimaryColor,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: [
+        boxShadow: const [
           // BoxShadow(
           //   color: Colors.black26,
           //   blurRadius: 2,
@@ -32,7 +31,7 @@ class SalePercentage extends StatelessWidget {
       type == 'amount'
           ? Text(
         'Rs: $off Off',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,
@@ -40,7 +39,7 @@ class SalePercentage extends StatelessWidget {
       )
           : Text(
         '$off% Off',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
           color: Colors.white,

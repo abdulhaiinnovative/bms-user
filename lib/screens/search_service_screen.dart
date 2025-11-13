@@ -1,18 +1,13 @@
 import 'package:app/components/book_now.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
-import '../components/sale_percentage.dart';
 import '../constants.dart';
 import '../models/SalonMain.dart';
 import '../providers/SearchProvider.dart';
 import 'services/services_header.dart';
-import 'services/services_screen.dart';
 
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class SearchServiceScreen extends StatefulWidget {
   const SearchServiceScreen({super.key});
@@ -164,11 +159,11 @@ class SalonCard extends StatelessWidget {
       padding: const EdgeInsets.only(left: 10, top: 10, bottom: 0, right: 10),
       child: Container(
         height: 180,
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: kShadow,
               blurRadius: 0.0,
@@ -208,17 +203,17 @@ class SalonCard extends StatelessWidget {
                     ),
                     child: SvgPicture.asset(
                       "assets/icons/Heart Icon_2.svg",
-                      colorFilter: ColorFilter.mode(
+                      colorFilter: const ColorFilter.mode(
                           true // product.isFavourite
-                              ? const Color(0xFFFF4848)
-                              : const Color(0xFFDBDEE4),
+                              ? Color(0xFFFF4848)
+                              : Color(0xFFDBDEE4),
                           BlendMode.srcIn),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(width: 5),
+            const SizedBox(width: 5),
             Text(
               about,
               maxLines: 2,
@@ -236,9 +231,9 @@ class SalonCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
 
-            Spacer(),
+            const Spacer(),
             Row(
               children: [
                 Row(
@@ -250,8 +245,8 @@ class SalonCard extends StatelessWidget {
                     );
                   }),
                 ),
-                SizedBox(width: 15),
-                Spacer(),
+                const SizedBox(width: 15),
+                const Spacer(),
                 Row(
                   children: [
                     const Icon(Icons.reviews, color: kPrice, size: 20), // Review Icon
@@ -304,11 +299,11 @@ class ServicesCard extends StatelessWidget {
       padding: const EdgeInsets.only(left: 10, top: 10, bottom: 0, right: 10),
       child: Container(
         height: 180,
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: kShadow,
               blurRadius: 0.0,
@@ -348,17 +343,17 @@ class ServicesCard extends StatelessWidget {
                     ),
                     child: SvgPicture.asset(
                       "assets/icons/Heart Icon_2.svg",
-                      colorFilter: ColorFilter.mode(
+                      colorFilter: const ColorFilter.mode(
                           true // product.isFavourite
-                              ? const Color(0xFFFF4848)
-                              : const Color(0xFFDBDEE4),
+                              ? Color(0xFFFF4848)
+                              : Color(0xFFDBDEE4),
                           BlendMode.srcIn),
                     ),
                   ),
                 ),
               ],
             ),
-            SizedBox(width: 5),
+            const SizedBox(width: 5),
             Text(
               desc,
               style: const TextStyle(
@@ -367,15 +362,15 @@ class ServicesCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
+            const Text(
               '30 min - 1 hr',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
               ),
               overflow: TextOverflow.ellipsis,
             ),
-            SizedBox(height: 10),
-            Row(
+            const SizedBox(height: 10),
+            const Row(
               children: [
                 Icon(
                   Icons.cut_rounded,
@@ -385,14 +380,14 @@ class ServicesCard extends StatelessWidget {
                 SizedBox(width: 5),
                 Text(
                   '------',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.black87,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
             Row(
               children: [
                 Text(
@@ -401,18 +396,18 @@ class ServicesCard extends StatelessWidget {
                       color: kPrice, fontSize: 18, fontWeight: FontWeight.bold),
                   overflow: TextOverflow.ellipsis,
                 ),
-                SizedBox(width: 15),
-                Text(
+                const SizedBox(width: 15),
+                const Text(
                   'Rs: ----',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: kBeforeDiscount,
                     fontSize: 14,
                     decoration: TextDecoration.lineThrough,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                Spacer(),
-                BookNow()
+                const Spacer(),
+                const BookNow()
                 ///SalePercentage(off: 18, type: '',),
               ],
             ),

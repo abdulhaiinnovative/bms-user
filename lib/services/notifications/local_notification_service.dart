@@ -314,8 +314,9 @@ class LocalNotificationService {
 
   /// Get Android importance from notification priority
   Importance _getAndroidImportance(NotificationModel notification) {
-    if (notification is! LocalNotificationModel)
+    if (notification is! LocalNotificationModel) {
       return Importance.defaultImportance;
+    }
 
     switch (notification.priority) {
       case NotificationPriority.min:
@@ -334,8 +335,9 @@ class LocalNotificationService {
 
   /// Get Android priority from notification priority
   Priority _getAndroidPriority(NotificationModel notification) {
-    if (notification is! LocalNotificationModel)
+    if (notification is! LocalNotificationModel) {
       return Priority.defaultPriority;
+    }
 
     switch (notification.priority) {
       case NotificationPriority.min:
@@ -354,8 +356,9 @@ class LocalNotificationService {
 
   /// Get iOS interruption level from notification priority
   InterruptionLevel _getIOSInterruptionLevel(NotificationModel notification) {
-    if (notification is! LocalNotificationModel)
+    if (notification is! LocalNotificationModel) {
       return InterruptionLevel.active;
+    }
 
     switch (notification.priority) {
       case NotificationPriority.min:

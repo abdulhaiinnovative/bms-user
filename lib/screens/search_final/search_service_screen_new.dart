@@ -1,16 +1,11 @@
 import 'dart:developer';
 
 import 'package:app/constants.dart';
-import 'package:app/screens/search_final/deal_card_new.dart';
 import 'package:app/screens/search_final/salon_card_new.dart';
 import 'package:app/screens/search_final/search_provider_new.dart';
-// import 'package:app/screens/search_final/services_card_new.dart';
 import 'package:app/screens/search_final/services_header_new.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../home/components/deals_dashboard.dart';
 import '../home/components/services_dashboard.dart';
@@ -26,7 +21,8 @@ class SearchServiceScreenNew extends StatefulWidget {
   _SearchServiceScreenState createState() => _SearchServiceScreenState();
 }
 
-class _SearchServiceScreenState extends State<SearchServiceScreenNew> with SingleTickerProviderStateMixin {
+class _SearchServiceScreenState extends State<SearchServiceScreenNew>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _servicesScrollController = ScrollController();
   final ScrollController _salonsScrollController = ScrollController();
@@ -41,31 +37,33 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew> with Singl
     super.didChangeDependencies();
     // Access ModalRoute and Provider here
     try {
-      final Map<String, dynamic>? args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      final Map<String, dynamic>? args =
+          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
       categoryId = args?['categoryId'] as int?;
       categoryName = args?['categoryName'] as String?;
       isFromBottomNav = args?['isFromBottomNav'] as bool?;
       print("isFromBottomNav: $isFromBottomNav");
-
-
-
-
-
-
     } catch (e) {
       print("Error accessing ModalRoute: $e");
     }
   }
 
-
-
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    final searchProvider = Provider.of<SearchProviderNew>(context, listen: false);
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        log('📌 Tab switched to index: ${_tabController.index}');
+        _triggerTabSearch();
+        setState(() {});
+      }
+    });
 
+    final searchProvider =
+        Provider.of<SearchProviderNew>(context, listen: false);
 
+    // Infinite scroll listeners
     _servicesScrollController.addListener(() {
       if (_servicesScrollController.position.extentAfter < 50) {
         searchProvider.loadMore();
@@ -83,6 +81,34 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew> with Singl
     });
   }
 
+  /// Trigger search based on current tab
+  void _triggerTabSearch() {
+    final searchProvider =
+        Provider.of<SearchProviderNew>(context, listen: false);
+
+    if (_tabController.index == 0 && searchProvider.services.isEmpty) {
+      // Services tab - already loaded by ServicesHeaderNew
+      log('🔵 Services tab active - data should be loaded by header');
+    } else if (_tabController.index == 1 && searchProvider.deals.isEmpty) {
+      // Deals tab - trigger search if empty
+      log('🏷️ Deals tab active - triggering search');
+      searchProvider.searchDeals(
+        'all',
+        categoryId: categoryId,
+        sortBy: 'total_price',
+        sortOrder: 'asc',
+      );
+    } else if (_tabController.index == 2 && searchProvider.salons.isEmpty) {
+      // Salons tab - trigger search if empty
+      log('🏪 Salons tab active - triggering search');
+      searchProvider.searchSalons(
+        'all',
+        sortBy: 'rating',
+        sortOrder: 'desc',
+      );
+    }
+  }
+
   @override
   void dispose() {
     _tabController.dispose();
@@ -92,196 +118,382 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew> with Singl
     super.dispose();
   }
 
+  /// Build a loading widget
+  Widget _buildLoadingState() {
+    return Container(
+      padding: const EdgeInsets.all(60),
+      child: const Center(
+        child: CircularProgressIndicator(
+          strokeWidth: 3,
+          color: kPrimaryColor,
+        ),
+      ),
+    );
+  }
+
+  /// Build an error widget
+  Widget _buildErrorState(String error) {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 72,
+              color: Colors.red[300],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Oops! Something went wrong',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              error,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build empty state for services
+  Widget _buildServicesEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.search_off_rounded,
+              size: 72,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Services Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Try adjusting your search or filters',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build empty state for deals
+  Widget _buildDealsEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.local_offer_outlined,
+              size: 72,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Deals Available',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Check back later for amazing offers',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Build empty state for salons
+  Widget _buildSalonsEmptyState() {
+    return Container(
+      padding: const EdgeInsets.all(40),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.store_mall_directory_outlined,
+              size: 72,
+              color: Colors.grey[300],
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'No Salons Found',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Try searching in a different area',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final searchProvider = Provider.of<SearchProviderNew>(context);
 
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: NestedScrollView(
-          headerSliverBuilder: (BuildContext context, bool innerBoxIsScrolled) {
-            return [
-              SliverAppBar(
-                surfaceTintColor: Colors.white,
-                pinned: true,
-                floating: true,
-                snap: true,
-                flexibleSpace: FlexibleSpaceBar(
-                  background: ServicesHeaderNew(tabController: _tabController, backButtonNav: isFromBottomNav, categoryId: categoryId, categoryName: categoryName),
-                ),
-                expandedHeight: 180,
-                backgroundColor: Colors.white,
-                elevation: 0,
-                automaticallyImplyLeading: false,
-              ),
-            ];
-          },
-          body: Container(
-            color: kScreenBg,
-            padding: EdgeInsets.fromLTRB(0, 0, 10, 0),
-            child: TabBarView(
-
-              controller: _tabController,
-              children: [
-                CustomScrollView(
-                  controller: _servicesScrollController,
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                          if (searchProvider.isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          if (searchProvider.error != null) {
-                            return Center(child: Text("Error: ${searchProvider.error}"));
-                          }
-                          if (searchProvider.services.isEmpty) {
-                            return const Center(child: Text("No services found"));
-                          }
-                          return Container(
-                            padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
-                            child:
-
-                            ServicesCard(
-                              title: searchProvider?.services?[index].name ?? "",
-                              image: "",
-                              salon: searchProvider.services[index].salon !,
-                              service: searchProvider.services[index],
-
-                              // price: searchProvider?.services?[index].price ?? 0,
-                              // discountAmount: searchProvider?.services?[index]?.discountAmount ?? 0,
-                              // discountType: searchProvider?.services?[index]?.discountType ?? "",
-                              // oldPrice: searchProvider?.services?[index]?.oldPrice ?? 0 ,
-                              // gender: searchProvider.services[index].gender ?? "",
-                              // duration: searchProvider.services[index].duration ?? "",
-                              // salon: null, //searchProvider.services[index].salon,
-                              desc: searchProvider.services[index].description  ?? "",
-                              press: () {
-
-                                Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: searchProvider.services[index]);
-                                log('Tapped Deal: ${searchProvider.services[index].name}');
-                                log('Tapped Deal:salon id   ${searchProvider.services[index].salon?.id}');
-                                log('Tapped Deal:name   ${searchProvider.services[index].salon?.name}');
-                                log('Tapped Deal:image   ${searchProvider.services[index].salon?.image}');
-                                log('Tapped Deal:address   ${searchProvider.services[index].salon?.address}');
-
-                              },
-                            ),
-
-                          );
-                        },
-                        childCount: searchProvider.isLoading || searchProvider.error != null ? 1 : searchProvider.services.length,
-                      ),
-                    ),
-                  ],
-                ),
-                CustomScrollView(
-                  controller: _dealsScrollController,
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                          if (searchProvider.isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          if (searchProvider.error != null) {
-                            return Center(child: Text("Error: ${searchProvider.error}"));
-                          }
-                          if (searchProvider.deals.isEmpty) {
-                            return const Center(child: Text("No deals found"));
-                          }
-                          return Container(
-                            padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
-                            child:
-
-                            DealsCard(
-                              title: searchProvider.deals[index].name ?? "",
-                              price: searchProvider.deals[index].totalPrice ?? 0,
-
-                              /// required this.title,
-                              /// required this.image,
-                              // required this.services,
-                              /// required this.salon,
-                              /// required this.price,
-                              /// required this.discountValue,
-                              /// required this.discountType,
-                              /// required this.press,
-
-
-                              services: searchProvider.deals[index].services != null
-                                  ? searchProvider.deals[index].services!.map((s) => s.name).join(' • ')
-                                  : '',
-                              //services: searchProvider.deals[index].price  ?? 0,
-                              discountValue: searchProvider.deals[index].discountValue ?? 0 ,
-                              discountType: searchProvider.deals[index].discountType ?? "",
-                              //oldPrice: searchProvider.deals[index].price  ?? 0,
-                              //duration: searchProvider.deals[index].services!.isNotEmpty? searchProvider.deals[index].services!.map((s) => s.duration).join(', '): '',
-                              salon: searchProvider.deals[index].salon!,
-                              //desc: searchProvider.deals[index].services!.isNotEmpty ? searchProvider.deals[index].services!.map((s) => s.description).join(', ') : '',
-                              //validUntil: searchProvider.deals[index].endDate,
-                              image: searchProvider.deals[index].image ?? "",
-                              press: () {
-
-                                Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName, arguments: searchProvider.deals[index]);
-                                log('Tapped Deal: ${searchProvider.deals[index].name}');
-                                log('Tapped Deal:salon id   ${searchProvider.deals[index].salon?.id}');
-                                log('Tapped Deal:name   ${searchProvider.deals[index].salon?.name}');
-                                log('Tapped Deal:image   ${searchProvider.deals[index].salon?.image}');
-                                log('Tapped Deal:address   ${searchProvider.deals[index].salon?.address}');
-
-                              },
-                            ),
-                          );
-                        },
-                        childCount: searchProvider.isLoading || searchProvider.error != null ? 1 : searchProvider.deals.length,
-                      ),
-                    ),
-                  ],
-                ),
-                CustomScrollView(
-                  controller: _salonsScrollController,
-                  slivers: [
-                    SliverList(
-                      delegate: SliverChildBuilderDelegate(
-                            (BuildContext context, int index) {
-                          if (searchProvider.isLoading) {
-                            return const Center(child: CircularProgressIndicator());
-                          }
-                          if (searchProvider.error != null) {
-                            return Center(child: Text("Error: ${searchProvider.error}"));
-                          }
-                          if (searchProvider.salons.isEmpty) {
-                            return const Center(child: Text("No salons found"));
-                          }
-                          return
-
-                            Container(
-                            padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
-                            child: SalonCard(
-                              name: searchProvider.salons[index].name ?? "",
-                              image: searchProvider.salons[index].image ?? 'assets/images/default_logo.png',
-                              address: searchProvider.salons[index].address ?? "",
-                              about: searchProvider.salons[index].about ?? "",
-                              average_rating: 0,//searchProvider.salons[index].averageRating ?? 0,
-                              review_count: searchProvider.salons[index].reviewCount ?? 0,
-                              is_favourite: searchProvider.salons[index].isFavourite ?? true,
-                              press: () {
-                                print('SalonCard');
-                                Navigator.pushNamed(context, SalonDetailsScrollingTabsEffectB.routeName, arguments: '${searchProvider.salons[index].id}',);
-
-
-                              },
-                            ),
-                          );
-                        },
-                        childCount: searchProvider.isLoading || searchProvider.error != null ? 1 : searchProvider.salons.length,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+        child: Column(
+          children: [
+            // Header (non-scrollable)
+            ServicesHeaderNew(
+              tabController: _tabController,
+              backButtonNav: isFromBottomNav,
+              categoryId: categoryId,
+              categoryName: categoryName,
             ),
-          ),
+            // Divider
+            Divider(
+              height: 1,
+              thickness: 1,
+              color: Colors.grey.shade200,
+            ),
+            // Body (scrollable tabs)
+            Expanded(
+              child: Container(
+                color: kScreenBg,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    // Services Tab
+                    CustomScrollView(
+                      controller: _servicesScrollController,
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.only(top: 4),
+                          sliver: searchProvider.isLoading &&
+                                  searchProvider.services.isEmpty
+                              ? SliverToBoxAdapter(child: _buildLoadingState())
+                              : searchProvider.error != null
+                                  ? SliverToBoxAdapter(
+                                      child: _buildErrorState(
+                                          searchProvider.error!))
+                                  : searchProvider.services.isEmpty
+                                      ? SliverToBoxAdapter(
+                                          child: _buildServicesEmptyState())
+                                      : SliverList(
+                                          delegate: SliverChildBuilderDelegate(
+                                            (BuildContext context, int index) {
+                                              final service = searchProvider
+                                                  .services[index];
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 6,
+                                                ),
+                                                child: ServicesCard(
+                                                  title: service.name ?? "",
+                                                  image: "",
+                                                  salon: service.salon!,
+                                                  service: service,
+                                                  desc:
+                                                      service.description ?? "",
+                                                  press: () {
+                                                    log('🔵 Service tapped: ${service.name}');
+                                                    log('   Salon ID: ${service.salon?.id}');
+                                                    log('   Salon: ${service.salon?.name}');
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      SalonCategoryAndServicesList
+                                                          .routeName,
+                                                      arguments: service,
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                            childCount:
+                                                searchProvider.services.length,
+                                          ),
+                                        ),
+                        ),
+                      ],
+                    ),
+                    // Deals Tab
+                    CustomScrollView(
+                      controller: _dealsScrollController,
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.only(top: 4),
+                          sliver: searchProvider.isLoading &&
+                                  searchProvider.deals.isEmpty
+                              ? SliverToBoxAdapter(child: _buildLoadingState())
+                              : searchProvider.error != null
+                                  ? SliverToBoxAdapter(
+                                      child: _buildErrorState(
+                                          searchProvider.error!))
+                                  : searchProvider.deals.isEmpty
+                                      ? SliverToBoxAdapter(
+                                          child: _buildDealsEmptyState())
+                                      : SliverList(
+                                          delegate: SliverChildBuilderDelegate(
+                                            (BuildContext context, int index) {
+                                              final deal =
+                                                  searchProvider.deals[index];
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 6,
+                                                ),
+                                                child: DealsCard(
+                                                  title: deal.name ?? "",
+                                                  price: deal.totalPrice ?? 0,
+                                                  deal: deal,
+                                                  services: deal.services !=
+                                                          null
+                                                      ? deal.services!
+                                                          .map((s) => s.name)
+                                                          .join(' • ')
+                                                      : '',
+                                                  discountValue:
+                                                      deal.discountValue ?? 0,
+                                                  discountType:
+                                                      deal.discountType ?? "",
+                                                  salon: deal.salon!,
+                                                  image: deal.image ?? "",
+                                                  press: () {
+                                                    log('🏷️ Deal tapped: ${deal.name}');
+                                                    log('   Total Price: ${deal.totalPrice}');
+                                                    log('   Salon: ${deal.salon?.name}');
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      SalonCategoryAndServicesList
+                                                          .routeName,
+                                                      arguments: deal,
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                            childCount:
+                                                searchProvider.deals.length,
+                                          ),
+                                        ),
+                        ),
+                      ],
+                    ),
+                    // Salons Tab
+                    CustomScrollView(
+                      controller: _salonsScrollController,
+                      slivers: [
+                        SliverPadding(
+                          padding: const EdgeInsets.only(top: 4),
+                          sliver: searchProvider.isLoading &&
+                                  searchProvider.salons.isEmpty
+                              ? SliverToBoxAdapter(child: _buildLoadingState())
+                              : searchProvider.error != null
+                                  ? SliverToBoxAdapter(
+                                      child: _buildErrorState(
+                                          searchProvider.error!))
+                                  : searchProvider.salons.isEmpty
+                                      ? SliverToBoxAdapter(
+                                          child: _buildSalonsEmptyState())
+                                      : SliverList(
+                                          delegate: SliverChildBuilderDelegate(
+                                            (BuildContext context, int index) {
+                                              final salon =
+                                                  searchProvider.salons[index];
+                                              return Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 4,
+                                                  vertical: 6,
+                                                ),
+                                                child: SalonCard(
+                                                  name: salon.name ?? "",
+                                                  image: salon.image ?? '',
+                                                  address: salon.address ?? "",
+                                                  about: salon.about ?? "",
+                                                  average_rating:
+                                                      0, // TODO: Enable when API provides rating
+                                                  review_count:
+                                                      salon.reviewCount ?? 0,
+                                                  is_favourite:
+                                                      salon.isFavourite ??
+                                                          false,
+                                                  press: () {
+                                                    log('🏪 Salon tapped: ${salon.name}');
+                                                    log('   Address: ${salon.address}');
+                                                    log('   Reviews: ${salon.reviewCount}');
+                                                    Navigator.pushNamed(
+                                                      context,
+                                                      SalonDetailsScrollingTabsEffectB
+                                                          .routeName,
+                                                      arguments: '${salon.id}',
+                                                    );
+                                                  },
+                                                ),
+                                              );
+                                            },
+                                            childCount:
+                                                searchProvider.salons.length,
+                                          ),
+                                        ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

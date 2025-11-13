@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'HomePageResponse.dart';
 
 class SalonDetailApiResponse {
@@ -58,6 +56,9 @@ class SalonData {
   final String? type;
   final String? kind;
 
+  // TODO: FAVOURITES MODEL - Backend favourite status
+  // This field comes from API response (is_favourite)
+  // Used to initialize UI favourite state in salon detail screen
   final bool? isFavourite;
   final List<Section>? sections;
   final Location? location;
@@ -71,7 +72,6 @@ class SalonData {
     required this.logo,
     required this.star,
     required this.review_count,
-
     required this.fackebook,
     required this.instagram,
     required this.twitter,
@@ -80,7 +80,6 @@ class SalonData {
     required this.policy,
     required this.type,
     required this.kind,
-
     required this.isFavourite,
     required this.sections,
     required this.location,
@@ -107,8 +106,10 @@ class SalonData {
       type: json['type'],
       kind: json['kind'],
 
+      // TODO: FAVOURITES PARSING - Parse is_favourite from API
       isFavourite: json['is_favourite'],
-      sections: (json['sections'] as List).map((e) => Section.fromJson(e)).toList(),
+      sections:
+          (json['sections'] as List).map((e) => Section.fromJson(e)).toList(),
       location: Location.fromJson(json['location']),
     );
   }
@@ -125,19 +126,24 @@ class Section {
     dynamic parsedData;
     switch (json['type']) {
       case "2": // Services
-        parsedData = (json['data'] as List).map((e) => Service.fromJson(e)).toList();
+        parsedData =
+            (json['data'] as List).map((e) => Service.fromJson(e)).toList();
         break;
       case "3": // Reviews
-        parsedData = (json['data'] as List).map((e) => Review.fromJson(e)).toList();
+        parsedData =
+            (json['data'] as List).map((e) => Review.fromJson(e)).toList();
         break;
       case "4": // Staff
-        parsedData = (json['data'] as List).map((e) => Staff.fromJson(e)).toList();
+        parsedData =
+            (json['data'] as List).map((e) => Staff.fromJson(e)).toList();
         break;
       case "5": // About
-        parsedData = (json['data'] as List).map((e) => About.fromJson(e)).toList();
+        parsedData =
+            (json['data'] as List).map((e) => About.fromJson(e)).toList();
         break;
       case "6": // Deals
-        parsedData = (json['data'] as List).map((e) => Deal.fromJson(e)).toList();
+        parsedData =
+            (json['data'] as List).map((e) => Deal.fromJson(e)).toList();
         break;
       default:
         parsedData = json['data'];
@@ -269,7 +275,6 @@ class Review {
     };
   }
 }
-
 
 class User {
   final int? id;
@@ -416,7 +421,6 @@ class User {
     };
   }
 }
-
 
 class Staff {
   final int? id;

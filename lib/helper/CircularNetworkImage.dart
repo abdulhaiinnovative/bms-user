@@ -8,7 +8,7 @@ class CircularNetworkImage extends StatelessWidget {
   final double width;
   final double border;
 
-  CircularNetworkImage({
+  const CircularNetworkImage({super.key, 
     required this.imageUrl,
     required this.height,
     required this.width,
@@ -19,9 +19,9 @@ class CircularNetworkImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: this.width,
-      height: this.height,
-      decoration: BoxDecoration(
+      width: width,
+      height: height,
+      decoration: const BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: kGradientColorRing,

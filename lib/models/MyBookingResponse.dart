@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 class MyBookingResponse {
@@ -12,7 +11,9 @@ class MyBookingResponse {
     return MyBookingResponse(
       status: json['status'] as bool?,
       message: json['message']?.toString(),
-      response: json['response'] != null ? ResponseData.fromJson(json['response'] as Map<String, dynamic>) : null,
+      response: json['response'] != null
+          ? ResponseData.fromJson(json['response'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -23,8 +24,38 @@ class ResponseData {
   ResponseData({this.data});
 
   factory ResponseData.fromJson(Map<String, dynamic> json) {
+    if (json['data'] == null) {
+      return ResponseData(data: null);
+    }
+
+    // Check if data is a List (empty bookings case) or Map (paginated data)
+    if (json['data'] is List) {
+      log('ResponseData: data is a List, wrapping in BookingData structure');
+      // Wrap the list in the expected BookingData structure
+      final list = json['data'] as List<dynamic>;
+      final wrappedData = {
+        'current_page': 1,
+        'data': list,
+        'first_page_url': null,
+        'from': list.isEmpty ? null : 1,
+        'last_page': 1,
+        'last_page_url': null,
+        'links': [],
+        'next_page_url': null,
+        'path': null,
+        'per_page': list.length,
+        'prev_page_url': null,
+        'to': list.isEmpty ? null : list.length,
+        'total': list.length,
+      };
+      return ResponseData(
+        data: BookingData.fromJson(wrappedData),
+      );
+    }
+
+    // Normal case: data is a Map with pagination
     return ResponseData(
-      data: json['data'] != null ? BookingData.fromJson(json['data'] as Map<String, dynamic>) : null,
+      data: BookingData.fromJson(json['data'] as Map<String, dynamic>),
     );
   }
 }
@@ -62,11 +93,12 @@ class BookingData {
 
   factory BookingData.fromJson(Map<String, dynamic> json) {
     return BookingData(
-      currentPage: json['current_page'] is int ? json['current_page'] as int? : null,
+      currentPage:
+          json['current_page'] is int ? json['current_page'] as int? : null,
       data: json['data'] != null
           ? (json['data'] as List<dynamic>)
-          .map((e) => Booking.fromJson(e as Map<String, dynamic>))
-          .toList()
+              .map((e) => Booking.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
       firstPageUrl: json['first_page_url']?.toString(),
       from: json['from'] is int ? json['from'] as int? : null,
@@ -74,8 +106,8 @@ class BookingData {
       lastPageUrl: json['last_page_url']?.toString(),
       links: json['links'] != null
           ? (json['links'] as List<dynamic>)
-          .map((e) => Link.fromJson(e as Map<String, dynamic>))
-          .toList()
+              .map((e) => Link.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
       nextPageUrl: json['next_page_url']?.toString(),
       path: json['path']?.toString(),
@@ -137,8 +169,12 @@ class Booking {
       paymentStatus: json['payment_status']?.toString(),
       bookingType: json['booking_type']?.toString(),
       status: json['status']?.toString(),
-      usedLoyaltyPoints: json['used_loyalty_points'] is int ? json['used_loyalty_points'] as int? : null,
-      salon: json['salon'] != null ? Salon.fromJson(json['salon'] as Map<String, dynamic>) : null,
+      usedLoyaltyPoints: json['used_loyalty_points'] is int
+          ? json['used_loyalty_points'] as int?
+          : null,
+      salon: json['salon'] != null
+          ? Salon.fromJson(json['salon'] as Map<String, dynamic>)
+          : null,
     );
   }
 }
@@ -220,12 +256,14 @@ class Salon {
       longitude: double.tryParse(json['longitude']?.toString() ?? ''),
       salonPolicy: json['salon_policy']?.toString(),
       about: json['about']?.toString(),
-      averageRating: json['average_rating'] is int ? json['average_rating'] as int? : null,
-      reviewCount: json['review_count'] is int ? json['review_count'] as int? : null,
+      averageRating:
+          json['average_rating'] is int ? json['average_rating'] as int? : null,
+      reviewCount:
+          json['review_count'] is int ? json['review_count'] as int? : null,
       activeDays: json['active_days'] != null
           ? (json['active_days'] as List<dynamic>)
-          .map((e) => ActiveDay.fromJson(e as Map<String, dynamic>))
-          .toList()
+              .map((e) => ActiveDay.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
       images: json['images'] != null
           ? (json['images'] as List<dynamic>).map((e) => e.toString()).toList()

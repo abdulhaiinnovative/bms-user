@@ -1,7 +1,6 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../api_services/MyBookingsAPI.dart'; // Adjust path based on your project structure
+// Adjust path based on your project structure
 import '../../models/MyBookingResponse.dart'; // Adjust path based on your project structure
 import '../../constants.dart'; // Adjust path for your constants file
 
@@ -15,11 +14,11 @@ class BookingDetailsScreen extends StatelessWidget {
       // Uncomment when API is implemented
       // await MyBookingsAPI().cancelBooking(booking.id);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Booking cancelled successfully'),
+        const SnackBar(
+          content: Text('Booking cancelled successfully'),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.all(16),
+          margin: EdgeInsets.all(16),
         ),
       );
       // Navigate back with a result indicating cancellation
@@ -75,11 +74,11 @@ class BookingDetailsScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Center(
+                    const Center(
                       child: Text(
                         // booking.salon?.name ??
                             'Unknown Salon',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
                           color: Colors.black87,

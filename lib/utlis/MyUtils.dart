@@ -115,7 +115,7 @@ class MyUtils {
 
     // Define the date formatter for '4th September 2024'
     String daySuffix = getDaySuffix(dateTime.day);
-    String formattedDate = DateFormat('d').format(dateTime) + daySuffix + ' ' + DateFormat('MMM yyyy').format(dateTime);
+    String formattedDate = '${DateFormat('d').format(dateTime)}$daySuffix ${DateFormat('MMM yyyy').format(dateTime)}';
 
     // Define the time formatter for '08:04 PM'
     String formattedTime = DateFormat('hh:mm a').format(dateTime);
@@ -157,7 +157,7 @@ class MyUtils {
           title: Text(title),
           content: SingleChildScrollView(
             child: Text(content,
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 12
               ),),
           ),
@@ -194,17 +194,17 @@ class MyUtils {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(width: 20),
+                  const SizedBox(width: 20),
                   Transform.scale(
                     scale: 0.8,
                     child: CircularProgressIndicator(
                       color: kPrimaryDarkColor.withOpacity(0.9),
                     ),
                   ),
-                  SizedBox(width: 20),
+                  const SizedBox(width: 20),
                   Text(
                     text,
-                    style: TextStyle(
+                    style: const TextStyle(
                         color: kTextColor, fontSize: 14, fontWeight: FontWeight.w400),
                   ),
                 ],

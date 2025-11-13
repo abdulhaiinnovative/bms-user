@@ -1,36 +1,27 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
-
+import 'package:app/services/protected_http_client.dart';
 import '../models/HomePageResponse.dart';
 
-
 class HomeScreenAPI {
-
-  // String baseURL = 'https://bookmyspot.arca9.com/api';
-  String baseURL = 'https://bms.innovativewidget.com/api';
-
-
   HomeScreenAPI();
 
   Future<HomePageResponse> fetchHomePageData() async {
     try {
-      final response = await http.get(Uri.parse('${baseURL}/home-page'));
+      // Using ProtectedHttpClient with authentication required
+      final response = await ProtectedHttpClient.get('/home-page');
 
       if (response.statusCode == 200) {
+        log('-----++ fetchHomePageData API called with auth');
+        log('----- fetchHomePageData start');
+        log('----- fetchHomePageData end');
 
-        log('-----++API URL ${baseURL}/home-page');
+        HomePageResponse homePageResponse =
+            HomePageResponse.fromJson(jsonDecode(response.body));
+        log('1==1== $homePageResponse');
 
-        log('----- fetchHomePageData start ');
-        // log('----- ${response.body}');
-        log('----- fetchHomePageData end ');
-
-
-        HomePageResponse homePageResponse = HomePageResponse.fromJson(jsonDecode(response.body));
-        log('1==1== ${homePageResponse}');
-
-         log('1==Slider=== ${homePageResponse.response.data.type1}');
-         log('1===== ${homePageResponse.response.data.type1[0].data[0].image}');
+        log('1==Slider=== ${homePageResponse.response.data.type1}');
+        log('1===== ${homePageResponse.response.data.type1[0].data[0].image}');
 
         log('2==Categories=== ${homePageResponse.response.data.type2}');
         log('2===== ${homePageResponse.response.data.type2[0].data[0].name}');
@@ -40,20 +31,25 @@ class HomeScreenAPI {
 
         log('4==Deals=== ${homePageResponse.response.data.type4}');
         log('4===== ${homePageResponse.response.data.type4[0].data[0].name}');
-        //
+
         log('5==Services===: ${homePageResponse.response.data.type5}');
         log('5=====: ${homePageResponse.response.data.type5[0].data[0].name}');
 
-        //return HomePageResponse.fromJson(jsonDecode(response.body));
-
         return homePageResponse;
-
       } else {
-        throw Exception('Failed to load data: ${response.statusCode} - ${response.reasonPhrase}');
+        log('❌ Failed to load home page data: ${response.statusCode}');
+        throw Exception(
+            'Failed to load data: ${response.statusCode} - ${response.reasonPhrase}');
       }
+    } on UnauthorizedException catch (e) {
+      log('❌ Unauthorized: $e');
+      throw Exception('Session expired. Please login again.');
+    } on ApiException catch (e) {
+      log('❌ API Error: $e');
+      throw Exception('Failed to load data: $e');
     } catch (error) {
+      log('❌ Unexpected error: $error');
       throw Exception('Failed to load data: $error');
     }
   }
 }
-

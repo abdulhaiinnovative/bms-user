@@ -1,25 +1,32 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
 
 import '../../../api_services/ProfileUpdateAPI.dart';
-import '../../../api_services/home_screen_api.dart';
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../constants.dart';
-import '../../../models/update_profile_response.dart';
-import '../../home/home_screen.dart';
+import '../../../models/auth/social_auth_response.dart';
+import '../../../providers/auth/auth_provider.dart';
+import '../../../services/fcm_token_service.dart';
 import '../../init_screen.dart';
-import '../../otp/otp_screen.dart';
 
 class CompleteProfileForm extends StatefulWidget {
+  final UserIsAlreadyRegisteredModel? user;
+  final bool isSocialAuth;
+  final SocialUserData? socialUser;
+  final String? email;
 
-  final UserIsAlreadyRegisteredModel user;
-
-  const CompleteProfileForm({super.key, required this.user});
-
+  const CompleteProfileForm({
+    super.key,
+    this.user,
+    this.isSocialAuth = false,
+    this.socialUser,
+    this.email,
+  });
 
   @override
   _CompleteProfileFormState createState() => _CompleteProfileFormState();
@@ -31,7 +38,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   String? firstName;
   String? lastName;
   String? phoneNumber;
-  // String? address;
   String? email;
   String? gender = "female";
   String? country = "pakistan";
@@ -39,23 +45,34 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   String? city = "karachi";
   String? address;
 
-
-
-
-
   TextEditingController emailController = TextEditingController();
-
-
-  @override
-  _CompleteProfileFormState createState() => _CompleteProfileFormState();
-
+  TextEditingController firstNameController = TextEditingController();
+  TextEditingController lastNameController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    emailController.text = widget.user.email ?? "";
-  }
 
+    if (widget.isSocialAuth && widget.socialUser != null) {
+      // Pre-fill from social auth data
+      emailController.text = widget.email ?? widget.socialUser?.email ?? "";
+      firstNameController.text = widget.socialUser?.firstName ?? "";
+      lastNameController.text = widget.socialUser?.lastName ?? "";
+
+      firstName = widget.socialUser?.firstName;
+      lastName = widget.socialUser?.lastName;
+      email = widget.email ?? widget.socialUser?.email;
+
+      print('📝 CompleteProfileForm: Pre-filled social auth data');
+      print('   Email: $email');
+      print('   First Name: $firstName');
+      print('   Last Name: $lastName');
+    } else if (widget.user != null) {
+      // Pre-fill from regular registration
+      emailController.text = widget.user?.email ?? "";
+      email = widget.user?.email;
+    }
+  }
 
   void addError({String? error}) {
     if (!errors.contains(error)) {
@@ -73,6 +90,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
         children: [
           //fname
           TextFormField(
+            controller: firstNameController,
+            readOnly: widget.isSocialAuth, // Read-only for social auth
             onSaved: (newValue) => firstName = newValue,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -87,16 +106,23 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "First Name",
               hintText: "Enter your first name",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+              suffixIcon:
+                  const CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+              // Show indicator for pre-filled social auth fields
+              helperText:
+                  widget.isSocialAuth ? "From your Google account" : null,
+              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
             ),
           ),
           const SizedBox(height: 20),
           //lname
           TextFormField(
+            controller: lastNameController,
+            readOnly: widget.isSocialAuth, // Read-only for social auth
             onSaved: (newValue) => lastName = newValue,
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -111,11 +137,15 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Last Name",
               hintText: "Enter your last name",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+              suffixIcon:
+                  const CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+              helperText:
+                  widget.isSocialAuth ? "From your Google account" : null,
+              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
             ),
           ),
           const SizedBox(height: 20),
@@ -137,43 +167,50 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
+            decoration: InputDecoration(
               labelText: "Email",
               hintText: "Enter your email address",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon:
-              CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
+                  const CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
+              helperText:
+                  widget.isSocialAuth ? "From your Google account" : null,
+              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
             ),
           ),
           const SizedBox(height: 20),
           //phone
-          TextFormField(
-            keyboardType: TextInputType.phone,
-            onSaved: (newValue) => phoneNumber = newValue,
-            onChanged: (value) {
-              if (value.isNotEmpty) {
+          IntlPhoneField(
+            decoration: const InputDecoration(
+              labelText: "Phone Number",
+              hintText: "Enter your phone number",
+              floatingLabelBehavior: FloatingLabelBehavior.always,
+              border: OutlineInputBorder(),
+            ),
+            initialCountryCode: 'PK', // Pakistan as default
+            onChanged: (phone) {
+              phoneNumber = phone.completeNumber;
+              if (phone.completeNumber.isNotEmpty) {
                 removeError(error: kPhoneNumberNullError);
               }
-              return;
             },
-            validator: (value) {
-              if (value!.isEmpty) {
+            onSaved: (phone) {
+              if (phone != null) {
+                phoneNumber = phone.completeNumber;
+              }
+            },
+            validator: (phone) {
+              if (phone == null || phone.completeNumber.isEmpty) {
                 addError(error: kPhoneNumberNullError);
                 return "";
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Phone Number",
-              hintText: "Enter your phone number",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Phone.svg"),
-            ),
           ),
           const SizedBox(height: 20),
           // gender
           DropdownButtonFormField<String>(
-            value: gender,
+            initialValue: gender,
             icon: const SizedBox.shrink(), // Hides the default dropdown icon
             onChanged: (newValue) {
               setState(() {
@@ -207,7 +244,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           const SizedBox(height: 20),
           // country
           DropdownButtonFormField<String>(
-            value: country,
+            initialValue: country,
             icon: const SizedBox.shrink(), // Hides the default dropdown icon
             onChanged: (newValue) {
               setState(() {
@@ -231,7 +268,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               labelText: "Country",
               hintText: "Select your country",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+              suffixIcon:
+                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
             ),
             items: const [
               DropdownMenuItem(value: "pakistan", child: Text("Pakistan")),
@@ -240,7 +278,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           const SizedBox(height: 20),
           // state
           DropdownButtonFormField<String>(
-            value: state,
+            initialValue: state,
             icon: const SizedBox.shrink(), // Hides the default dropdown icon
             onChanged: (newValue) {
               setState(() {
@@ -264,7 +302,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               labelText: "State",
               hintText: "Select your state",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+              suffixIcon:
+                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
             ),
             items: const [
               DropdownMenuItem(value: "sindh", child: Text("Sindh")),
@@ -273,7 +312,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           const SizedBox(height: 20),
           // city
           DropdownButtonFormField<String>(
-            value: city,
+            initialValue: city,
             icon: const SizedBox.shrink(), // Hides the default dropdown icon
             onChanged: (newValue) {
               setState(() {
@@ -297,7 +336,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               labelText: "City",
               hintText: "Select your city",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+              suffixIcon:
+                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
             ),
             items: const [
               DropdownMenuItem(value: "karachi", child: Text("Karachi")),
@@ -325,7 +365,7 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               hintText: "Enter your address",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               suffixIcon:
-              CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
             ),
           ),
           const SizedBox(height: 20),
@@ -333,18 +373,14 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           const SizedBox(height: 20),
           ElevatedButton(
             onPressed: () async {
-
-
-
               _formKey.currentState!.save();
               if (_formKey.currentState!.validate()) {
-
                 showDialog(
                   context: context,
                   barrierDismissible: false,
-                  builder: (_) => const Center(child: CircularProgressIndicator()),
+                  builder: (_) =>
+                      const Center(child: CircularProgressIndicator()),
                 );
-
 
                 log('firstName::: $firstName');
                 log('lastName::: $lastName');
@@ -356,88 +392,107 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                 log('city::: $city');
                 log('address::: $address');
 
-
-
-
-                // {
-                // "first_name": "John",
-                // "last_name": "Doe",
-                // "name": "John Doe",
-                // "email": "muhammad.usman89@icloud.com",
-                // "device_id": "device-123",
-                // "provider": "google",
-                // "provider_id": "google-uid-123",
-                // "image": "",
-                // "phone": "+1234567890",
-                // "dob": "1990-01-01",
-                // "gender": "male",
-                // "country": "USA",
-                // "state": "California",
-                // "latitude": "34.0522",
-                // "longitude": "-118.2437",
-                // "city": "Los Angeles",
-                // "address": "123 Main St"
-                // }
-
-
                 try {
-                  final response = await ProfileUpdateAPI.updateUserProfile({
-                    "first_name": firstName,
-                    "last_name": lastName,
-                    "name": "${firstName} ${lastName}",
-                    "email": email,
-                    "device_id": "device-123",
-                    "provider": "google",
-                    "provider_id": "117038108082662535502",
-                    "image": "",
-                    "phone": phoneNumber,
-                    "dob": "2000-01-01",
-                    "gender": gender,
-                    "country": country,
-                    "state": state,
-                    "city": city,
-                    "latitude": "24.8607",
-                    "longitude": "67.0011",
-                    "address": address
-                  });
+                  if (widget.isSocialAuth && widget.socialUser != null) {
+                    // Handle social auth profile completion
+                    print(
+                        '🔵 CompleteProfileForm: Completing social auth profile...');
 
-                  // Navigator.pop(context);
+                    final authProvider =
+                        Provider.of<AuthProvider>(context, listen: false);
+                    final fcmToken = await FCMTokenService.getFCMToken();
 
-
-                  // final updateProfileResponse = UpdateProfileResponse.fromJson(
-                  //   jsonDecode(response),
-                  // );
-
-                  log("Profile updated: lastanem ${response.response?.data?.lastName}");
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Profile updated successfully")),
-                  );
-
-
-                  if(response.status == true){
-                    Navigator.pushNamed(context, InitScreen.routeName);
-                  }else{
-                    log("Profile update failed: ${response.message}");
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text("Error: ${response.message.toString()}")),
+                    final success = await authProvider.completeSocialProfile(
+                      email: email!,
+                      phone: phoneNumber,
+                      gender: gender,
+                      country: country,
+                      state: state,
+                      city: city,
+                      address: address,
+                      fcmToken: fcmToken,
                     );
+
+                    Navigator.pop(context); // Close loading dialog
+
+                    if (!mounted) return;
+
+                    if (success) {
+                      print(
+                          '✅ CompleteProfileForm: Social profile completed successfully');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Profile completed successfully")),
+                      );
+                      Navigator.pushReplacementNamed(
+                          context, InitScreen.routeName);
+                    } else {
+                      print(
+                          '❌ CompleteProfileForm: Failed to complete social profile');
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(authProvider.errorMessage ??
+                              "Failed to complete profile"),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  } else {
+                    // Handle regular profile update
+                    print(
+                        '🔵 CompleteProfileForm: Updating regular profile...');
+                    final response = await ProfileUpdateAPI.updateUserProfile({
+                      "first_name": firstName,
+                      "last_name": lastName,
+                      "name": "$firstName $lastName",
+                      "email": email,
+                      "device_id": "device-123",
+                      "provider": "google",
+                      "provider_id": "117038108082662535502",
+                      "image": "",
+                      "phone": phoneNumber,
+                      "dob": "2000-01-01",
+                      "gender": gender,
+                      "country": country,
+                      "state": state,
+                      "city": city,
+                      "latitude": "24.8607",
+                      "longitude": "67.0011",
+                      "address": address
+                    });
+
+                    Navigator.pop(context); // Close loading dialog
+
+                    log("Profile updated: lastname ${response.response?.data?.lastName}");
+
+                    if (response.status == true) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text("Profile updated successfully")),
+                      );
+                      Navigator.pushNamed(context, InitScreen.routeName);
+                    } else {
+                      log("Profile update failed: ${response.message}");
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                            content:
+                                Text("Error: ${response.message.toString()}")),
+                      );
+                    }
                   }
-
-                  // Navigator.pop(context);
-                  //Navigator.pushNamed(context, OtpScreen.routeName);
-
                 } catch (e) {
                   Navigator.pop(context); // Close the loading spinner
+                  log("Profile completion/update failed: $e");
 
+                  if (!mounted) return;
 
-                  log("Profile update failed: $e");
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text("Error: ${e.toString()}")),
+                    SnackBar(
+                      content: Text("Error: ${e.toString()}"),
+                      backgroundColor: Colors.red,
+                    ),
                   );
                 }
-
-                //Navigator.pushNamed(context, OtpScreen.routeName);
               }
             },
             child: const Text("Continue"),
@@ -446,8 +501,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
       ),
     );
   }
-
-
 
   void removeError({String? error}) {
     if (errors.contains(error)) {

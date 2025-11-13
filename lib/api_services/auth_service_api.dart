@@ -619,8 +619,9 @@ class AuthServiceAPI {
       if (address != null) body['address'] = address;
       if (appointment != null) body['appointment'] = appointment;
       if (emailMarketing != null) body['email_marketing'] = emailMarketing;
-      if (marketingNotification != null)
+      if (marketingNotification != null) {
         body['marketing_notification'] = marketingNotification;
+      }
       if (fcmToken != null) body['fcm_token'] = fcmToken;
 
       final response = await AuthInterceptor.put(

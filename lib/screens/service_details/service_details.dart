@@ -5,9 +5,7 @@ import '../../constants.dart';
 import '../cart/cart_screen.dart';
 
 class ServiceDetailsScreen extends StatelessWidget {
-
   static String routeName = "/service_details";
-
 
   final Map<String, dynamic> serviceData = {
     "id": 1,
@@ -20,6 +18,8 @@ class ServiceDetailsScreen extends StatelessWidget {
     "old_price": "15.00",
     "gender": "male",
   };
+
+   ServiceDetailsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -50,10 +50,8 @@ class ServiceDetailsScreen extends StatelessWidget {
           InkWell(
             borderRadius: BorderRadius.circular(50),
             onTap: () {
-
               // Navigator.pushNamed(context, ProductsScreen.routeName);
               Navigator.pushNamed(context, ServiceDetailsScreen.routeName);
-
             },
             child: Visibility(
               visible: false,
@@ -62,17 +60,17 @@ class ServiceDetailsScreen extends StatelessWidget {
                 height: 28,
                 width: 28,
                 decoration: BoxDecoration(
-                  color: true//product.isFavourite
+                  color: true //product.isFavourite
                       ? kPrimaryColor.withOpacity(0.15)
                       : kSecondaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
                 ),
                 child: SvgPicture.asset(
                   "assets/icons/Heart Icon_2.svg",
-                  colorFilter: ColorFilter.mode(
-                      true//product.isFavourite
-                          ? const Color(0xFFFF4848)
-                          : const Color(0xFFDBDEE4),
+                  colorFilter: const ColorFilter.mode(
+                      true //product.isFavourite
+                          ? Color(0xFFFF4848)
+                          : Color(0xFFDBDEE4),
                       BlendMode.srcIn),
                 ),
               ),
@@ -87,50 +85,52 @@ class ServiceDetailsScreen extends StatelessWidget {
           children: [
             Text(
               serviceData['name'],
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               serviceData['short_description'],
-              style: TextStyle(fontSize: 18, color: Colors.grey),
+              style: const TextStyle(fontSize: 18, color: Colors.grey),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Duration: ${serviceData['duration']}",
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               "Price: \$${serviceData['price']}",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.green),
+              style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.green),
             ),
-            SizedBox(height: 16),
-            Text(
+            const SizedBox(height: 16),
+            const Text(
               "Description",
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Text(
               serviceData['description'],
-              style: TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 36),
+            const SizedBox(height: 36),
             Container(
-
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey),
                 borderRadius: BorderRadius.circular(10),
                 color: Colors.white,
               ),
-
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
+              child: const Padding(
+                padding: EdgeInsets.all(16.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       "Instructions",
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     ),
                     SizedBox(height: 8),
                     Text(
@@ -141,12 +141,13 @@ class ServiceDetailsScreen extends StatelessWidget {
                 ),
               ),
             ),
-            Spacer(),
+            const Spacer(),
             SizedBox(
               width: double.infinity,
               child: SafeArea(
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   child: ElevatedButton(
                     onPressed: () {
                       Navigator.pushNamed(context, CartScreen.routeName);

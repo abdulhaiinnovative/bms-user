@@ -2,10 +2,9 @@ import 'package:app/screens/search_final/search_service_screen_new.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:app/constants.dart';
-import 'package:app/screens/favorite/favorite_screen.dart';
 import 'package:app/screens/home/home_screen.dart';
 import 'package:app/screens/profile/profile_screen.dart';
-import 'package:app/screens/search_service_screen.dart';
+import 'package:app/screens/favourites/favourites_screen.dart';
 import 'history_bookings/my_bookings.dart';
 
 const Color inActiveIconColor = Color(0xFFB6B6B6);
@@ -29,18 +28,13 @@ class _InitScreenState extends State<InitScreen> {
   }
 
   final pages = [
-
-    HomeScreen(),
+    const HomeScreen(),
     // const FavoriteScreen(),
     // const SearchServiceScreen(),
     const SearchServiceScreenNew(),
-
-    const Center(
-      child: Text("Search"),
-    ),
-    const Center(
-      child: MyBookings(),
-    ),
+    // TODO: FAVOURITES NAVIGATION - Favourites screen in bottom navigation
+    const FavouritesScreen(),
+    const MyBookings(),
     const ProfileScreen()
   ];
 

@@ -1,76 +1,43 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
+import 'package:app/services/protected_http_client.dart';
 import '../models/SalonDetailApiResponse.dart';
 
-
 class SalonDetailAPI {
-  // String baseURL = 'https://bookmyspot.arca9.com/api';
-  String baseURL = 'https://bms.innovativewidget.com/api';
-
-
-
   SalonDetailAPI();
 
   Future<SalonData?> fetchSalonDetailData(String salonId) async {
     try {
-      final response = await http.get(Uri.parse('$baseURL/salons/$salonId'));
+      // Using ProtectedHttpClient with authentication required
+      log('SalonDetailAPI: Fetching salon details for ID: $salonId');
 
-
-      log('SalonDetailAPI URL::: ${'$baseURL/salons/$salonId'}');
+      final response = await ProtectedHttpClient.get('/salons/$salonId');
 
       if (response.statusCode == 200) {
+        final apiResponse =
+            SalonDetailApiResponse.fromJson(jsonDecode(response.body));
 
-        //log('SalonDetailAPI Response ${response.body}');
+        SalonData? salonDetails = apiResponse.response.data;
 
+        log('SalonDetailAPI Name::: ${salonDetails.name}');
+        log('SalonDetailAPI 0001--- ${apiResponse.response.data.sections?[0].name}');
+        log('SalonDetailAPI 0002--- ${apiResponse.response.data.sections?[0].type}');
+        log('SalonDetailAPI 0003--- ${apiResponse.response.data.sections?[0].data}');
 
-        //Usage example:
-        final response = await http.get(Uri.parse('$baseURL/salons/$salonId'));
-        if (response.statusCode == 200) {
-
-          // Fixing the incorrect assignment
-          final apiResponse = SalonDetailApiResponse.fromJson(jsonDecode(response.body));
-
-          SalonData? salonDetails = apiResponse.response?.data;
-
-          // final apiResponse = SalonDetailApiResponse.fromJson(jsonDecode(response.body));
-          // SalonDetailApiResponse? salonDetails = apiResponse.response();
-
-          if (salonDetails != null) {
-
-            log('SalonDetailAPI Name::: ${salonDetails.name}');
-            log('SalonDetailAPI 0001--- ${apiResponse.response?.data!.sections?[0].name}');
-            log('SalonDetailAPI 0002--- ${apiResponse.response?.data?.sections?[0].type}');
-            log('SalonDetailAPI 0003--- ${apiResponse.response?.data?.sections?[0].data}');
-
-            return salonDetails;
-          }else{
-
-            print('SalonDetailAPI 00Salon11111');
-            return null;
-          }
-        }else{
-          print('SalonDetailAPI 111112222');
-        }
-
-
-
-        // SalonDetailsClass salonDetailsClass = SalonDetailsClass.fromJson(jsonDecode(response.body));
-        //
-        // print('SalonDetailAPI: ${salonDetailsClass.name}');
-        //
-        //
-        // print('SalonDetailAPI ${salonDetailsClass.name}');
-        //print('SalonDetailAPI ${salonDetailsClass.tags}');
-
-        //return HomePageResponse.fromJson(jsonDecode(response.body));
-        //return salonDetailsClass;
+        return salonDetails;
       } else {
-        throw Exception('SalonDetailAPI Failed to load data: ${response.statusCode} - ${response.reasonPhrase}');
+        log('❌ SalonDetailAPI: Unexpected status code ${response.statusCode}');
+        return null;
       }
+    } on UnauthorizedException catch (e) {
+      log('❌ SalonDetailAPI: Unauthorized - $e');
+      throw Exception('Session expired. Please login again.');
+    } on ApiException catch (e) {
+      log('❌ SalonDetailAPI: API Error - $e');
+      throw Exception('Failed to load salon details: $e');
     } catch (error) {
-      throw Exception('SalonDetailAPI Failed to load data: $error');
+      log('❌ SalonDetailAPI: Unexpected error - $error');
+      throw Exception('Failed to load salon details: $error');
     }
   }
 }
-

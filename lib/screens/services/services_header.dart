@@ -1,8 +1,6 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:provider/provider.dart';
 import 'package:app/components/filter_categories.dart';
 import 'package:app/components/filter_location.dart';
@@ -10,31 +8,13 @@ import 'package:app/components/price_range.dart';
 import 'package:app/components/sorting.dart';
 import 'package:app/constants.dart';
 
-import '../../api_services/search_salon_api.dart';
-import '../../models/SalonMain.dart';
 import '../../providers/SearchProvider.dart';
-import '../cart/cart_screen.dart';
-import '../home/components/icon_btn_with_counter.dart';
-import '../home/components/search_field.dart';
-
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:app/components/filter_categories.dart';
-import 'package:app/components/filter_location.dart';
-import 'package:app/components/price_range.dart';
-import 'package:app/components/sorting.dart';
-import 'package:app/constants.dart';
-
-import '../cart/cart_screen.dart';
-import '../home/components/icon_btn_with_counter.dart';
 import '../home/components/search_field.dart';
 
 
-import 'package:flutter/material.dart';
 
-import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+
+
 
 class ServicesHeader extends StatefulWidget {
   final TabController tabController; // Accept tabController from parent
@@ -124,7 +104,7 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                 ),
                 onTap: () {
                   log("Click event on Sort");
-                  _showBottomSheet(Sorting());
+                  _showBottomSheet(const Sorting());
                 },
               ),
 
@@ -156,19 +136,19 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                     children: <Widget>[
                       FilterItem(
                         label: 'Category',
-                        onTap: () => _showBottomSheet(FilterCategories()),
+                        onTap: () => _showBottomSheet(const FilterCategories()),
                       ),
                       FilterItem(
                         label: 'Location',
-                        onTap: () => _showBottomSheet(FilterLocation()),
+                        onTap: () => _showBottomSheet(const FilterLocation()),
                       ),
                       FilterItem(
                         label: 'PECHS',
-                        onTap: () => _showBottomSheet(FilterLocation()),
+                        onTap: () => _showBottomSheet(const FilterLocation()),
                       ),
                       FilterItem(
                         label: 'Rs: 500 - Rs:3000',
-                        onTap: () => _showBottomSheet(PriceRange()),
+                        onTap: () => _showBottomSheet(const PriceRange()),
                       ),
                       FilterItem(
                         label: 'Category 2',
@@ -188,7 +168,7 @@ class _ServicesHeaderState extends State<ServicesHeader> {
           const SizedBox(height: 5),
 
       Container(
-        padding: EdgeInsets.fromLTRB(20, 10, 20, 5),
+        padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
 
         child: Container(
             decoration: BoxDecoration(
@@ -224,7 +204,7 @@ class FilterItem extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  FilterItem({required this.label, required this.onTap});
+  const FilterItem({super.key, required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -244,18 +224,18 @@ class FilterItem extends StatelessWidget {
             children: <Widget>[
               Text(
                 label,
-                style: TextStyle(color: kPrimaryDarkColor,
+                style: const TextStyle(color: kPrimaryDarkColor,
                   fontSize: 18,
                   fontWeight:  FontWeight.w800,
                 ),
               ),
-              SizedBox(width: 2),
+              const SizedBox(width: 2),
 
               IconButton(onPressed: (){
                 log('=--=-------');
 
               },
-                icon: Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
+                icon: const Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
               ),
 
             ],
@@ -276,7 +256,7 @@ class CircleIconButton extends StatelessWidget {
   final double iconSize;
   final double circleSize;
 
-  CircleIconButton({
+  const CircleIconButton({super.key, 
     required this.onPressed,
     required this.icon,
     required this.iconColor,
@@ -300,8 +280,8 @@ class CircleIconButton extends StatelessWidget {
       child: IconButton(
         onPressed: onPressed,
         icon: Icon(icon, color: iconColor, size: iconSize),
-        padding: EdgeInsets.all(0), // Remove default padding
-        constraints: BoxConstraints(), // Remove default constraints
+        padding: const EdgeInsets.all(0), // Remove default padding
+        constraints: const BoxConstraints(), // Remove default constraints
       ),
     );
   }

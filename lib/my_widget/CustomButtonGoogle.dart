@@ -28,7 +28,7 @@ class CustomButtonGoogle extends StatelessWidget {
             child: Center(
               child: Text(
                 text,
-                style: TextStyle(
+                style: const TextStyle(
                   fontWeight: FontWeight.w500,
                   color: Colors.black,
                   fontSize: 16,

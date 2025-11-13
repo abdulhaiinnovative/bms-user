@@ -25,7 +25,7 @@ class ProfilePic extends StatelessWidget {
               height: 90,
               width: 90,
 
-              child: CircularNetworkImage(
+              child: const CircularNetworkImage(
                 imageUrl: logo,
                 height: 60,
                 width: 60,

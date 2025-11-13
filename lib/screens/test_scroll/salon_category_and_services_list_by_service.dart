@@ -3,31 +3,25 @@ import 'dart:developer';
 import 'package:app/models/SalonServicesCategorizedResponse.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
-import 'package:app/utlis/UtilsExtra.dart';
+import 'package:app/utlis/authutils/auth_manager.dart';
 import 'package:flutter/material.dart';
-import 'package:lottie/lottie.dart';
-import 'package:remixicon/remixicon.dart';
 // import 'package:app/screens/test_scroll/jewellery_repository.dart';
 import '../../api_services/salon_services_categorized_api.dart';
 import '../../constants.dart';
-import '../../helper/CircularNetworkImage.dart';
 import 'CartSummarySection.dart';
-import 'jwellery.dart';
-
-
 
 class SalonCategoryAndServicesListByService extends StatefulWidget {
-
   static String routeName = "/scrolling_tab_list_by_service";
   const SalonCategoryAndServicesListByService({Key? key}) : super(key: key);
 
   @override
-  _SalonCategoryAndServicesListByServiceState createState() => _SalonCategoryAndServicesListByServiceState();
+  _SalonCategoryAndServicesListByServiceState createState() =>
+      _SalonCategoryAndServicesListByServiceState();
 }
 
-class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAndServicesListByService> {
-
-  Map<Service, int> _cartItems = {};
+class _SalonCategoryAndServicesListByServiceState
+    extends State<SalonCategoryAndServicesListByService> {
+  final Map<Service, int> _cartItems = {};
   double _totalAmount = 0.0;
   int _totalItems = 0;
 
@@ -40,7 +34,8 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       }
 
       _totalItems = _cartItems.length;
-      _totalAmount = _cartItems.entries.fold(0.0, (sum, entry) => sum + (entry.key.price! * entry.value));
+      _totalAmount = _cartItems.entries
+          .fold(0.0, (sum, entry) => sum + (entry.key.price! * entry.value));
     });
   }
 
@@ -52,7 +47,7 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       right: 0,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
@@ -61,7 +56,7 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
               spreadRadius: 2,
             )
           ],
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
         ),
         child: CartSummarySection(
           totalItems: _cartItems.length,
@@ -82,7 +77,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
             }
           },
         ),
-
       ),
     );
   }
@@ -100,10 +94,8 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
   List<String> tabNames = [];
   List<List<Service>> serviceItem = [];
 
-
   @override
   void initState() {
-
     scrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -112,17 +104,14 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
         setState(() {
           mDeal = arguments; // Store the Deal object
           log('mDeal:: ${mDeal?.name}');
-          mSalonName = mDeal?.services?[0]?.salon?.name;
-          mSalonImage = mDeal?.services?[0]?.salon?.image;
-          mSalonAddess = mDeal?.services?[0]?.salon?.address;
+          mSalonName = mDeal?.services?[0].salon?.name;
+          mSalonImage = mDeal?.services?[0].salon?.image;
+          mSalonAddess = mDeal?.services?[0].salon?.address;
 
-          log('Deal:id   ${mDeal?.services?[0]?.salon?.id}');
-          log('Deal:name   ${mDeal?.services?[0]?.salon?.name}');
-          log('Deal:image   ${mDeal?.services?[0]?.salon?.image}');
-          log('Deal:address   ${mDeal?.services?[0]?.salon?.address}');
-
-
-
+          log('Deal:id   ${mDeal?.services?[0].salon?.id}');
+          log('Deal:name   ${mDeal?.services?[0].salon?.name}');
+          log('Deal:image   ${mDeal?.services?[0].salon?.image}');
+          log('Deal:address   ${mDeal?.services?[0].salon?.address}');
         });
       } else {
         log('No Deal data passed');
@@ -131,32 +120,24 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       loadData();
     });
 
-
     super.initState();
   }
 
   Future<void> loadData() async {
-
-
     setState(() {
       scrollController = ScrollController();
       scrollController.addListener(animateToTab);
-
     });
-
 
     SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
 
+    log("mDeal?.services?[0]?.salon?.id  ${mDeal?.services?[0].salon?.id}");
 
-    String s = await UtilsExtra.getToken()  ?? "==" ;
-
-    log("mDeal?.services?[0]?.salon?.id  ${mDeal?.services?[0]?.salon?.id }");
-    
-     responseData = await api.fetchAllServicesAndDealsCategorizedData(s as String, mDeal?.services?[0]?.salon?.id ?? 0 );
+    responseData = await api.fetchAllServicesAndDealsCategorizedData(
+        mDeal?.services?[0].salon?.id ?? 0);
 
     if (responseData != null) {
       setState(() {
-
         responseData?.response?.data?.forEach((category) {
           log('Category: ${category.name}');
           // Add category name to tabNames
@@ -178,8 +159,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
           salonCategories.add(GlobalKey());
         });
 
-
-
         // int i = 0;
         // responseData?.response?.data?.forEach((category) {
         //   log('Category: ${category.name}');
@@ -190,9 +169,7 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
         //     serviceItem.add(item, "i");
         //   });
         // });
-
       });
-
 
       log("tabNames:::: ${tabNames.length}");
       log("serviceItem:::: ${serviceItem.length}");
@@ -201,7 +178,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
     } else {
       log("responseData::::No data received");
     }
-
   }
 
   /// Animate To Tab
@@ -209,8 +185,7 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
     late RenderBox box;
 
     for (var i = 0; i < salonCategories.length; i++) {
-      box = salonCategories[i].currentContext?.findRenderObject()
-      as RenderBox;
+      box = salonCategories[i].currentContext?.findRenderObject() as RenderBox;
       Offset position = box.localToGlobal(Offset.zero);
 
       if (scrollController.offset >= position.dy) {
@@ -235,7 +210,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
 
   @override
   Widget build(BuildContext context) {
-
     return DefaultTabController(
       length: tabNames.length,
       child: Builder(
@@ -243,45 +217,38 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
           tabContext = context;
           return Scaffold(
             appBar: _buildAppBar(),
-            body: Stack(
-              children: [
-                SingleChildScrollView(
-                  controller: scrollController,
-                  child: Column(
-                    children: [
-
-                      for (int i = 0; i < tabNames.length; i++) ...[
-                        _buildCategoryTitle(tabNames[i], i),
-                        _buildItemList(serviceItem[i]),
-                      ],
-
-                      const SizedBox(
-                        height: 90,
-                      ),
+            body: Stack(children: [
+              SingleChildScrollView(
+                controller: scrollController,
+                child: Column(
+                  children: [
+                    for (int i = 0; i < tabNames.length; i++) ...[
+                      _buildCategoryTitle(tabNames[i], i),
+                      _buildItemList(serviceItem[i]),
                     ],
-                  ),
+                    const SizedBox(
+                      height: 90,
+                    ),
+                  ],
                 ),
-
-
-                _buildCartWidget(),
-
-              ]
-            ),
+              ),
+              _buildCartWidget(),
+            ]),
           );
         },
       ),
     );
-
-
-
   }
 
   /// AppBar
   AppBar _buildAppBar() {
     return AppBar(
-      leading:        IconButton(onPressed: () {
+      leading: IconButton(
+        onPressed: () {
           Navigator.of(context).pop();
-        }, icon: const  Icon(Icons.arrow_back),),
+        },
+        icon: const Icon(Icons.arrow_back),
+      ),
       title: Row(
         children: [
           Container(
@@ -293,37 +260,38 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
               ),
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(25.0), // Half of 50 for a perfect circle
+              borderRadius: BorderRadius.circular(
+                  25.0), // Half of 50 for a perfect circle
               child: mSalonImage != null && mSalonImage!.isNotEmpty
                   ? Image.network(
-                mSalonImage!,
-                height: 50,
-                width: 50,
-                fit: BoxFit.cover,
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return const SizedBox(
-                    height: 50,
-                    width: 50,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                },
-                errorBuilder: (context, error, stackTrace) => Container(
-                  height: 50,
-                  width: 50,
-                  color: Colors.grey[300],
-                  child: const Icon(Icons.broken_image, color: Colors.grey),
-                ),
-              )
+                      mSalonImage!,
+                      height: 50,
+                      width: 50,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return const SizedBox(
+                          height: 50,
+                          width: 50,
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        height: 50,
+                        width: 50,
+                        color: Colors.grey[300],
+                        child:
+                            const Icon(Icons.broken_image, color: Colors.grey),
+                      ),
+                    )
                   : Container(
-                height: 50,
-                width: 50,
-                color: Colors.grey[300],
-                child: const Icon(Icons.image, color: Colors.grey),
-              ),
+                      height: 50,
+                      width: 50,
+                      color: Colors.grey[300],
+                      child: const Icon(Icons.image, color: Colors.grey),
+                    ),
             ),
           ),
-
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -332,18 +300,18 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
                 Text(
                   mSalonName ?? 'No Salon Name',
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    fontSize: 20,
-                  ),
+                        fontWeight: FontWeight.w700,
+                        fontSize: 20,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   mSalonAddess ?? 'No Address',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w400,
-                    fontSize: 14,
-                  ),
+                        fontWeight: FontWeight.w400,
+                        fontSize: 14,
+                      ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -354,31 +322,28 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       ),
       bottom: tabNames.isNotEmpty
           ? TabBar(
-        isScrollable: true,
-        indicatorColor: Theme.of(context).primaryColor,
-        labelColor: Theme.of(context).primaryColor,
-        unselectedLabelColor: Theme.of(context).textTheme.bodyMedium?.color,
-        labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w400),
-        tabs: tabNames.map((name) => Tab(child: Text(name))).toList(),
-        onTap: (int index) => scrollToIndex(index),
-      )
+              isScrollable: true,
+              indicatorColor: Theme.of(context).primaryColor,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor:
+                  Theme.of(context).textTheme.bodyMedium?.color,
+              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
+              unselectedLabelStyle:
+                  const TextStyle(fontWeight: FontWeight.w400),
+              tabs: tabNames.map((name) => Tab(child: Text(name))).toList(),
+              onTap: (int index) => scrollToIndex(index),
+            )
           : null,
       backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
       elevation: 4,
     );
-
   }
-
-
 
   /// Item Lists
   Widget _buildItemList(List<Service> categories) {
-
     return Column(
       children: categories.map((m3) => _buildSingleItem(m3)).toList(),
     );
-
   }
 
   /// Single Product item widget
@@ -392,7 +357,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Row(
               children: [
-
                 Expanded(
                   flex: 3,
                   child: Padding(
@@ -440,35 +404,37 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
                                   ),
                                 ],
                               ),
-
-
                               Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  // Background color of the box
-                                  shape: BoxShape.rectangle,
-                                  // Shape of the box
-                                  borderRadius: BorderRadius.circular(8.0),
-                                  // Rounded corners for the box
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.grey.withOpacity(0.3),
-                                      // Light grey shadow color
-                                      blurRadius: 4.0,
-                                      // Blur radius of the shadow
-                                      offset: Offset(0, 4), // Position of the shadow
-                                    ),
-                                  ],
-                                ),
-                                child: IconButton(
-                                  icon: Icon(
-                                    _cartItems.containsKey(item) ? Icons.check : Icons.add,
-                                    color: _cartItems.containsKey(item) ? Colors.green : Colors.black,
-                                    size: 26.0,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    // Background color of the box
+                                    shape: BoxShape.rectangle,
+                                    // Shape of the box
+                                    borderRadius: BorderRadius.circular(8.0),
+                                    // Rounded corners for the box
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.grey.withOpacity(0.3),
+                                        // Light grey shadow color
+                                        blurRadius: 4.0,
+                                        // Blur radius of the shadow
+                                        offset: const Offset(
+                                            0, 4), // Position of the shadow
+                                      ),
+                                    ],
                                   ),
-                                  onPressed: () => _handleAddToCart(item),
-                                )
-                              ),
+                                  child: IconButton(
+                                    icon: Icon(
+                                      _cartItems.containsKey(item)
+                                          ? Icons.check
+                                          : Icons.add,
+                                      color: _cartItems.containsKey(item)
+                                          ? Colors.green
+                                          : Colors.black,
+                                      size: 26.0,
+                                    ),
+                                    onPressed: () => _handleAddToCart(item),
+                                  )),
                             ],
                           ),
                         ),
@@ -486,7 +452,6 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       ],
     );
   }
-
 
   /// Category Title
   Widget _buildCategoryTitle(String title, int index) {
@@ -523,7 +488,4 @@ class _SalonCategoryAndServicesListByServiceState extends State<SalonCategoryAnd
       ),
     );
   }
-
-
-
 }

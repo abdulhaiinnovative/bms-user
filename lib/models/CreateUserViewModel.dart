@@ -1,78 +1,63 @@
 import 'dart:developer' as developer;
-
-import 'package:app/constants.dart';
 import 'package:app/models/create_user/CreateUserResponse.dart';
+import 'package:app/services/protected_http_client.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
-import 'dart:developer';
-import 'package:http/http.dart' as http;
-
-
 
 class CreateUserViewModel extends ChangeNotifier {
   bool isLoading = false;
   String? result;
 
   static Future<CreateUserResponse?> createUser(
-     String provider,
-     String provider_id,
-     String google_unique_id,
-     String email,
-     String device_id,
-     String phone,
-     String name,
-     String first_name,
-     String last_name,
-     String image,
+    String provider,
+    String providerId,
+    String googleUniqueId,
+    String email,
+    String deviceId,
+    String phone,
+    String name,
+    String firstName,
+    String lastName,
+    String image,
   ) async {
-    String baseUrl = BASE_URL;
-    // final url = 'https://bookmyspot.arca9.com/api/auth/social-login';
-    String url = 'https://bms.innovativewidget.com/api/auth/social-login';
-    final headers = {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-    };
-
-    final body = jsonEncode({
+    final body = {
       "provider": provider,
-      "provider_id": provider_id,
-      "google_unique_id": google_unique_id,
+      "provider_id": providerId,
+      "google_unique_id": googleUniqueId,
       "email": email,
-      "device_id": device_id,
+      "device_id": deviceId,
       "phone": phone,
       "name": name,
-      "first_name": first_name,
-      "last_name": last_name,
+      "first_name": firstName,
+      "last_name": lastName,
       "image": image,
-    });
+    };
 
     try {
+      developer.log('CreateUserViewModel: Social login for email=$email');
+      developer.log('CreateUserViewModel: Request body = $body');
 
-      developer.log('===== url ===== ${url}');
-      developer.log('===== headers ===== ${headers}');
-      developer.log('===== body ===== ${body}');
-
-      final response = await http.post(
-        Uri.parse(url),
-        headers: headers,
+      // Public endpoint - no authentication required
+      final response = await ProtectedHttpClient.post(
+        '/auth/social-login',
         body: body,
+        additionalHeaders: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        requiresAuth: false, // Public endpoint
       );
 
-      developer.log('===== User created successfully =====   1');
+      developer.log('✅ CreateUserViewModel: User created successfully');
       final jsonResponse = jsonDecode(response.body);
-      developer.log('jsonResponse = $jsonResponse');
-      developer.log('jsonResponse["response"] = ${jsonResponse["response"]}');
-      developer.log('jsonResponse["response"]["data"] = ${jsonResponse["response"]?["data"]}');
-      developer.log('jsonResponse["response"]["data"]["user"]["name"] = ${jsonResponse["response"]?["data"]["user"]["name"]}');
+      developer.log('CreateUserViewModel: Response = $jsonResponse');
 
       return CreateUserResponse.fromJson(jsonResponse);
-
+    } on ApiException catch (e) {
+      developer.log('❌ CreateUserViewModel: API Error - $e');
     } catch (e) {
-      developer.log('Error CreateUserApi: $e');
+      developer.log('❌ CreateUserViewModel: Unexpected error - $e');
     }
     return null;
   }
-
-
-
 }

@@ -8,7 +8,7 @@ class Sorting extends StatelessWidget {
   }) : super(key: key);
 
   static  int _selectedOptionIndex = 0;
-  static  List<String> _sortingOptions = [
+  static  final List<String> _sortingOptions = [
     'Sort by Service Name (A to Z)',
     'Sort by Service Name (Z to A)',
     'Sort by Price (High to Low)',
@@ -29,7 +29,7 @@ class Sorting extends StatelessWidget {
           return ListTile(
             title: Text(option),
             trailing: _selectedOptionIndex == index
-                ? Icon(Icons.check, color: kPrimaryColor)
+                ? const Icon(Icons.check, color: kPrimaryColor)
                 : null,
             onTap: () {
               //setState(() {

@@ -1,23 +1,12 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:lottie/lottie.dart';
 import 'package:app/constants.dart';
 import 'package:app/components/ratings.dart';
 import 'package:app/models/HomePageResponse.dart';
-import 'package:app/screens/products/products_screen.dart';
 import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
 
-import '../../../api_services/salon_detail_api.dart';
-import '../../../helper/CircularNetworkImage.dart';
 import '../../../helper/ReviewCount.dart';
-import '../../../models/SalonDetailApiResponse.dart';
-import '../../salon/salon_screen.dart';
-import '../../test/scroll_sync_tabs.dart';
-import '../../test/salon_details_scrolling_tabs_effect.dart';
-import '../../test_scroll/salon_category_and_services_list.dart';
 import 'section_title.dart';
 
 class SalonDashboard extends StatelessWidget {
@@ -38,7 +27,7 @@ class SalonDashboard extends StatelessWidget {
           child: Column(
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                 child: SectionTitle(
                   title: section.heading,
                   press: () {},
@@ -142,7 +131,7 @@ class SalonCard extends StatelessWidget {
 
               Stack(
               children: [
-              Container(
+              SizedBox(
                 width: 320,
                 height: 175,
                 child: FadeInImage.assetNetwork(
@@ -207,12 +196,12 @@ class SalonCard extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
-                                      Icon(
+                                      const Icon(
                                         Icons.location_pin,
                                         color: Colors.amber,
                                         size: 20,
                                       ),
-                                      SizedBox(width: 5),
+                                      const SizedBox(width: 5),
                                       Expanded(
                                         child: Text(
                                           address,
@@ -227,7 +216,7 @@ class SalonCard extends StatelessWidget {
 
 
 
-                                  SizedBox(
+                                  const SizedBox(
                                     height: 10,
                                   ),
                                   Row(

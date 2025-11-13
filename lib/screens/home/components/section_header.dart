@@ -6,7 +6,8 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final VoidCallback onSeeAllPressed;
 
-  SectionHeader({
+  const SectionHeader({
+    super.key,
     required this.title,
     required this.onSeeAllPressed,
   });
@@ -29,14 +30,14 @@ class SectionHeader extends StatelessWidget {
         children: <Widget>[
           Text(
             title,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
             ),
           ),
           TextButton(
             onPressed: onSeeAllPressed,
-            child: Text(
+            child: const Text(
               'See All',
               style: TextStyle(
                 fontSize: 18,

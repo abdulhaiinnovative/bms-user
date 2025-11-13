@@ -3,10 +3,9 @@ import 'package:app/api_services/search_service_api.dart';
 import 'package:app/models/SalonMain.dart';
 import 'package:app/models/ServiceMain.dart';
 
-import '../api_services/search_salon_api.dart';
 
 class SearchProvider extends ChangeNotifier {
-  List<SalonMain> _salons = [];
+  final List<SalonMain> _salons = [];
   List<ServiceMain> _services = [];
   bool _isLoading = false;
 

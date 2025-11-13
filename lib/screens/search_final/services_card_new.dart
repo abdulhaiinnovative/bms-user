@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import '../../constants.dart';
 import '../../models/HomePageResponse.dart';
 
@@ -40,7 +39,7 @@ class ServicesCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: kShadow2,
               blurRadius: 4.0,
@@ -50,42 +49,42 @@ class ServicesCard extends StatelessWidget {
         ),
         child: Row(
           children: [
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Text(
                     desc,
-                    style: TextStyle(fontSize: 14, color: kPrimaryColor),
+                    style: const TextStyle(fontSize: 14, color: kPrimaryColor),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (salon != null)
                     Text(
                       salon?.name ?? "",
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Row(
                     children: [
                       Text(
                         'Rs $price',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
                       ),
                       if (oldPrice != null && oldPrice! > price)
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Text(
                             'Rs $oldPrice',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.grey,
                               decoration: TextDecoration.lineThrough,
@@ -97,12 +96,12 @@ class ServicesCard extends StatelessWidget {
                   if (duration.isNotEmpty)
                     Text(
                       'Duration: $duration',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   if (gender.isNotEmpty)
                     Text(
                       'For: $gender',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                 ],
               ),

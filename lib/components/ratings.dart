@@ -22,7 +22,7 @@ class Ratings extends StatelessWidget {
       child: Row(
         children: [
           if (compact)
-            Icon(
+            const Icon(
               Icons.star,
               color: Colors.amber,
               size: 20,

@@ -14,7 +14,7 @@ class PopularProducts extends StatelessWidget {
     return Column(
       children: [
         Padding(
-          padding: EdgeInsets.fromLTRB(10, 10, 0, 10),
+          padding: const EdgeInsets.fromLTRB(10, 10, 0, 10),
           child: SectionTitle(
             title: "Popular Products",
             press: () {

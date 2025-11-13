@@ -44,9 +44,9 @@ class _SalonFetchAPIDataState extends State<SalonFetchAPIData> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: _refreshData,
-        child: const Icon(Icons.refresh),
         tooltip: 'Refresh Data',
         backgroundColor: Colors.blueAccent,
+        child: const Icon(Icons.refresh),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),

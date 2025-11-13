@@ -1,22 +1,12 @@
-import 'dart:convert';
 import 'dart:developer';
 
 //import 'package:anim_search_bar/anim_search_bar.dart';
 
 import 'package:app/components/book_now.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:app/components/product_card.dart';
-import 'package:app/models/Product.dart';
-import 'package:app/screens/service_details/service_details.dart';
-import 'package:app/screens/services/services_header.dart';
 
-import '../../components/sale_percentage.dart';
 import '../../constants.dart';
-import '../details/details_screen.dart';
-import '../home/components/home_header.dart';
-import '../home/components/salon_dashboard.dart';
 import '../products/products_screen.dart';
 import '../search_header_test.dart';
 
@@ -49,7 +39,7 @@ class ServicesScreen extends StatelessWidget {
                 elevation: 0, // Remove shadow
                 automaticallyImplyLeading: false, // Hide the back button
                 leading: IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back),
                   onPressed: () {
                     Navigator.pop(context);
 
@@ -181,11 +171,11 @@ class ServicesCard extends StatelessWidget {
       child: Container(
         //width: 320,
         height: 180,
-        padding: EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(20),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: kShadow,
               blurRadius: 0.0,
@@ -232,10 +222,10 @@ class ServicesCard extends StatelessWidget {
                     ),
                     child: SvgPicture.asset(
                       "assets/icons/Heart Icon_2.svg",
-                      colorFilter: ColorFilter.mode(
+                      colorFilter: const ColorFilter.mode(
                           true//product.isFavourite
-                              ? const Color(0xFFFF4848)
-                              : const Color(0xFFDBDEE4),
+                              ? Color(0xFFFF4848)
+                              : Color(0xFFDBDEE4),
                           BlendMode.srcIn),
                     ),
                   ),
@@ -247,7 +237,7 @@ class ServicesCard extends StatelessWidget {
 
 
 
-            SizedBox(width: 5),
+            const SizedBox(width: 5),
             Text(
               desc,
               style: const TextStyle(
@@ -256,17 +246,17 @@ class ServicesCard extends StatelessWidget {
               ),
               overflow: TextOverflow.ellipsis,
             ),
-            Text(
+            const Text(
               '30 min - 1 hr',
-              style: const TextStyle(
+              style: TextStyle(
                 color: Colors.black,
 
               ),
               overflow: TextOverflow.ellipsis,
             ),
 
-            SizedBox(height: 10),
-            Row(
+            const SizedBox(height: 10),
+            const Row(
               children: [
                 Icon(
                   Icons.cut_rounded,
@@ -276,22 +266,22 @@ class ServicesCard extends StatelessWidget {
                 SizedBox(width: 5),
                 Text(
                   '------',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: Colors.black87,
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
-            Spacer(),
+            const Spacer(),
 
 
 
-            Row(
+            const Row(
               children: [
                 Text(
                   'Rs: 1200',
-                  style: const TextStyle(
+                  style: TextStyle(
                       color: kPrice,
                       fontSize: 18,
                       fontWeight: FontWeight.bold
@@ -303,7 +293,7 @@ class ServicesCard extends StatelessWidget {
 
                 Text(
                   'Rs: 2000',
-                  style: const TextStyle(
+                  style: TextStyle(
                     color: kBeforeDiscount,
                     fontSize: 14,
                     decoration: TextDecoration.lineThrough,

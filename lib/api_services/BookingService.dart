@@ -1,8 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:app/screens/complete_profile/complete_profile_screen.dart';
-import 'package:app/utlis/UtilsExtra.dart';
-import 'package:http/http.dart' as http;
+import 'package:app/services/protected_http_client.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/home/Professional.dart';
@@ -89,22 +88,13 @@ class BookingService {
         print('Deal payload: $payload');
       }
 
-      String s = await UtilsExtra.getToken() ?? '';
-
       log('payload:: $payload');
       log('payload:jsonEncode: ${jsonEncode(payload)}');
 
-      log('Token:: $s');
-
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $s'
-      };
-      // Make the POST API call
-      final response = await http.post(
-        Uri.parse('https://bms.innovativewidget.com/api/create-booking'),
-        headers: headers,
-        body: jsonEncode(payload),
+      // Make the POST API call using ProtectedHttpClient
+      final response = await ProtectedHttpClient.post(
+        '/create-booking',
+        body: payload,
       );
 
       // Close loading dialog

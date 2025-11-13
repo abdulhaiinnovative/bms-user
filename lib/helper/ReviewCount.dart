@@ -4,14 +4,14 @@ import 'package:app/constants.dart';
 class ReviewCount extends StatelessWidget {
   final int reviews;
 
-  ReviewCount({
+  const ReviewCount({super.key, 
     required this.reviews,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: kScreenBg,
         borderRadius: BorderRadius.circular(10),
@@ -30,9 +30,9 @@ class ReviewCount extends StatelessWidget {
           //   color: Colors.amber,
           //   size: 20,
           // ),
-          SizedBox(width: 5),
+          const SizedBox(width: 5),
           Text(
-            '(${reviews}) Reviews',
+            '($reviews) Reviews',
             style: const TextStyle(
               color: Colors.black,
             ),

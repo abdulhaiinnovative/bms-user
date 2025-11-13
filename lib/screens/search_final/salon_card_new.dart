@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../constants.dart';
@@ -34,7 +33,7 @@ class SalonCard extends StatelessWidget {
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(20),
-            boxShadow: [
+            boxShadow: const [
               BoxShadow(
                 color: kShadow2,
                 blurRadius: 4.0,
@@ -52,19 +51,30 @@ class SalonCard extends StatelessWidget {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: CachedNetworkImage(
-                      imageUrl: image!,
+                      imageUrl: image,
                       width: 70,
                       height: 70,
                       fit: BoxFit.cover,
                       placeholder: (context, url) => Container(
-                        margin: EdgeInsets.all(10),
-                        child: CircularProgressIndicator(),
+                        margin: const EdgeInsets.all(10),
+                        child: const CircularProgressIndicator(),
                       ),
-                      errorWidget: (context, url, error) =>
-                          Image.asset('assets/images/default_logo.png'),
+                      errorWidget: (context, url, error) => Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[200],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Icon(
+                          Icons.store,
+                          size: 36,
+                          color: Colors.grey[400],
+                        ),
+                      ),
                     ),
                   ),
-                  SizedBox(width: 12),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       name,
@@ -80,8 +90,7 @@ class SalonCard extends StatelessWidget {
                 ],
               ),
 
-
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               // Description
               Text(
                 about,
@@ -92,7 +101,7 @@ class SalonCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 6),
+              const SizedBox(height: 6),
               // Address
               Text(
                 address,
@@ -103,7 +112,7 @@ class SalonCard extends StatelessWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               // Bottom row: stars on left, reviews on right
               Row(
                 children: [
@@ -118,7 +127,7 @@ class SalonCard extends StatelessWidget {
                       );
                     }),
                   ),
-                  Spacer(),
+                  const Spacer(),
                   Row(
                     children: [
                       const Icon(Icons.reviews, color: kPrice, size: 20),

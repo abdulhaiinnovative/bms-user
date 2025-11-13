@@ -83,31 +83,31 @@ class SalonDetailModel {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['address'] = this.address.toJson();
-    data['geo'] = this.geo.toJson();
-    data['image'] = this.image;
-    data['agreementDoc'] = this.agreementDoc;
-    data['keywords'] = this.keywords;
-    data['famousFor'] = this.famousFor;
-    data['availableServiceCategory'] = this.availableServiceCategory;
-    data['dietPlans'] = this.dietPlans;
-    data['userPickup'] = this.userPickup;
-    data['hasOwnDelivery'] = this.hasOwnDelivery;
-    data['hasDeliveryCondition'] = this.hasDeliveryCondition;
-    data['_id'] = this.sId;
-    data['name'] = this.name;
-    data['region'] = this.region;
-    data['regionID'] = this.regionID;
-    data['email'] = this.email;
-    data['phoneNumber'] = this.phoneNumber;
-    data['website'] = this.website;
-    data['description'] = this.description;
-    data['category'] = this.category;
-    data['deliveryCharge'] = this.deliveryCharge;
-    data['minimumSpentForFreeDelivery'] = this.minimumSpentForFreeDelivery;
-    data['minimumSpentToCheckout'] = this.minimumSpentToCheckout;
-    data['favorite'] = this.favorite;
-    data['sponsored'] = this.sponsored;
+    data['address'] = address.toJson();
+    data['geo'] = geo.toJson();
+    data['image'] = image;
+    data['agreementDoc'] = agreementDoc;
+    data['keywords'] = keywords;
+    data['famousFor'] = famousFor;
+    data['availableServiceCategory'] = availableServiceCategory;
+    data['dietPlans'] = dietPlans;
+    data['userPickup'] = userPickup;
+    data['hasOwnDelivery'] = hasOwnDelivery;
+    data['hasDeliveryCondition'] = hasDeliveryCondition;
+    data['_id'] = sId;
+    data['name'] = name;
+    data['region'] = region;
+    data['regionID'] = regionID;
+    data['email'] = email;
+    data['phoneNumber'] = phoneNumber;
+    data['website'] = website;
+    data['description'] = description;
+    data['category'] = category;
+    data['deliveryCharge'] = deliveryCharge;
+    data['minimumSpentForFreeDelivery'] = minimumSpentForFreeDelivery;
+    data['minimumSpentToCheckout'] = minimumSpentToCheckout;
+    data['favorite'] = favorite;
+    data['sponsored'] = sponsored;
     return data;
   }
 }
@@ -134,10 +134,10 @@ class Address {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['state'] = this.state;
-    data['city'] = this.city;
-    data['street'] = this.street;
-    data['zipCode'] = this.zipCode;
+    data['state'] = state;
+    data['city'] = city;
+    data['street'] = street;
+    data['zipCode'] = zipCode;
     return data;
   }
 
@@ -160,8 +160,8 @@ class Geo {
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['latitude'] = this.latitude;
-    data['longitude'] = this.longitude;
+    data['latitude'] = latitude;
+    data['longitude'] = longitude;
     return data;
   }
 }

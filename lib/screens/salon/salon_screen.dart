@@ -31,7 +31,8 @@ class SalonScreen extends StatelessWidget {
     {
       'username': 'John Doe',
       'rating': 5,
-      'review': 'Amazing service! The staff was very friendly and professional. Highly recommended!',
+      'review':
+          'Amazing service! The staff was very friendly and professional. Highly recommended!',
       'date': 'August 5, 2024',
     },
     {
@@ -56,19 +57,23 @@ class SalonScreen extends StatelessWidget {
 
   static const List<Map<String, String>> facebookPosts = [
     {
-      'imageUrl': 'https://i.pinimg.com/564x/33/5d/60/335d60b4559e4623f2406bc3b0e30ffd.jpg',
+      'imageUrl':
+          'https://i.pinimg.com/564x/33/5d/60/335d60b4559e4623f2406bc3b0e30ffd.jpg',
       'caption': 'Check out our latest styles and services!',
     },
     {
-      'imageUrl': 'https://i.pinimg.com/564x/a8/cf/11/a8cf11b19d30ada3f35c0535aa420853.jpg',
+      'imageUrl':
+          'https://i.pinimg.com/564x/a8/cf/11/a8cf11b19d30ada3f35c0535aa420853.jpg',
       'caption': 'Our team at work making magic happen.',
     },
     {
-      'imageUrl': 'https://i.pinimg.com/564x/41/6d/4a/416d4aacc7593be30c5ea16d0bc7c954.jpg',
+      'imageUrl':
+          'https://i.pinimg.com/564x/41/6d/4a/416d4aacc7593be30c5ea16d0bc7c954.jpg',
       'caption': 'Another happy client! See you soon.',
     },
     {
-      'imageUrl': 'https://i.pinimg.com/564x/8a/06/ca/8a06ca8250e77b8923b98fe7ee4105c7.jpg',
+      'imageUrl':
+          'https://i.pinimg.com/564x/8a/06/ca/8a06ca8250e77b8923b98fe7ee4105c7.jpg',
       'caption': 'Special offer on all spa services this week!',
     },
   ];
@@ -125,9 +130,9 @@ class SalonScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
                     // Title and Subtitle
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Glamour Salon & Spa',
                           style: TextStyle(
@@ -151,8 +156,8 @@ class SalonScreen extends StatelessWidget {
               const SizedBox(height: 8),
 
               // Rating Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
                     Icon(Icons.star, color: kPrimaryColor),
@@ -160,10 +165,10 @@ class SalonScreen extends StatelessWidget {
                     Icon(Icons.star, color: kPrimaryColor),
                     Icon(Icons.star, color: kPrimaryColor),
                     Icon(Icons.star_half, color: kPrimaryColor),
-                    const SizedBox(width: 8),
-                    const Text('4.5'),
-                    const SizedBox(width: 8),
-                    const Text("( 230 reviews )")
+                    SizedBox(width: 8),
+                    Text('4.5'),
+                    SizedBox(width: 8),
+                    Text("( 230 reviews )")
                   ],
                 ),
               ),
@@ -174,11 +179,14 @@ class SalonScreen extends StatelessWidget {
                 isScrollable: true, // Makes the TabBar scrollable
                 indicator: BoxDecoration(
                   color: kPrimaryColor,
-                  borderRadius: BorderRadius.circular(40.0), // Rounded corners for the indicator
+                  borderRadius: BorderRadius.circular(
+                      40.0), // Rounded corners for the indicator
                 ),
-                indicatorPadding: const EdgeInsets.only(left: -16.0, right: -16.0),
+                indicatorPadding:
+                    const EdgeInsets.only(left: -16.0, right: -16.0),
                 labelColor: Colors.white, // Color of the active tab text
-                unselectedLabelColor: Colors.black, // Color of the inactive tab text
+                unselectedLabelColor:
+                    Colors.black, // Color of the inactive tab text
                 tabs: const [
                   Tab(text: 'Our Services'),
                   Tab(text: 'Top Services'),
@@ -227,6 +235,7 @@ class SalonScreen extends StatelessWidget {
             title: 'Low Lights',
             image: logo,
             salon: Salon(),
+            deal: null,
             services: 'Damage Free Procedure',
             price: 1000,
             discountValue: 500,
@@ -253,7 +262,8 @@ class SalonScreen extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(8.0), // Rounded corners for images
+            borderRadius:
+                BorderRadius.circular(8.0), // Rounded corners for images
             child: Image.network(
               imageUrls[index],
               fit: BoxFit.cover,
@@ -274,13 +284,14 @@ class SalonScreen extends StatelessWidget {
     );
   }
 
+  // Removed unused _buildPlaceholderTab method
+  /*
   Widget _buildPlaceholderTab(String content) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
+    return Center(
       child: Text(content),
     );
   }
-
+  */
 
   Widget _buildFacebookTab() {
     return ListView.builder(
@@ -323,7 +334,6 @@ class SalonScreen extends StatelessWidget {
     );
   }
 
-
   Widget _buildReviewsTab() {
     return ListView.builder(
       itemCount: reviews.length,
@@ -342,38 +352,40 @@ class SalonScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.account_circle, size: 40, color: Colors.grey),
-                      SizedBox(width: 8),
+                      const Icon(Icons.account_circle,
+                          size: 40, color: Colors.grey),
+                      const SizedBox(width: 8),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             reviews[index]['username']!,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 16,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          const SizedBox(height: 4),
                           Row(
                             children: List.generate(
                               reviews[index]['rating'].round(),
-                                  (starIndex) => Icon(Icons.star, color: Colors.yellow[700]),
+                              (starIndex) =>
+                                  Icon(Icons.star, color: Colors.yellow[700]),
                             ),
                           ),
                         ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     reviews[index]['review']!,
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     reviews[index]['date']!,
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                    style: const TextStyle(fontSize: 14, color: Colors.grey),
                   ),
                 ],
               ),
@@ -383,14 +395,12 @@ class SalonScreen extends StatelessWidget {
       },
     );
   }
-
-
 }
 
 class ServiceTile extends StatelessWidget {
   final String serviceName;
 
-  const ServiceTile({required this.serviceName});
+  const ServiceTile({super.key, required this.serviceName});
 
   @override
   Widget build(BuildContext context) {
@@ -398,7 +408,7 @@ class ServiceTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 4.0),
       child: Row(
         children: [
-          Icon(Icons.check_circle, color: Colors.green),
+          const Icon(Icons.check_circle, color: Colors.green),
           const SizedBox(width: 8),
           Text(serviceName, style: const TextStyle(fontSize: 16)),
         ],
@@ -411,7 +421,7 @@ class CommentTile extends StatelessWidget {
   final String username;
   final String comment;
 
-  const CommentTile({required this.username, required this.comment});
+  const CommentTile({super.key, required this.username, required this.comment});
 
   @override
   Widget build(BuildContext context) {

@@ -1,70 +1,51 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:app/models/update_profile_response.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:http/http.dart' as http;
-import '../../models/MyBookingResponse.dart';
-import '../utlis/UtilsExtra.dart';
-
-
-import 'dart:convert';
-import 'dart:developer';
-import 'package:http/http.dart' as http;
-import '../../models/MyBookingResponse.dart';
-import '../utlis/UtilsExtra.dart';
+import 'package:app/services/protected_http_client.dart';
 
 class ProfileUpdateAPI {
+  static Future<UpdateProfileResponse> updateUserProfile(
+      Map<String, dynamic> body) async {
+    try {
+      log('ProfileUpdateAPI: Updating user profile');
+      log('ProfileUpdateAPI: Request body - $body');
 
-
-
-  static Future<UpdateProfileResponse> updateUserProfile(Map<String, dynamic> body) async {
-
-      try {
-
-      String? token = await UtilsExtra.getToken();
-      if (token == null || token.isEmpty) {
-        throw Exception('No valid token provided');
-      }
-
-      log('Token: $token');
-
-
-      final headers = {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $token',
-      };
-
-
-      final requestUrl =  'https://bms.innovativewidget.com/api/auth/completeProfile';
-      log('Request URL: $requestUrl');
-
-      final response = await http.put(
-        Uri.parse(requestUrl),
-        headers: headers,
-        body: jsonEncode(body),
+      final response = await ProtectedHttpClient.put(
+        '/auth/completeProfile',
+        body: body,
       );
 
-      log('getBooking response: statusCode=${response.statusCode}');
+      log('✅ ProfileUpdateAPI: Response status ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        log('Decoded JSON: $responseData');
+        log('✅ ProfileUpdateAPI: Decoded JSON successfully');
         try {
-          final updateProfileResponse = UpdateProfileResponse.fromJson(responseData as Map<String, dynamic>);
+          final updateProfileResponse = UpdateProfileResponse.fromJson(
+              responseData as Map<String, dynamic>);
           if (updateProfileResponse.status == true) {
+            log('✅ ProfileUpdateAPI: Profile updated successfully');
             return updateProfileResponse;
           } else {
-            throw Exception(updateProfileResponse.message ?? 'Failed to load bookings');
+            throw Exception(updateProfileResponse.message ?? 'Update failed');
           }
         } catch (e) {
-          log('Parsing error: $e, StackTrace: ${StackTrace.current}');
+          log('❌ ProfileUpdateAPI: Parsing error - $e');
           rethrow;
         }
       } else {
-        throw Exception('Failed to update profile: HTTP ${response.statusCode}');
+        log('❌ ProfileUpdateAPI: Unexpected status ${response.statusCode}');
+        throw Exception(
+            'Failed to update profile: HTTP ${response.statusCode}');
       }
+    } on UnauthorizedException catch (e) {
+      log('❌ ProfileUpdateAPI: Unauthorized - $e');
+      rethrow;
+    } on ApiException catch (e) {
+      log('❌ ProfileUpdateAPI: API Error - $e');
+      rethrow;
     } catch (e) {
-      log('Error in MyBookingsAPI.getBooking: $e, StackTrace: ${StackTrace.current}');
+      log('❌ ProfileUpdateAPI: Error - $e');
       rethrow;
     }
   }

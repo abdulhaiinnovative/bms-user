@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../constants.dart';
 
 class PriceRange extends StatelessWidget {
   const PriceRange({
@@ -26,11 +25,11 @@ class PriceRange extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              const Text(
                 'Select Price Range',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               StatefulBuilder(
                 builder: (BuildContext context, StateSetter setState) {
                   return RangeSlider(
@@ -50,26 +49,26 @@ class PriceRange extends StatelessWidget {
                   );
                 },
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     'Min:  ${_currentRangeValues.start.round()} Rupees',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                   Text(
                     'Max:  ${_currentRangeValues.end.round()} Rupees',
-                    style: TextStyle(fontSize: 16),
+                    style: const TextStyle(fontSize: 16),
                   ),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pop(context);
                 },
-                child: Text('Apply'),
+                child: const Text('Apply'),
               ),
             ],
           ),

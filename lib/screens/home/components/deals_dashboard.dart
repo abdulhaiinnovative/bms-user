@@ -1,13 +1,8 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:app/components/sale_percentage.dart';
 import 'package:app/constants.dart';
-import 'package:app/components/ratings.dart';
 import 'package:app/models/HomePageResponse.dart';
-import 'package:app/screens/products/products_screen.dart';
 import '../../../components/book_now.dart';
 import '../../test_scroll/salon_category_and_services_list.dart';
 import 'section_title.dart';
@@ -53,9 +48,10 @@ class DealsDashboard extends StatelessWidget {
                     );
 
                     return DealsCard(
-                      title: '${item.name}' ?? 'No Title',
+                      title: item.name ?? 'No Title',
                       image: item.image ?? logo,
                       salon: item.salon ?? defaultSalon,
+                      deal: item,
                       services: item.services != null
                           ? item.services!.map((s) => s.name).join(' • ')
                           : '',
@@ -97,12 +93,14 @@ class DealsCard extends StatelessWidget {
     required this.discountValue,
     required this.discountType,
     required this.press,
+    this.deal,
     this.width,
   }) : super(key: key);
 
   final String title, image;
   final String services, discountType;
   final Salon salon;
+  final Deal? deal;
   final int price, discountValue;
   final double? width;
 
@@ -240,7 +238,16 @@ class DealsCard extends StatelessWidget {
                     ),
 
                   const Spacer(),
-                  BookNow(),
+                  BookNow(
+                    onTap: () {
+                      log('📅 Book Now tapped for deal: $title');
+                      Navigator.pushNamed(
+                        context,
+                        SalonCategoryAndServicesList.routeName,
+                        arguments: deal,
+                      );
+                    },
+                  ),
 
                   /// if(discountValue != 0)
                   /// SalePercentage(off: discountValue, type: discountType,),

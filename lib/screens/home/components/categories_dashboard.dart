@@ -1,13 +1,9 @@
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:app/constants.dart';
 import '../../../models/HomePageResponse.dart';
-import '../../products/products_screen.dart';
 import '../../search_final/search_service_screen_new.dart';
-import '../../services/services_screen.dart';
 import 'section_title.dart';
 
 class CategoriesDashboard extends StatelessWidget {
@@ -29,10 +25,10 @@ class CategoriesDashboard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Padding(
-                padding: EdgeInsets.fromLTRB(10, 0, 0, 0),
+                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                 child: SectionTitle(
                   title: section.heading,
-                  press: () {},
+                  press: () => _showAllCategoriesModal(context, section),
                 ),
               ),
               //const SizedBox(height: 8),
@@ -49,7 +45,9 @@ class CategoriesDashboard extends StatelessWidget {
                       press: () {
                         /// Navigator.pushNamed(context, ServicesScreen.routeName);
                         ///
-                        Navigator.pushNamed(context, SearchServiceScreenNew.routeName,
+                        Navigator.pushNamed(
+                          context,
+                          SearchServiceScreenNew.routeName,
                           arguments: {
                             'categoryName': item.name,
                             'categoryId': item.id,
@@ -69,9 +67,196 @@ class CategoriesDashboard extends StatelessWidget {
       }).toList(),
     );
   }
+
+  /// Show bottom modal with all categories
+  void _showAllCategoriesModal(BuildContext context, CategorySection section) {
+    log('📋 Showing all categories modal for: ${section.heading}');
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.7,
+          minChildSize: 0.5,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 10,
+                    spreadRadius: 5,
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  // Handle bar
+                  Container(
+                    width: 50,
+                    height: 5,
+                    margin: const EdgeInsets.only(top: 12, bottom: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+
+                  // Header section with title and count
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
+                    child: Column(
+                      children: [
+                        Text(
+                          section.heading,
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black87,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${section.data.length} ${section.data.length == 1 ? 'Category' : 'Categories'}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // Divider
+                  Divider(
+                    height: 1,
+                    thickness: 1,
+                    color: Colors.grey[200],
+                  ),
+
+                  // Categories list
+                  Expanded(
+                    child: section.data.isEmpty
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.category_outlined,
+                                  size: 64,
+                                  color: Colors.grey[300],
+                                ),
+                                const SizedBox(height: 16),
+                                Text(
+                                  'No categories available',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[500],
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : ListView.separated(
+                            controller: scrollController,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            itemCount: section.data.length,
+                            separatorBuilder: (context, index) =>
+                                const SizedBox(height: 4),
+                            itemBuilder: (context, index) {
+                              final item = section.data[index];
+
+                              return Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  onTap: () {
+                                    log('Category selected from modal: ${item.name}');
+                                    Navigator.pop(context); // Close modal
+                                    Navigator.pushNamed(
+                                      context,
+                                      SearchServiceScreenNew.routeName,
+                                      arguments: {
+                                        'categoryName': item.name,
+                                        'categoryId': item.id,
+                                        'isFromBottomNav': true,
+                                      },
+                                    );
+                                  },
+                                  borderRadius: BorderRadius.circular(12),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 16,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey[50],
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey[200]!,
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        // Category name
+                                        Expanded(
+                                          child: Text(
+                                            item.name ?? 'Unknown',
+                                            style: const TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w500,
+                                              color: Colors.black87,
+                                              letterSpacing: 0.2,
+                                            ),
+                                          ),
+                                        ),
+                                        // Arrow icon
+                                        Container(
+                                          padding: const EdgeInsets.all(6),
+                                          decoration: BoxDecoration(
+                                            color:
+                                                kPrimaryColor.withOpacity(0.1),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                          ),
+                                          child: const Icon(
+                                            Icons.arrow_forward_ios,
+                                            size: 14,
+                                            color: kPrimaryColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                  ),
+
+                  // Bottom safe area
+                  SizedBox(height: MediaQuery.of(context).padding.bottom + 8),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
 }
-
-
 
 class CategoryCard extends StatelessWidget {
   const CategoryCard({
@@ -109,7 +294,7 @@ class CategoryCard extends StatelessWidget {
           // const SizedBox(height: 3),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            margin:  const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+            margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
             decoration: BoxDecoration(
               color: kCardBG,
               borderRadius: BorderRadius.circular(20),
@@ -117,7 +302,7 @@ class CategoryCard extends StatelessWidget {
             ),
             child: Text(
               title,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
                 color: kPrimaryColor,

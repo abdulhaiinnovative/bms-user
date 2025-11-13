@@ -1,13 +1,10 @@
-import 'dart:developer';
 
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../../models/home/Professional.dart';
-import '../../models/home/ServiceData.dart';
 import 'package:app/models/HomePageResponse.dart';
 
-import 'CartSummarySection.dart';
 import 'CustomAppBar.dart';
 import 'select_time_screen.dart';
 
@@ -75,7 +72,7 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
 
   List<DateTime> _calculateAvailableDates() {
     final now = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
-    final endDate = DateTime.now().add(Duration(days: 60));
+    final endDate = DateTime.now().add(const Duration(days: 60));
     List<DateTime> availableDates = [];
 
     if (_selectedProfessionals.isNotEmpty) {
@@ -138,7 +135,7 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                 margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: TableCalendar(
                   firstDay: _currentDate,
-                  lastDay: DateTime.now().add(Duration(days: 60)),
+                  lastDay: DateTime.now().add(const Duration(days: 60)),
                   focusedDay: _currentDate,
                   selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
                   onDaySelected: (selectedDay, focusedDay) {

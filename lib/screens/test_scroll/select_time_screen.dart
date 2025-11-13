@@ -1,9 +1,7 @@
 import 'dart:developer';
 
 import 'package:app/constants.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:app/models/HomePageResponse.dart';
 import '../../models/home/Professional.dart';
 import 'CustomAppBar.dart';
 import 'confirm_booking_screen.dart';

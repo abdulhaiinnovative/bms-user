@@ -1,97 +1,99 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
-
-
+import 'package:app/services/protected_http_client.dart';
 import '../models/search/SalonResponse.dart';
 import '../models/search/ServiceResponse.dart';
 import '../models/search/DealResponse.dart';
 
 class SearchSalonSApi {
-
   Future<SalonResponse> searchSalons(String query, {int page = 1}) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://bms.innovativewidget.com/api/salons/search?page=$page'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'salon': query}),
+      log('SearchSalonSApi: Searching salons with query="$query", page=$page');
+
+      final response = await ProtectedHttpClient.post(
+        '/salons/search?page=$page',
+        body: {'salon': query},
+        additionalHeaders: {'Content-Type': 'application/json'},
       );
 
-      log('========');
-
       if (response.statusCode == 200) {
-
-        log('=====*statusCode*=== ${response.statusCode}');
-        log('=====*body*=== ${SalonResponse.fromJson(jsonDecode(response.body)).response?.data?.salons?.data?.length}');
-        log('=====*body*=== ${SalonResponse.fromJson(jsonDecode(response.body)).response?.data?.salons?.data}');
-        log('=====*body*=== ${SalonResponse.fromJson(jsonDecode(response.body)).response?.data?.salons?.data?[0].name}');
-
-        return SalonResponse.fromJson(jsonDecode(response.body));
+        final salonResponse = SalonResponse.fromJson(jsonDecode(response.body));
+        log('✅ SearchSalonSApi: Found ${salonResponse.response?.data?.salons?.data?.length ?? 0} salons');
+        return salonResponse;
       }
-      log('Failed to search salons: ${response.statusCode}');
+
+      log('❌ SearchSalonSApi: Failed with status ${response.statusCode}');
       throw Exception('Failed to search salons: ${response.statusCode}');
+    } on UnauthorizedException catch (e) {
+      log('❌ SearchSalonSApi: Unauthorized - $e');
+      throw Exception('Session expired. Please login again.');
+    } on ApiException catch (e) {
+      log('❌ SearchSalonSApi: API Error - $e');
+      throw Exception('Error searching salons: $e');
     } catch (e) {
-      log('Exception to search salons: ${e}');
+      log('❌ SearchSalonSApi: Unexpected error - $e');
       throw Exception('Error searching salons: $e');
     }
   }
-
 
   Future<ServiceResponse> searchService(String query, {int page = 1}) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://bms.innovativewidget.com/api/salons/search?page=$page'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'service': query}),
+      log('SearchSalonSApi: Searching services with query="$query", page=$page');
+
+      final response = await ProtectedHttpClient.post(
+        '/salons/search?page=$page',
+        body: {'service': query},
+        additionalHeaders: {'Content-Type': 'application/json'},
       );
 
-      log('========');
-
       if (response.statusCode == 200) {
-
-        log('=====*statusCode*=== ${response.statusCode}');
-        log('=====*body*=== ${ServiceResponse.fromJson(jsonDecode(response.body)).response?.data?.services?.data?.length}');
-        log('=====*body*=== ${ServiceResponse.fromJson(jsonDecode(response.body)).response?.data?.services?.data}');
-        log('=====*body*=== ${ServiceResponse.fromJson(jsonDecode(response.body)).response?.data?.services?.data?[0].name}');
-
-        return ServiceResponse.fromJson(jsonDecode(response.body));
+        final serviceResponse =
+            ServiceResponse.fromJson(jsonDecode(response.body));
+        log('✅ SearchSalonSApi: Found ${serviceResponse.response?.data?.services?.data?.length ?? 0} services');
+        return serviceResponse;
       }
 
-      log('Failed to search salons: ${response.statusCode}');
-      throw Exception('Failed to search salons: ${response.statusCode}');
+      log('❌ SearchSalonSApi: Failed with status ${response.statusCode}');
+      throw Exception('Failed to search services: ${response.statusCode}');
+    } on UnauthorizedException catch (e) {
+      log('❌ SearchSalonSApi: Unauthorized - $e');
+      throw Exception('Session expired. Please login again.');
+    } on ApiException catch (e) {
+      log('❌ SearchSalonSApi: API Error - $e');
+      throw Exception('Error searching services: $e');
     } catch (e) {
-      log('Exception to search salons: ${e}');
-      throw Exception('Error searching salons: $e');
+      log('❌ SearchSalonSApi: Unexpected error - $e');
+      throw Exception('Error searching services: $e');
     }
   }
-
 
   Future<DealResponse> searchDeal(String query, {int page = 1}) async {
     try {
-      final response = await http.post(
-        Uri.parse('https://bms.innovativewidget.com/api/salons/search?page=$page'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'deal': query}),
+      log('SearchSalonSApi: Searching deals with query="$query", page=$page');
+
+      final response = await ProtectedHttpClient.post(
+        '/salons/search?page=$page',
+        body: {'deal': query},
+        additionalHeaders: {'Content-Type': 'application/json'},
       );
 
-      log('========');
-
       if (response.statusCode == 200) {
-
-        log('=====*statusCode*=== ${response.statusCode}');
-        log('=====*body*=== ${DealResponse.fromJson(jsonDecode(response.body)).response?.data?.deals?.data?.length}');
-        log('=====*body*=== ${DealResponse.fromJson(jsonDecode(response.body)).response?.data?.deals?.data}');
-        log('=====*body*=== ${DealResponse.fromJson(jsonDecode(response.body)).response?.data?.deals?.data?[0].name}');
-
-        return DealResponse.fromJson(jsonDecode(response.body));
+        final dealResponse = DealResponse.fromJson(jsonDecode(response.body));
+        log('✅ SearchSalonSApi: Found ${dealResponse.response?.data?.deals?.data?.length ?? 0} deals');
+        return dealResponse;
       }
-      log('Failed to search salons: ${response.statusCode}');
-      throw Exception('Failed to search salons: ${response.statusCode}');
+
+      log('❌ SearchSalonSApi: Failed with status ${response.statusCode}');
+      throw Exception('Failed to search deals: ${response.statusCode}');
+    } on UnauthorizedException catch (e) {
+      log('❌ SearchSalonSApi: Unauthorized - $e');
+      throw Exception('Session expired. Please login again.');
+    } on ApiException catch (e) {
+      log('❌ SearchSalonSApi: API Error - $e');
+      throw Exception('Error searching deals: $e');
     } catch (e) {
-      log('Exception to search salons: ${e}');
-      throw Exception('Error searching salons: $e');
+      log('❌ SearchSalonSApi: Unexpected error - $e');
+      throw Exception('Error searching deals: $e');
     }
   }
-
-
 }

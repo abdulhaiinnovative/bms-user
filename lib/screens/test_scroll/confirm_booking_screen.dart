@@ -88,7 +88,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 children: [
                   _buildSectionCard(
                     icon: Icons.storefront,
-                    title: '${_salonName}',
+                    title: '$_salonName',
                     children: [
                       _buildDetailRow(Icons.location_on, _salonAddress ?? 'Address not available'),
                     ],
@@ -140,7 +140,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                             ),
                           ),
                           backgroundColor: kCardBG,
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                             side: BorderSide(
@@ -167,7 +167,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   SizedBox(height: kSectionSpacing),
                   _buildNotesCard(),
                   SizedBox(height: kSectionSpacing * 1.5),
-                  SizedBox(height: 120), // Space for the positioned button
+                  const SizedBox(height: 120), // Space for the positioned button
                 ],
               ),
             ),
@@ -246,7 +246,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     return ListTile(
       contentPadding: EdgeInsets.zero,
       leading: Container(
-        padding: EdgeInsets.all(8),
+        padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.primaryContainer,
           borderRadius: BorderRadius.circular(8),
@@ -310,11 +310,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             ListTile(
               contentPadding: EdgeInsets.zero,
               leading: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   shape: BoxShape.circle,
                   color: kPrimaryDarkColor,
                 ),
-                padding: EdgeInsets.all(8),
+                padding: const EdgeInsets.all(8),
                 child: Icon(icon, color: Colors.white, size: 24),
               ),
               title: Text(
@@ -334,11 +334,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   Widget _buildDetailRow(IconData icon, String text) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 6),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         children: [
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.outline),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
         ],
       ),
@@ -356,12 +356,12 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       onTap: () => setState(() => _paymentMethod = value),
       borderRadius: BorderRadius.circular(kCardRadius),
       child: AnimatedContainer(
-        duration: Duration(milliseconds: 200),
-        margin: EdgeInsets.only(bottom: 8),
+        duration: const Duration(milliseconds: 200),
+        margin: const EdgeInsets.only(bottom: 8),
         decoration: BoxDecoration(
           color: isSelected
               ? Theme.of(context).colorScheme.primaryContainer
-              : Theme.of(context).colorScheme.surfaceVariant,
+              : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(kCardRadius),
           border: Border.all(
             color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
@@ -377,7 +377,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   ? Theme.of(context).colorScheme.primary
                   : Theme.of(context).colorScheme.onSurfaceVariant,
             ),
-            SizedBox(width: 16),
+            const SizedBox(width: 16),
             Expanded(
               child: Text(
                 title,
@@ -420,7 +420,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             TextField(
               controller: _notesController,
               maxLines: 3,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 filled: true,
                 hintText: 'Special requests, notes...',
                 contentPadding: EdgeInsets.all(16)
@@ -434,11 +434,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   Widget _buildEmptyState(String text, IconData icon) {
     return Padding(
-      padding: EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 12),
       child: Row(
         children: [
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.outline),
-          SizedBox(width: 12),
+          const SizedBox(width: 12),
           Text(text, style: Theme.of(context).textTheme.bodyMedium),
         ],
       ),

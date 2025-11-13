@@ -1,26 +1,31 @@
-
-
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'dart:developer';
+import 'package:app/services/protected_http_client.dart';
 import '../models/home/HomeApiResponse.dart';
 
-
 class HomesDetailAPI {
-  static const String baseUrl = 'https://bms.innovativewidget.com/api/home-page';
-
   Future<HomeApiResponse?> fetchHomePageData() async {
     try {
-      final response = await http.get(Uri.parse(baseUrl));
+      log('HomesDetailAPI: Fetching home page data');
+
+      final response = await ProtectedHttpClient.get('/home-page');
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
+        log('✅ HomesDetailAPI: Data loaded successfully');
         return HomeApiResponse.fromJson(jsonData);
       } else {
-        print('Failed to load data: ${response.statusCode}');
+        log('❌ HomesDetailAPI: Failed with status ${response.statusCode}');
         return null;
       }
+    } on UnauthorizedException catch (e) {
+      log('❌ HomesDetailAPI: Unauthorized - $e');
+      return null;
+    } on ApiException catch (e) {
+      log('❌ HomesDetailAPI: API Error - $e');
+      return null;
     } catch (e) {
-      print('Error fetching data: $e');
+      log('❌ HomesDetailAPI: Error - $e');
       return null;
     }
   }

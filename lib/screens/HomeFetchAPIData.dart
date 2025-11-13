@@ -1,12 +1,8 @@
 import 'dart:developer';
 
-import 'package:app/models/home/DealData.dart';
-import 'package:app/models/home/SalonData.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../api_services/homes_detail_api.dart';
-import '../api_services/salons_detail_api.dart';
 import '../models/home/Type1.dart';
 import '../models/home/Type2.dart';
 import '../models/home/Type3.dart';
@@ -205,7 +201,7 @@ class _HomeFetchAPIDataState extends State<HomeFetchAPIData> {
                     const SizedBox(height: 10),
                     if (section.data != null && section.data!.isNotEmpty)
                       ...section.data!.map((salon) {
-                        if (salon is! SalonData || salon.id == null) {
+                        if (salon.id == null) {
                           log('Invalid Salon: $salon');
                           return const SizedBox.shrink();
                         }
@@ -256,10 +252,6 @@ class _HomeFetchAPIDataState extends State<HomeFetchAPIData> {
                     const SizedBox(height: 10),
                     if (section.data != null && section.data!.isNotEmpty)
                       ...section.data!.map((deal) {
-                        if (deal is! DealData) {
-                          log('Invalid Deal: $deal');
-                          return const SizedBox.shrink();
-                        }
                         log('Deal: $deal'); // Debug log
                         return Card(
                           margin: const EdgeInsets.only(bottom: 10),

@@ -44,7 +44,7 @@ class DealCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
               color: kShadow2,
               blurRadius: 4.0,
@@ -63,8 +63,8 @@ class DealCard extends StatelessWidget {
                   height: 80,
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
-                    margin: EdgeInsets.all(10),
-                    child: CircularProgressIndicator(),
+                    margin: const EdgeInsets.all(10),
+                    child: const CircularProgressIndicator(),
                   ),
                   errorWidget: (context, url, error) => Image.asset('assets/images/default_logo.png'),
                 ),
@@ -72,54 +72,54 @@ class DealCard extends StatelessWidget {
 
             else
               Image.asset('assets/images/default_logo.png', width: 80, height: 80),
-            SizedBox(width: 10),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     title,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
                   Text(
                     desc,
-                    style: TextStyle(fontSize: 14, color: kTextColor),
+                    style: const TextStyle(fontSize: 14, color: kTextColor),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
                   if (salon != null)
                     Text(
                       salon?.name ?? "" ,
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                      style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
-                  SizedBox(height: 5),
+                  const SizedBox(height: 5),
 
                   if (validUntil != null)
                     Text(
                       'Valid until: $validUntil',
-                      style: TextStyle(fontSize: 12, color: Colors.red),
+                      style: const TextStyle(fontSize: 12, color: Colors.red),
                     ),
                   if (duration.isNotEmpty)
                     Text(
                       'Duration: $duration',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
 
                   Row(
                     children: [
                       Text(
                         'Rs $price',
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
                       ),
                       if (oldPrice != null && oldPrice! > price)
                         Padding(
                           padding: const EdgeInsets.only(left: 8.0),
                           child: Text(
                             'Rs $oldPrice',
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 14,
                               color: Colors.grey,
                               decoration: TextDecoration.lineThrough,

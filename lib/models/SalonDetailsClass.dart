@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 // Class for each section (like reviews)
 class Section {

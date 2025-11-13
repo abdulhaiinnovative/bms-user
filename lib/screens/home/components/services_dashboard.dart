@@ -1,26 +1,16 @@
 import 'dart:developer';
 
 import 'package:app/components/book_now.dart';
-import 'package:app/components/sale_amount.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
-import 'package:app/components/sale_percentage.dart';
 import 'package:app/constants.dart';
-import 'package:app/components/ratings.dart';
 import 'package:app/models/HomePageResponse.dart';
-import 'package:app/screens/products/products_screen.dart';
 import '../../test_scroll/salon_category_and_services_list.dart';
-import '../../test_scroll/salon_category_and_services_list_by_service.dart';
 import 'section_title.dart';
 
 class ServicesDashboard extends StatelessWidget {
   final List<ServiceSection> type4;
 
-  const ServicesDashboard({
-    Key? key,
-    required this.type4,
-  }) : super(key: key);
+  const ServicesDashboard({Key? key, required this.type4}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -33,10 +23,7 @@ class ServicesDashboard extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: SectionTitle(
-                  title: section.heading,
-                  press: () {},
-                ),
+                child: SectionTitle(title: section.heading, press: () {}),
               ),
               const SizedBox(height: 10),
               Expanded(
@@ -47,7 +34,7 @@ class ServicesDashboard extends StatelessWidget {
                     final item = section.data[index];
                     return ServicesCard(
                       service: item,
-                      title: '${item.name}' ?? 'No Title',
+                      title: item.name ?? 'No Title',
                       //image: item.image ?? logo,
                       image: "",
                       salon: item.salon!,
@@ -67,8 +54,10 @@ class ServicesDashboard extends StatelessWidget {
 
                         log('==================================');
                         Navigator.pushNamed(
-                            context, SalonCategoryAndServicesList.routeName,
-                            arguments: item);
+                          context,
+                          SalonCategoryAndServicesList.routeName,
+                          arguments: item,
+                        );
                         log('Tapped Deal: ${item.name}');
                         log('Tapped Deal:salon id   ${item.salon?.id}');
                         log('Tapped Deal:name   ${item.salon?.name}');
@@ -115,7 +104,7 @@ class ServicesCard extends StatelessWidget {
         onTap: press, // Attach the press callback here
         child: Container(
           width: width,
-          height: 150,
+          height: 160, // Increased from 150 to 160 to prevent overflow
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -132,17 +121,18 @@ class ServicesCard extends StatelessWidget {
                   color: Colors.black,
                 ),
                 overflow: TextOverflow.ellipsis,
+                maxLines: 1, // Ensure single line
               ),
-              const SizedBox(width: 5),
+              const SizedBox(
+                height: 3,
+              ), // Reduced from implicit 5 width to 3 height
               Text(
                 desc,
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.black, fontSize: 14),
                 overflow: TextOverflow.ellipsis,
+                maxLines: 1, // Ensure single line
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 8), // Reduced from 10 to 8
               Row(
                 children: [
                   ClipOval(
@@ -157,8 +147,11 @@ class ServicesCard extends StatelessWidget {
                                 height: 30,
                                 width: 30,
                                 color: Colors.grey[300],
-                                child: const Icon(Icons.store,
-                                    size: 18, color: Colors.grey),
+                                child: const Icon(
+                                  Icons.store,
+                                  size: 18,
+                                  color: Colors.grey,
+                                ),
                               );
                             },
                           )
@@ -166,8 +159,11 @@ class ServicesCard extends StatelessWidget {
                             height: 30,
                             width: 30,
                             color: Colors.grey[300],
-                            child: const Icon(Icons.store,
-                                size: 18, color: Colors.grey),
+                            child: const Icon(
+                              Icons.store,
+                              size: 18,
+                              color: Colors.grey,
+                            ),
                           ),
                   ),
                   const SizedBox(width: 5),
@@ -179,21 +175,24 @@ class ServicesCard extends StatelessWidget {
                         Text(
                           salon.name ?? '',
                           style: const TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.bold),
+                            color: Colors.black87,
+                            fontWeight: FontWeight.bold,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                         Text(
                           salon.address ?? '',
                           style: const TextStyle(
-                              color: Colors.black54, fontSize: 12),
+                            color: Colors.black54,
+                            fontSize: 12,
+                          ),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
                       ],
                     ),
-                  )
+                  ),
                 ],
               ),
               const Spacer(),
@@ -203,15 +202,14 @@ class ServicesCard extends StatelessWidget {
                     child: Text(
                       'Rs: ${service.price}',
                       style: const TextStyle(
-                          color: kPrice,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold),
+                        color: kPrice,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-
                   const SizedBox(width: 15),
-
                   if (service.discountType != null)
                     Flexible(
                       child: Text(
@@ -224,16 +222,17 @@ class ServicesCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-
                   const Spacer(),
-
-                  if (service.discountType == 'price')
-                    BookNow()
-                  ////SaleAmount(sale: service.discountAmount ?? 0)
-                  else if (service.discountType == 'percentage')
-                    BookNow()
-
-                  ///SalePercentage(off: service.percentageDiscount ?? 0, type:  '',),
+                  BookNow(
+                    onTap: () {
+                      log('📅 Book Now tapped for service: ${service.name}');
+                      Navigator.pushNamed(
+                        context,
+                        SalonCategoryAndServicesList.routeName,
+                        arguments: service,
+                      );
+                    },
+                  ),
                 ],
               ),
             ],

@@ -16,7 +16,8 @@ class ScrollSyncTabs extends StatefulWidget {
   _ScrollSyncTabsState createState() => _ScrollSyncTabsState();
 }
 
-class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProviderStateMixin {
+class _ScrollSyncTabsState extends State<ScrollSyncTabs>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
   late ScrollController _scrollController;
 
@@ -42,7 +43,8 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
     // Assuming each tab's height is equal and is 500 pixels for simplicity
     double tabHeight = 500.0;
     int tabIndex = (position / tabHeight).round();
-    if (_tabController.index != tabIndex && _scrollController.position.isScrollingNotifier.value) {
+    if (_tabController.index != tabIndex &&
+        _scrollController.position.isScrollingNotifier.value) {
       _tabController.animateTo(tabIndex);
     }
   }
@@ -118,9 +120,9 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
                     ),
                     const SizedBox(width: 16),
                     // Title and Subtitle
-                    Column(
+                    const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           'Glamour Salon & Spa',
                           style: TextStyle(
@@ -143,8 +145,8 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
               ),
               const SizedBox(height: 8),
               // Rating Section
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16.0),
                 child: Row(
                   children: [
                     Icon(Icons.star, color: kPrimaryColor),
@@ -152,10 +154,10 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
                     Icon(Icons.star, color: kPrimaryColor),
                     Icon(Icons.star, color: kPrimaryColor),
                     Icon(Icons.star_half, color: kPrimaryColor),
-                    const SizedBox(width: 8),
-                    const Text('4.5'),
-                    const SizedBox(width: 8),
-                    const Text("( 230 reviews )")
+                    SizedBox(width: 8),
+                    Text('4.5'),
+                    SizedBox(width: 8),
+                    Text("( 230 reviews )")
                   ],
                 ),
               ),
@@ -166,11 +168,14 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
                 isScrollable: true, // Makes the TabBar scrollable
                 indicator: BoxDecoration(
                   color: kPrimaryColor,
-                  borderRadius: BorderRadius.circular(40.0), // Rounded corners for the indicator
+                  borderRadius: BorderRadius.circular(
+                      40.0), // Rounded corners for the indicator
                 ),
-                indicatorPadding: const EdgeInsets.only(left: -16.0, right: -16.0),
+                indicatorPadding:
+                    const EdgeInsets.only(left: -16.0, right: -16.0),
                 labelColor: Colors.white, // Color of the active tab text
-                unselectedLabelColor: Colors.black, // Color of the inactive tab text
+                unselectedLabelColor:
+                    Colors.black, // Color of the inactive tab text
                 tabs: const [
                   Tab(text: 'Our Services'),
                   Tab(text: 'Top Services'),
@@ -220,6 +225,7 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
             title: 'Low Lights',
             image: logo,
             salon: Salon(),
+            deal: null,
             services: 'Damage Free Procedure',
             price: 1000,
             discountValue: 500,
@@ -247,7 +253,8 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
         ),
         itemBuilder: (context, index) {
           return ClipRRect(
-            borderRadius: BorderRadius.circular(8.0), // Rounded corners for images
+            borderRadius:
+                BorderRadius.circular(8.0), // Rounded corners for images
             child: Image.network(
               SalonScreen.imageUrls[index],
               fit: BoxFit.cover,
@@ -281,7 +288,8 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
             ),
             child: ListTile(
               leading: CircleAvatar(
-                backgroundImage: NetworkImage(SalonScreen.facebookPosts[index]['imageUrl']!),
+                backgroundImage:
+                    NetworkImage(SalonScreen.facebookPosts[index]['imageUrl']!),
               ),
               title: Text(SalonScreen.facebookPosts[index]['title']!),
               subtitle: Text(SalonScreen.facebookPosts[index]['date']!),
@@ -297,13 +305,13 @@ class _ScrollSyncTabsState extends State<ScrollSyncTabs> with SingleTickerProvid
       controller: _scrollController, // Attach ScrollController here
       itemCount: 5,
       itemBuilder: (BuildContext context, int index) {
-        return ListTile(
-          leading: const CircleAvatar(
+        return const ListTile(
+          leading: CircleAvatar(
             backgroundColor: Colors.blue,
             child: Icon(Icons.person, color: Colors.white),
           ),
-          title: const Text('User =='),
-          subtitle: const Text('Excellent service and friendly staff.'),
+          title: Text('User =='),
+          subtitle: Text('Excellent service and friendly staff.'),
         );
       },
     );

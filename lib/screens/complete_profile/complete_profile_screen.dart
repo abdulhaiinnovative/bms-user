@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants.dart';
 import 'components/complete_profile_form.dart';
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
+import '../../models/auth/social_auth_response.dart';
 
 class CompleteProfileScreen extends StatelessWidget {
   static String routeName = "/complete_profile";
@@ -10,8 +11,24 @@ class CompleteProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userIsAlreadyRegisteredModel =
-    ModalRoute.of(context)!.settings.arguments as UserIsAlreadyRegisteredModel;
+    // Get arguments - can be UserIsAlreadyRegisteredModel or Map for social auth
+    final args = ModalRoute.of(context)!.settings.arguments;
+
+    // Check if this is social auth or regular registration
+    bool isSocialAuth = false;
+    SocialUserData? socialUser;
+    UserIsAlreadyRegisteredModel? regularUser;
+    String? email;
+
+    if (args is Map<String, dynamic>) {
+      // Social auth flow
+      isSocialAuth = args['isSocialAuth'] ?? false;
+      socialUser = args['socialUser'] as SocialUserData?;
+      email = args['email'] as String?;
+    } else if (args is UserIsAlreadyRegisteredModel) {
+      // Regular registration flow
+      regularUser = args;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +52,12 @@ class CompleteProfileScreen extends StatelessWidget {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 16),
-                    CompleteProfileForm(user: userIsAlreadyRegisteredModel,),
+                    CompleteProfileForm(
+                      user: regularUser,
+                      isSocialAuth: isSocialAuth,
+                      socialUser: socialUser,
+                      email: email,
+                    ),
                     const SizedBox(height: 30),
                     Text(
                       "By continuing you confirm that you agree \nwith our Terms and Conditions",

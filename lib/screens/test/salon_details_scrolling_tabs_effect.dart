@@ -1,10 +1,8 @@
 //import 'package:bubble_tab_indicator/bubble_tab_indicator.dart';
 import 'dart:developer';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:scrollable_positioned_list/scrollable_positioned_list.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
@@ -16,7 +14,6 @@ import 'package:app/screens/test/restaurant_detail_with_food_group.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../constants.dart';
-import '../home/components/discount_banner.dart';
 import 'data_source.dart';
 
 
@@ -79,7 +76,7 @@ class _SalonDetailsScrollingTabsEffectState
         SalonDetailServiceWithGroupModel.fromJson(salonDetailWithService);
 
     _tabController = TabController(
-      length: serviceItems!.data!.length,
+      length: serviceItems.data.length,
       vsync: this,
     );
     _autoScrollController = AutoScrollController(
@@ -117,7 +114,7 @@ class _SalonDetailsScrollingTabsEffectState
     await _autoScrollController.scrollToIndex(index,
         preferPosition: AutoScrollPosition.begin);
     await _autoScrollController.highlight(index,
-        animated: true, highlightDuration: Duration(seconds: 2));
+        animated: true, highlightDuration: const Duration(seconds: 2));
     // itemScrollController.jumpTo(index: index, alignment: 1.00);
   }
 
@@ -126,22 +123,22 @@ class _SalonDetailsScrollingTabsEffectState
       key: ValueKey(index),
       controller: _autoScrollController,
       index: index,
-      child: child,
       highlightColor: Colors.black.withOpacity(0.1),
+      child: child,
     );
   }
 
   Widget _buildSliverAppbarBackground(BuildContext context) {
     var imageList = salonDetail.image;
-    final PageController _pageController = PageController();
+    final PageController pageController = PageController();
     return Column(
       children: [
         Stack(
           children: [
-            Container(
+            SizedBox(
               height: MediaQuery.of(context).size.height / 4,
               child: PageView.builder(
-                controller: _pageController,
+                controller: pageController,
                 itemCount: imageList.length,
                 itemBuilder: (context, index) {
                   return Center(
@@ -162,10 +159,10 @@ class _SalonDetailsScrollingTabsEffectState
               child: Container(
                 alignment: Alignment.center,
                 // Center the content of the container
-                padding: EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(16.0),
 
                 child: SmoothPageIndicator(
-                  controller: _pageController, // PageController
+                  controller: pageController, // PageController
                   count: imageList.length,
                   effect: WormEffect(
                     dotWidth: 12.0,
@@ -178,42 +175,42 @@ class _SalonDetailsScrollingTabsEffectState
               ),
             ),
             Positioned(
+              right: 16,
+              top: 32,
               child: Container(
                 decoration:
-                    BoxDecoration(color: whiteColor, shape: BoxShape.circle),
+                    const BoxDecoration(color: whiteColor, shape: BoxShape.circle),
                 child: IconButton(
-                  icon: Icon(Icons.favorite),
+                  icon: const Icon(Icons.favorite),
                   color: kPrimaryColor,
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
               ),
-              right: 16,
-              top: 32,
             ),
             Positioned(
+              left: 16,
+              top: 32,
               child: Container(
                 decoration:
-                    BoxDecoration(color: whiteColor, shape: BoxShape.circle),
+                    const BoxDecoration(color: whiteColor, shape: BoxShape.circle),
                 child: IconButton(
-                  icon: Icon(Icons.arrow_back),
+                  icon: const Icon(Icons.arrow_back),
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
                 ),
               ),
-              left: 16,
-              top: 32,
             ),
           ],
         ),
-        SizedBox(
+        const SizedBox(
           height: 16,
         ),
         Container(
             alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Text(
               salonDetail.name ?? "",
               textAlign: TextAlign.start,
@@ -224,26 +221,26 @@ class _SalonDetailsScrollingTabsEffectState
             )),
         Container(
             alignment: Alignment.centerLeft,
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Text(
               _getServiceSpeciality(),
               textAlign: TextAlign.start,
             )),
         Container(
-            padding: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 _getApproximateTime(),
-                SizedBox(width: 4),
+                const SizedBox(width: 4),
                 // Text("4.5"),
                 // SizedBox(width: 4),
-                Icon(Icons.star, color: amberColor, size: 16),
-                SizedBox(width: 4),
-                Text("4.5"),
-                SizedBox(width: 4),
-                Text("(126) "),
-                SizedBox(width: 4),
+                const Icon(Icons.star, color: amberColor, size: 16),
+                const SizedBox(width: 4),
+                const Text("4.5"),
+                const SizedBox(width: 4),
+                const Text("(126) "),
+                const SizedBox(width: 4),
                 _getApproximateFee(),
               ],
             )),
@@ -253,14 +250,14 @@ class _SalonDetailsScrollingTabsEffectState
           decoration: BoxDecoration(
               color: const Color(0xFF4A3298),
               border: Border.all(width: 1),
-              borderRadius: BorderRadius.all(Radius.circular(20))),
-          margin: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              borderRadius: const BorderRadius.all(Radius.circular(20))),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: ListTile(
-            leading: Icon(
+            leading: const Icon(
               Icons.emoji_events,
               color: kPrimaryColor,
             ),
-            title: Text(
+            title: const Text(
               "Earn 500 reward points ",
               style: TextStyle(
                 color: Colors.white,
@@ -268,7 +265,7 @@ class _SalonDetailsScrollingTabsEffectState
                 fontWeight: FontWeight.bold,
               ),
             ),
-            subtitle: Text(
+            subtitle: const Text(
               "on 5 bookings",
               style: TextStyle(color: Colors.white),
             ),
@@ -280,16 +277,16 @@ class _SalonDetailsScrollingTabsEffectState
                 onPressed: () {}),
           ),
         ),
-        Divider(thickness: 2),
+        const Divider(thickness: 2),
         ListTile(
-          title: Text(
+          title: const Text(
             "Salon Info",
             // style: Theme.of(context)
             //     .textTheme
             //     .subtitle1
             //     ?.copyWith(fontWeight: FontWeight.bold),
           ),
-          trailing: InkWell(
+          trailing: const InkWell(
             child: Text(
               "More Info",
               style: TextStyle(color: kPrimaryColor),
@@ -301,13 +298,13 @@ class _SalonDetailsScrollingTabsEffectState
               mainAxisAlignment: MainAxisAlignment.start,
               mainAxisSize: MainAxisSize.max,
               children: [
-                Icon(Icons.location_on, size: 16),
-                SizedBox(
+                const Icon(Icons.location_on, size: 16),
+                const SizedBox(
                   width: 10,
                 ),
                 Expanded(
                     child: Text(
-                  "${salonDetail.address.formatted}",
+                  salonDetail.address.formatted,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 )),
@@ -315,20 +312,20 @@ class _SalonDetailsScrollingTabsEffectState
             ),
           ),
         ),
-        Divider(thickness: 1),
+        const Divider(thickness: 1),
         Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Top Picks",
+              const Text("Top Picks",
                   // style: Theme.of(context)
                   //     .textTheme
                   //     .subtitle1
                   //     ?.copyWith(fontWeight: FontWeight.bold)
                 ),
               IconButton(
-                icon: Icon(Icons.star),
+                icon: const Icon(Icons.star),
                 onPressed: () {},
               ),
             ],
@@ -347,7 +344,7 @@ class _SalonDetailsScrollingTabsEffectState
       expandedHeight: size.height / 1.33,
       leading: !isExpanded
           ? IconButton(
-              icon: Icon(
+              icon: const Icon(
                 Icons.arrow_back,
                 color: blackColor,
               ),
@@ -357,7 +354,7 @@ class _SalonDetailsScrollingTabsEffectState
       actions: [
         !isExpanded
             ? IconButton(
-                icon: Icon(
+                icon: const Icon(
                   Icons.circle_outlined,
                   size: 32,
                   color: blackColor,
@@ -370,7 +367,7 @@ class _SalonDetailsScrollingTabsEffectState
       ],
       title: !isExpanded
           ? Text(
-        salonDetail?.name ?? "",
+        salonDetail.name ?? "",
         style: const TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w700,
@@ -385,23 +382,23 @@ class _SalonDetailsScrollingTabsEffectState
         background: _buildSliverAppbarBackground(context),
       ),
       bottom: PreferredSize(
-        preferredSize: Size.fromHeight(40),
+        preferredSize: const Size.fromHeight(40),
         child: AnimatedOpacity(
-          duration: Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 200),
           opacity: isExpanded ? 0.0 : 1,
           child: TabBar(
             controller: _tabController,
-            labelPadding: EdgeInsets.symmetric(horizontal: 20),
+            labelPadding: const EdgeInsets.symmetric(horizontal: 20),
             indicatorSize: TabBarIndicatorSize.tab,
             indicator: ShapeDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                   colors: [kPrimaryColor, kPrimaryDarkColor]),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(30),
               ),
             ),
             labelStyle:
-                TextStyle(color: blackColor, fontWeight: FontWeight.bold),
+                const TextStyle(color: blackColor, fontWeight: FontWeight.bold),
             labelColor: Colors.white,
             //indicatorColor: Colors.white,
             //indicatorWeight: 2.5,
@@ -410,14 +407,14 @@ class _SalonDetailsScrollingTabsEffectState
             onTap: (index) async {
               _scrollToIndex(index);
             },
-            tabs: serviceItems!.data!.map((e) {
+            tabs: serviceItems.data.map((e) {
               return Tab(
                 child: Text("  ${e.name}  "),
 
                 // text: 'Detail Business',
                 // icon: Icon(Icons.three_k,color: whiteColor,),
               );
-            })!.toList(),
+            }).toList(),
           ),
         ),
       ),
@@ -451,10 +448,10 @@ class _SalonDetailsScrollingTabsEffectState
       // itemPositionsListener: itemPositionsListener,
       shrinkWrap: true,
       addAutomaticKeepAlives: true,
-      physics: NeverScrollableScrollPhysics(),
-      itemCount: serviceItems?.data?.length,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: serviceItems.data.length,
       itemBuilder: (context, index) => VisibilityDetector(
-        key: Key(serviceItems!.data[index].sId),
+        key: Key(serviceItems.data[index].sId),
         onVisibilityChanged: (info) {
           // if (!_autoScrollController.isAutoScrolling) return;
           var visiblePercentage = info.visibleFraction * 100;
@@ -471,8 +468,8 @@ class _SalonDetailsScrollingTabsEffectState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              buildServiceItemCategoryTitle(context, serviceItems!.data[index].name),
-              SizedBox(
+              buildServiceItemCategoryTitle(context, serviceItems.data[index].name),
+              const SizedBox(
                 height: 16,
               ),
               ..._buildCategoryItems(context, index),
@@ -485,12 +482,12 @@ class _SalonDetailsScrollingTabsEffectState
 
   List<Widget> _buildCategoryItems(BuildContext context, int index) {
     if (serviceItems.data[index].services.isEmpty) return [Container()];
-    List<Widget> _list = [];
+    List<Widget> list = [];
     for (int i = 0; i < serviceItems.data[index].services.length; i++) {
-      _list.add(_buildSalonServiceItem(
+      list.add(_buildSalonServiceItem(
           context, serviceItems.data[index].services[i]));
     }
-    return _list;
+    return list;
   }
 
   InkWell _buildSalonServiceItem(BuildContext context, Services service) {
@@ -508,14 +505,14 @@ class _SalonDetailsScrollingTabsEffectState
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
                         Container(
+                          alignment: Alignment.centerLeft,
                           child: Text(
-                            service.name+"-",
+                            "${service.name}-",
                             style: Theme.of(context).textTheme.titleLarge,
                             textAlign: TextAlign.start,
                           ),
-                          alignment: Alignment.centerLeft,
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 8,
                         ),
                         Container(
@@ -525,19 +522,19 @@ class _SalonDetailsScrollingTabsEffectState
                             textAlign: TextAlign.start,
                           ),
                         ),
-                        SizedBox(
+                        const SizedBox(
                           height: 8,
                         ),
                         Container(
-                          padding: EdgeInsets.symmetric(
+                          padding: const EdgeInsets.symmetric(
                               vertical: 2.0, horizontal: 4.0),
-                          margin: EdgeInsets.symmetric(
+                          margin: const EdgeInsets.symmetric(
                               vertical: 8.0, horizontal: 4.0),
                           child: Row(
                             children: [
                               Text(
                                 "Rs: ${service.price}",
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 18.0,
                                   fontWeight: FontWeight.bold,
                                   color: kPrimaryColor,
@@ -548,7 +545,7 @@ class _SalonDetailsScrollingTabsEffectState
                         )
                       ],
                     )),
-                SizedBox(
+                const SizedBox(
                   width: 8,
                 ),
                 Expanded(
@@ -570,12 +567,12 @@ class _SalonDetailsScrollingTabsEffectState
                               // Light grey shadow color
                               blurRadius: 4.0,
                               // Blur radius of the shadow
-                              offset: Offset(0, 4), // Position of the shadow
+                              offset: const Offset(0, 4), // Position of the shadow
                             ),
                           ],
                         ),
                         child: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.favorite_border, // Plus icon
                             color: kPrimaryColor, // Icon color
                             size: 26.0, // Icon size
@@ -585,7 +582,7 @@ class _SalonDetailsScrollingTabsEffectState
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         height: 10,
                       ),
                       Container(
@@ -602,12 +599,12 @@ class _SalonDetailsScrollingTabsEffectState
                               // Light grey shadow color
                               blurRadius: 4.0,
                               // Blur radius of the shadow
-                              offset: Offset(0, 4), // Position of the shadow
+                              offset: const Offset(0, 4), // Position of the shadow
                             ),
                           ],
                         ),
                         child: IconButton(
-                          icon: Icon(
+                          icon: const Icon(
                             Icons.add, // Plus icon
                             color: Colors.black, // Icon color
                             size: 26.0, // Icon size
@@ -623,7 +620,7 @@ class _SalonDetailsScrollingTabsEffectState
               ],
             ),
           ),
-          Divider(
+          const Divider(
             thickness: 2,
             color: Colors.transparent,
           )
@@ -638,7 +635,7 @@ class _SalonDetailsScrollingTabsEffectState
   Container buildServiceItemCategoryTitle(BuildContext context, String name) {
     return Container(
       alignment: Alignment.centerLeft,
-      padding: EdgeInsets.all(8),
+      padding: const EdgeInsets.all(8),
       child: Text(name ?? "Picked for you",
           // style: Theme.of(context)
           //     .textTheme
@@ -671,7 +668,7 @@ class _SalonDetailsScrollingTabsEffectState
     for (var a in serviceItems.data) {
       for (var b in a.services) {
         for (var c in b.serviceSpeciality) {
-          if (c.name != null && c.name.isNotEmpty && !result.contains(c.name)) {
+          if (c.name.isNotEmpty && !result.contains(c.name)) {
             result.add(c.name);
           }
         }
@@ -682,11 +679,11 @@ class _SalonDetailsScrollingTabsEffectState
   }
 
   Text _getApproximateTime() {
-    return Text("30 mins");
+    return const Text("30 mins");
   }
 
   Text _getApproximateFee() {
-    return Text("14.33");
+    return const Text("14.33");
   }
 
   String getImageUrlFromApi(String rawUrl) {
@@ -695,31 +692,31 @@ class _SalonDetailsScrollingTabsEffectState
 }
 
 Widget _indicator(bool isActive) {
-  return Container(
+  return SizedBox(
     height: 10,
     child: AnimatedContainer(
-      duration: Duration(milliseconds: 150),
-      margin: EdgeInsets.symmetric(horizontal: 4.0),
+      duration: const Duration(milliseconds: 150),
+      margin: const EdgeInsets.symmetric(horizontal: 4.0),
       height: isActive ? 10 : 8.0,
       width: isActive ? 12 : 8.0,
       decoration: BoxDecoration(
         boxShadow: [
           isActive
               ? BoxShadow(
-                  color: Color(0XFF2FB7B2).withOpacity(0.72),
+                  color: const Color(0XFF2FB7B2).withOpacity(0.72),
                   blurRadius: 4.0,
                   spreadRadius: 1.0,
-                  offset: Offset(
+                  offset: const Offset(
                     0.0,
                     0.0,
                   ),
                 )
-              : BoxShadow(
+              : const BoxShadow(
                   color: Colors.transparent,
                 )
         ],
         shape: BoxShape.circle,
-        color: isActive ? Color(0XFF6BC4C9) : Color(0XFFEAEAEA),
+        color: isActive ? const Color(0XFF6BC4C9) : const Color(0XFFEAEAEA),
       ),
     ),
   );
