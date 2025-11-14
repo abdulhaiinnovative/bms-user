@@ -1,10 +1,11 @@
 import 'dart:developer';
 import 'package:app/screens/profile/components/account_boxes.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../../api_services/my_account_api.dart';
 import '../../constants.dart';
 import '../../models/my_account_response.dart';
+import '../../presentation/viewmodels/profile/profile_view_model.dart';
 
 class MyAccountScreen extends StatefulWidget {
   static String routeName = "/my_account";
@@ -16,88 +17,73 @@ class MyAccountScreen extends StatefulWidget {
 }
 
 class _MyAccountScreenState extends State<MyAccountScreen> {
-  UserData? userData;
-  bool isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    loadProfile();
-  }
-
-  Future<void> loadProfile() async {
-    log('Fetching user profile...');
-    final profileResponse = await MyAccountAPI().getMyAccount();
-
-    if (profileResponse != null && profileResponse.response?.user != null) {
-      setState(() {
-        userData = profileResponse.response!.user!;
-        isLoading = false;
-      });
-    } else {
-      log('Failed to load user profile');
-      setState(() {
-        isLoading = false;
-      });
-    }
+    // Load profile data using ViewModel
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileViewModel>().loadProfile();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kScreenBg,
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: Colors.white,
-        title: const Text(
-          "My Account",
-          style: TextStyle(
-            color: kTextColor,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: kTextColor),
-          onPressed: () => Navigator.pop(context),
-        ),
-        actions: [
-          IconButton(
-            icon: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: kPrimaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.edit_outlined,
-                color: kPrimaryColor,
-                size: 20,
+    return Consumer<ProfileViewModel>(
+      builder: (context, viewModel, child) {
+        return Scaffold(
+          backgroundColor: kScreenBg,
+          appBar: AppBar(
+            elevation: 0,
+            backgroundColor: Colors.white,
+            title: const Text(
+              "My Account",
+              style: TextStyle(
+                color: kTextColor,
+                fontSize: 20,
+                fontWeight: FontWeight.w700,
               ),
             ),
-            onPressed: () {
-              // TODO: Navigate to edit profile
-            },
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: kTextColor),
+              onPressed: () => Navigator.pop(context),
+            ),
+            actions: [
+              IconButton(
+                icon: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: kPrimaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(
+                    Icons.edit_outlined,
+                    color: kPrimaryColor,
+                    size: 20,
+                  ),
+                ),
+                onPressed: () {
+                  // TODO: Navigate to edit profile
+                },
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: isLoading
-          ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: kPrimaryColor.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 4),
-                        ),
+          body: viewModel.isLoading
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: kPrimaryColor.withOpacity(0.2),
+                              blurRadius: 20,
+                              offset: const Offset(0, 4),
+                            ),
                       ],
                     ),
                     child: const CircularProgressIndicator(
@@ -116,145 +102,145 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                 ],
               ),
             )
-          : userData != null
-              ? RefreshIndicator(
-                  color: kPrimaryColor,
-                  onRefresh: loadProfile,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      children: [
-                        // Profile Header Section
-                        Container(
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            gradient: const LinearGradient(
-                              colors: [Colors.white, Color(0xFFFAFAFA)],
-                              begin: Alignment.topCenter,
-                              end: Alignment.bottomCenter,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: [
-                              const SizedBox(height: 24),
-                              // Profile Picture
-                              Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Container(
-                                    height: 120,
-                                    width: 120,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          kPrimaryColor,
-                                          kPrimaryDarkColor
-                                        ],
-                                        begin: Alignment.topLeft,
-                                        end: Alignment.bottomRight,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: kPrimaryColor.withOpacity(0.3),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 8),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    height: 112,
-                                    width: 112,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.white,
-                                        width: 4,
-                                      ),
-                                      image: const DecorationImage(
-                                        image: NetworkImage(logo),
-                                        fit: BoxFit.cover,
-                                      ),
-                                    ),
-                                  ),
-                                  Positioned(
-                                    bottom: 0,
-                                    right: 0,
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            kPrimaryColor,
-                                            kPrimaryDarkColor
-                                          ],
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                        ),
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: Colors.white,
-                                          width: 3,
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color:
-                                                kPrimaryColor.withOpacity(0.4),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.camera_alt_rounded,
-                                        color: Colors.white,
-                                        size: 18,
-                                      ),
-                                    ),
+              : viewModel.hasProfileData
+                  ? RefreshIndicator(
+                      color: kPrimaryColor,
+                      onRefresh: () => viewModel.refreshProfile(),
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Column(
+                          children: [
+                            // Profile Header Section
+                            Container(
+                              width: double.infinity,
+                              decoration: BoxDecoration(
+                                gradient: const LinearGradient(
+                                  colors: [Colors.white, Color(0xFFFAFAFA)],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.03),
+                                    blurRadius: 10,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 16),
-                              // User Name
-                              Text(
-                                userData?.name ?? 'N/A',
-                                style: const TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w700,
-                                  color: kTextColor,
-                                  letterSpacing: 0.3,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              // User Email
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: kPrimaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
+                              child: Column(
+                                children: [
+                                  const SizedBox(height: 24),
+                                  // Profile Picture
+                                  Stack(
+                                    alignment: Alignment.center,
+                                    children: [
+                                      Container(
+                                        height: 120,
+                                        width: 120,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              kPrimaryColor,
+                                              kPrimaryDarkColor
+                                            ],
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: kPrimaryColor.withOpacity(0.3),
+                                              blurRadius: 20,
+                                              offset: const Offset(0, 8),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      Container(
+                                        height: 112,
+                                        width: 112,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: Colors.white,
+                                            width: 4,
+                                          ),
+                                          image: const DecorationImage(
+                                            image: NetworkImage(logo),
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        bottom: 0,
+                                        right: 0,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(8),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                kPrimaryColor,
+                                                kPrimaryDarkColor
+                                              ],
+                                              begin: Alignment.topLeft,
+                                              end: Alignment.bottomRight,
+                                            ),
+                                            shape: BoxShape.circle,
+                                            border: Border.all(
+                                              color: Colors.white,
+                                              width: 3,
+                                            ),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color:
+                                                    kPrimaryColor.withOpacity(0.4),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: const Icon(
+                                            Icons.camera_alt_rounded,
+                                            color: Colors.white,
+                                            size: 18,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 16),
+                                  // User Name
+                                  Text(
+                                    viewModel.userName,
+                                    style: const TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.w700,
+                                      color: kTextColor,
+                                      letterSpacing: 0.3,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  // User Email
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: kPrimaryColor.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
                                       Icons.email_outlined,
                                       size: 14,
                                       color: kPrimaryColor,
                                     ),
                                     const SizedBox(width: 6),
                                     Text(
-                                      userData?.email ?? 'N/A',
+                                      viewModel.userEmail,
                                       style: const TextStyle(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w600,
@@ -273,9 +259,10 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                   children: [
                                     Expanded(
                                       child: _buildStatCard(
+                                        viewModel,
                                         icon: Icons.event_available_rounded,
                                         label: 'Appointments',
-                                        value: '${userData?.appointment ?? 0}',
+                                        value: '${viewModel.appointmentCount}',
                                         gradient: const LinearGradient(
                                           colors: [
                                             Color(0xFF667eea),
@@ -287,9 +274,10 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                     const SizedBox(width: 12),
                                     Expanded(
                                       child: _buildStatCard(
+                                        viewModel,
                                         icon: Icons.cancel_outlined,
                                         label: 'Cancelled',
-                                        value: '${userData?.cancelCount ?? 0}',
+                                        value: '${viewModel.userData?.cancelCount ?? 0}',
                                         gradient: const LinearGradient(
                                           colors: [
                                             Color(0xFFf093fb),
@@ -324,25 +312,25 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                               AccountBoxes(
                                 icon: Icons.phone_rounded,
                                 title: "Phone Number",
-                                value: userData?.phone ?? 'Not provided',
+                                value: viewModel.userPhone.isNotEmpty ? viewModel.userPhone : 'Not provided',
                                 press: null,
                               ),
                               AccountBoxes(
                                 icon: Icons.wc_rounded,
                                 title: "Gender",
-                                value: userData?.gender ?? 'Not specified',
+                                value: viewModel.userData?.gender ?? 'Not specified',
                                 press: null,
                               ),
                               AccountBoxes(
                                 icon: Icons.cake_rounded,
                                 title: "Date of Birth",
-                                value: userData?.dob ?? 'Not provided',
+                                value: viewModel.userData?.dob ?? 'Not provided',
                                 press: null,
                               ),
                               AccountBoxes(
                                 icon: Icons.location_on_rounded,
                                 title: "Address",
-                                value: userData?.address ?? 'Not provided',
+                                value: viewModel.hasAddress ? viewModel.fullAddress : 'Not provided',
                                 press: null,
                               ),
                               const SizedBox(height: 16),
@@ -358,11 +346,11 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                               AccountBoxes(
                                 icon: Icons.check_circle_outline_rounded,
                                 title: "Profile Completion",
-                                value: userData?.completeStatus == 1
+                                value: viewModel.isProfileComplete
                                     ? 'Complete'
                                     : 'Incomplete',
                                 press: null,
-                                statusColor: userData?.completeStatus == 1
+                                statusColor: viewModel.isProfileComplete
                                     ? Colors.green
                                     : Colors.orange,
                               ),
@@ -416,7 +404,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                       ),
                       const SizedBox(height: 24),
                       ElevatedButton.icon(
-                        onPressed: loadProfile,
+                        onPressed: () => viewModel.refreshProfile(),
                         icon: const Icon(Icons.refresh_rounded),
                         label: const Text('Retry'),
                         style: ElevatedButton.styleFrom(
@@ -435,10 +423,13 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                     ],
                   ),
                 ),
+        );
+      },
     );
   }
 
-  Widget _buildStatCard({
+  Widget _buildStatCard(
+    ProfileViewModel viewModel, {
     required IconData icon,
     required String label,
     required String value,
