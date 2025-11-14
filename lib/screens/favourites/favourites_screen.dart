@@ -1,14 +1,15 @@
 // TODO: FAVOURITES SCREEN - Display list of user's favourite salons
-// Integrated with POST /salons/favourite API
+// Migrated to MVVM architecture
 // Features: Pull-to-refresh, pagination, empty state, loading states
 
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:app/constants.dart';
-import 'package:app/api_services/favourite_api.dart';
-import 'package:app/models/FavouritesListResponse.dart';
+import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
 import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:app/models/FavouritesListResponse.dart';
 
 class FavouritesScreen extends StatefulWidget {
   const FavouritesScreen({super.key});
@@ -20,165 +21,13 @@ class FavouritesScreen extends StatefulWidget {
 }
 
 class _FavouritesScreenState extends State<FavouritesScreen> {
-  final FavouriteAPI _favouriteAPI = FavouriteAPI();
-
-  List<FavouriteSalon> favouriteSalons = [];
-  bool isLoading = true;
-  bool isRefreshing = false;
-  bool hasError = false;
-  String errorMessage = '';
-
-  // Pagination
-  int currentPage = 1;
-  int lastPage = 1;
-  int totalFavourites = 0;
-  bool hasMorePages = false;
-
   @override
   void initState() {
     super.initState();
-    _loadFavourites();
-  }
-
-  /// Load favourites from API
-  Future<void> _loadFavourites({bool refresh = false}) async {
-    if (refresh) {
-      if (!mounted) return;
-      setState(() {
-        isRefreshing = true;
-        currentPage = 1;
-        hasError = false;
-      });
-    } else {
-      if (!mounted) return;
-      setState(() {
-        isLoading = true;
-        hasError = false;
-      });
-    }
-
-    try {
-      log('Loading favourites - Page: $currentPage');
-
-      final result = await _favouriteAPI.getFavouritesList(page: currentPage);
-
-      // Print complete raw data
-      print("\n════════════════════════════════════════════════════════");
-      print("📋 FAVOURITES API - COMPLETE RAW DATA");
-      print("════════════════════════════════════════════════════════");
-      print("🔹 Success: ${result['success']}");
-      print("🔹 Message: ${result['message']}");
-      print("\n📦 FULL API RESPONSE:");
-      print(result['data']);
-      print("════════════════════════════════════════════════════════\n");
-
-      if (result['success'] == true) {
-        final response = FavouritesListResponse.fromJson(result['data']);
-        final paginatedData = response.response.data;
-
-        // Print parsed data details
-        print("\n════════════════════════════════════════════════════════");
-        print("📊 FAVOURITES API - PARSED DATA");
-        print("════════════════════════════════════════════════════════");
-        print("📄 Status Code: ${response.statusCode}");
-        print("📄 Message: ${response.message}");
-        print("📄 Status: ${response.status}");
-        print("\n📑 PAGINATION INFO:");
-        print("   Current Page: ${paginatedData.currentPage}");
-        print("   Last Page: ${paginatedData.lastPage}");
-        print("   Per Page: ${paginatedData.perPage}");
-        print("   Total Items: ${paginatedData.total}");
-        print("   From: ${paginatedData.from}");
-        print("   To: ${paginatedData.to}");
-        print("   Next Page URL: ${paginatedData.nextPageUrl}");
-        print("   Previous Page URL: ${paginatedData.prevPageUrl}");
-        print("\n💝 FAVOURITE SALONS (${paginatedData.data.length}):");
-        for (int i = 0; i < paginatedData.data.length; i++) {
-          final salon = paginatedData.data[i];
-          print("\n   [$i] ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-          print("   🏢 ID: ${salon.id}");
-          print("   📝 Name: ${salon.name}");
-          print("   👤 Vendor ID: ${salon.vendorId}");
-          print("   🖼️  Logo: ${salon.logo}");
-          print("   📸 Image: ${salon.image}");
-          print("   🌍 Country: ${salon.country}");
-          print("   🏙️  State: ${salon.state}");
-          print("   🏘️  City: ${salon.city}");
-          print("   📍 Area: ${salon.area}");
-          print("   🗺️  Address: ${salon.address}");
-          print("   📌 Latitude: ${salon.latitude}");
-          print("   📌 Longitude: ${salon.longitude}");
-          print("   ⏱️  Min Booking: ${salon.minBookingTime} min");
-          print("   ⏱️  Max Booking: ${salon.maxBookingTime} min");
-          print("   ⏱️  Min Cancellation: ${salon.minCancellationTime} min");
-          print("   🏷️  Type: ${salon.type}");
-          print("   🎭 Kind: ${salon.kind}");
-          print("   👥 Salon For: ${salon.salonFor}");
-          print("   ⭐ Average Rating: ${salon.averageRating}");
-          print("   💬 Review Count: ${salon.reviewCount}");
-          print("   ❤️  Is Favourite: ${salon.isFavourite}");
-          print("   ✅ Status: ${salon.status}");
-          print("   🚫 Suspended: ${salon.suspended}");
-          print("   📄 About: ${salon.about}");
-          print("   📜 Policy: ${salon.salonPolicy}");
-          print("   ℹ️  Additional Info: ${salon.additionalInformation}");
-          print("   🔗 Facebook: ${salon.facebook}");
-          print("   🔗 Instagram: ${salon.instagram}");
-          print("   🔗 Twitter: ${salon.twitter}");
-          print("   🔗 LinkedIn: ${salon.linkedin}");
-          print("   📅 Active Days: ${salon.activeDays.length} days");
-          for (var day in salon.activeDays) {
-            print(
-                "      - ${day.day}: ${day.openingTime} - ${day.closingTime} (Status: ${day.status})");
-          }
-        }
-        print("════════════════════════════════════════════════════════\n");
-
-        if (!mounted) return;
-        setState(() {
-          if (refresh) {
-            favouriteSalons = paginatedData.data;
-          } else {
-            favouriteSalons.addAll(paginatedData.data);
-          }
-
-          currentPage = paginatedData.currentPage;
-          lastPage = paginatedData.lastPage;
-          totalFavourites = paginatedData.total;
-          hasMorePages = currentPage < lastPage;
-
-          isLoading = false;
-          isRefreshing = false;
-          hasError = false;
-        });
-
-        log('✅ Loaded ${paginatedData.data.length} favourites');
-        log('Current page: $currentPage, Last page: $lastPage, Total: $totalFavourites');
-      } else {
-        if (!mounted) return;
-        setState(() {
-          isLoading = false;
-          isRefreshing = false;
-          hasError = true;
-          errorMessage = result['message'] ?? 'Failed to load favourites';
-        });
-        log('❌ Failed to load favourites: ${result['message']}');
-      }
-    } catch (e) {
-      if (!mounted) return;
-      setState(() {
-        isLoading = false;
-        isRefreshing = false;
-        hasError = true;
-        errorMessage = 'An error occurred. Please try again.';
-      });
-      log('❌ Exception loading favourites: $e');
-    }
-  }
-
-  /// Refresh favourites list
-  Future<void> _onRefresh() async {
-    await _loadFavourites(refresh: true);
+    // Load favourites on init
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<FavouritesViewModel>().loadFavourites();
+    });
   }
 
   /// Navigate to salon detail screen
@@ -187,10 +36,10 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     Navigator.pushNamed(
       context,
       SalonDetailsScrollingTabsEffectB.routeName,
-      arguments: salonId.toString(), // Convert int to String
+      arguments: salonId.toString(),
     ).then((_) {
       // Refresh list when returning from detail screen
-      _loadFavourites(refresh: true);
+      context.read<FavouritesViewModel>().refresh();
     });
   }
 
@@ -210,38 +59,46 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
         elevation: 1,
         centerTitle: true,
       ),
-      body: _buildBody(),
+      body: Consumer<FavouritesViewModel>(
+        builder: (context, viewModel, child) {
+          return _buildBody(viewModel);
+        },
+      ),
     );
   }
 
-  Widget _buildBody() {
-    if (isLoading && favouriteSalons.isEmpty) {
+  Widget _buildBody(FavouritesViewModel viewModel) {
+    if (viewModel.isLoading && viewModel.favouriteSalons.isEmpty) {
       return _buildLoadingState();
     }
 
-    if (hasError && favouriteSalons.isEmpty) {
-      return _buildErrorState();
+    if (viewModel.isError && viewModel.favouriteSalons.isEmpty) {
+      return _buildErrorState(viewModel);
     }
 
-    if (favouriteSalons.isEmpty) {
+    if (viewModel.isEmpty) {
       return _buildEmptyState();
     }
 
     return RefreshIndicator(
-      onRefresh: _onRefresh,
+      onRefresh: () => viewModel.refresh(),
       color: kPrimaryColor,
       child: ListView.builder(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 10),
-        itemCount: favouriteSalons.length + (hasMorePages ? 1 : 0),
+        itemCount:
+            viewModel.favouriteSalons.length + (viewModel.hasMorePages ? 1 : 0),
         itemBuilder: (context, index) {
-          if (index == favouriteSalons.length) {
-            // Load more indicator
+          if (index == viewModel.favouriteSalons.length) {
+            // Load more
+            if (!viewModel.isLoading) {
+              viewModel.loadNextPage();
+            }
             return _buildLoadMoreIndicator();
           }
 
-          final salon = favouriteSalons[index];
-          return _buildFavouriteSalonCard(salon);
+          final salon = viewModel.favouriteSalons[index];
+          return _buildFavouriteSalonCard(salon, viewModel, index);
         },
       ),
     );
@@ -268,7 +125,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(FavouritesViewModel viewModel) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -282,7 +139,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              errorMessage,
+              viewModel.errorMessage ?? 'An error occurred',
               textAlign: TextAlign.center,
               style: const TextStyle(
                 fontSize: 16,
@@ -291,7 +148,7 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: () => _loadFavourites(refresh: true),
+              onPressed: () => viewModel.refresh(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryColor,
                 padding:
@@ -383,7 +240,8 @@ class _FavouritesScreenState extends State<FavouritesScreen> {
     );
   }
 
-  Widget _buildFavouriteSalonCard(FavouriteSalon salon) {
+  Widget _buildFavouriteSalonCard(
+      FavouriteSalon salon, FavouritesViewModel viewModel, int index) {
     // Build image URL
 
     final String imageUrl = salon.image.startsWith('http')

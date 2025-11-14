@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:app/providers/SearchProvider.dart';
 import 'package:app/providers/auth/auth_provider.dart';
 import 'package:app/providers/notification/notification_provider.dart';
+import 'package:app/presentation/viewmodels/home/home_view_model.dart';
+import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
 import 'package:app/screens/splash/splash_screen.dart';
 import 'firebase_options.dart';
 import 'routes.dart';
@@ -30,6 +32,8 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => SearchProvider()),
         ChangeNotifierProvider(create: (context) => SearchProviderNew()),
         ChangeNotifierProvider(create: (context) => NotificationProvider()),
+        ChangeNotifierProvider(create: (context) => HomeViewModel()),
+        ChangeNotifierProvider(create: (context) => FavouritesViewModel()),
       ],
       child: const MyApp(),
     ),
