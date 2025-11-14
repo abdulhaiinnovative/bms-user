@@ -77,21 +77,21 @@ class SalonViewModel extends BaseViewModel {
   }
 
   /// Get all services from all sections
-  List<SubSection> getAllServices() {
+  List<dynamic> getAllSectionData() {
     if (sections == null) return [];
     
     return sections!
-        .expand((section) => section.subSections ?? [])
+        .expand((section) => (section.data is List) ? section.data as List : [section.data])
         .toList();
   }
 
-  /// Get services by section
-  List<SubSection>? getServicesForSection(int sectionIndex) {
+  /// Get data by section index
+  dynamic getDataForSection(int sectionIndex) {
     if (sections == null || sectionIndex >= sections!.length) {
       return null;
     }
     
-    return sections![sectionIndex].subSections;
+    return sections![sectionIndex].data;
   }
 
   /// Get section names

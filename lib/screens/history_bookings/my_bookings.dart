@@ -2,9 +2,10 @@ import 'dart:developer';
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../api_services/MyBookingsAPI.dart';
 import '../../models/MyBookingResponse.dart';
+import '../../presentation/viewmodels/bookings/bookings_view_model.dart';
 import 'booking_details_screen.dart';
 
 class MyBookings extends StatefulWidget {
@@ -20,15 +21,6 @@ class _MyBookingsState extends State<MyBookings>
   late final ScrollController _allScrollController;
   late final ScrollController _upcomingScrollController;
   late final ScrollController _pastScrollController;
-  bool _isLoading = true;
-  bool _isLoadingMore = false;
-  bool _isFetchingMore = false;
-  String? _errorMessage;
-  String? _nextPageUrl;
-  final List<Booking> allBookings = [];
-  final List<Booking> upcomingBookings = [];
-  final List<Booking> pastBookings = [];
-  static const String _sortOrder = 'Date Descending';
 
   @override
   void initState() {
@@ -40,7 +32,11 @@ class _MyBookingsState extends State<MyBookings>
     _allScrollController.addListener(_scrollListener);
     _upcomingScrollController.addListener(_scrollListener);
     _pastScrollController.addListener(_scrollListener);
-    _fetchBookings();
+    
+    // Load bookings using ViewModel
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<BookingsViewModel>().loadBookings(refresh: true);
+    });
   }
 
   @override
@@ -53,174 +49,24 @@ class _MyBookingsState extends State<MyBookings>
   }
 
   void _scrollListener() {
-    if (_isLoading || _isLoadingMore || _nextPageUrl == null || _isFetchingMore) {
+    final viewModel = context.read<BookingsViewModel>();
+    
+    if (viewModel.isLoading || viewModel.isLoadingMore || !viewModel.hasMorePages) {
       return;
     }
+    
     final controller = _tabController.index == 0
         ? _allScrollController
         : _tabController.index == 1
             ? _upcomingScrollController
             : _pastScrollController;
+            
     if (controller.hasClients &&
         controller.position.pixels >=
             controller.position.maxScrollExtent * 0.9) {
       log('Scroll reached 90% of max extent, fetching more data');
-      _isFetchingMore = true;
-      _fetchBookings(loadMore: true).then((_) => _isFetchingMore = false);
+      viewModel.loadNextPage();
     }
-  }
-
-  Future<void> _fetchBookings({bool loadMore = false}) async {
-    if (loadMore && _nextPageUrl == null) {
-      log('No next page URL, stopping pagination');
-      return;
-    }
-    setState(() {
-      if (loadMore) {
-        _isLoadingMore = true;
-      } else {
-        _isLoading = true;
-        _errorMessage = null;
-        _nextPageUrl = null;
-      }
-    });
-    try {
-      log('Fetching bookings, loadMore: $loadMore, URL: ${_nextPageUrl ?? "initial"}');
-      final bookingResponse =
-          await MyBookingsAPI().getBooking(url: loadMore ? _nextPageUrl : null);
-      if (bookingResponse == null) {
-        log('Received null booking response');
-        setState(() {
-          _errorMessage = 'Failed to fetch bookings: No response from server';
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
-        return;
-      }
-      log('Raw API response booking count: ${bookingResponse.response?.data?.data?.length ?? 0}');
-      setState(() {
-        final newBookings = bookingResponse.response?.data?.data ?? [];
-        log('Received ${newBookings.length} new bookings, IDs: ${newBookings.map((b) => b.id).toList()}');
-        _nextPageUrl = bookingResponse.response?.data?.nextPageUrl;
-        log('Next page URL: $_nextPageUrl, Total: ${bookingResponse.response?.data?.total}, Page: ${bookingResponse.response?.data?.currentPage}');
-        if (!loadMore) {
-          log('Clearing allBookings for initial fetch');
-          allBookings.clear();
-        }
-        allBookings.addAll(newBookings);
-        log('All booking IDs after append: ${allBookings.map((b) => b.id).toList()}');
-        _filterBookings();
-        log('All booking IDs after filtering: ${allBookings.map((b) => b.id).toList()}');
-        log('Upcoming booking IDs: ${upcomingBookings.map((b) => b.id).toList()}');
-        log('Past booking IDs: ${pastBookings.map((b) => b.id).toList()}');
-
-        // Clear error message if we successfully fetched (even if empty)
-        _errorMessage = null;
-        _isLoading = false;
-        _isLoadingMore = false;
-      });
-    } catch (e, stackTrace) {
-      // Only show error for actual errors, not for empty booking responses
-      final errorString = e.toString();
-      if (!errorString.contains('404') &&
-          !errorString.contains('No bookings found')) {
-        setState(() {
-          _errorMessage = 'Failed to fetch bookings: $e';
-          _isLoading = false;
-          _isLoadingMore = false;
-        });
-        log('Error in MyBookings._fetchBookings: $e\nStack: $stackTrace');
-      } else {
-        // 404 means no bookings, which is a valid state, not an error
-        log('No bookings found (empty state), clearing error');
-        setState(() {
-          _errorMessage = null;
-          _isLoading = false;
-          _isLoadingMore = false;
-          if (!loadMore) {
-            allBookings.clear();
-          }
-          _filterBookings();
-        });
-      }
-    }
-  }
-
-  void _filterBookings() {
-    final now = DateTime.now();
-    log('Filtering bookings, current time: $now');
-    upcomingBookings.clear();
-    pastBookings.clear();
-    for (var booking in allBookings) {
-      if (booking.date == null) {
-        log('Skipping booking ID ${booking.id} with null date');
-        continue;
-      }
-      DateTime? bookingDateTime;
-      try {
-        final date = DateTime.tryParse(booking.date!);
-        if (date == null) {
-          log('Invalid date for booking ID ${booking.id}: ${booking.date}');
-          continue;
-        }
-        final time = booking.time != null
-            ? DateFormat('HH:mm:ss').parse(booking.time!).toLocal()
-            : DateTime(1970, 1, 1, 0, 0);
-        log('Parsed time for booking ID ${booking.id}: ${booking.time} -> ${time.hour}:${time.minute}, Date: ${booking.date}, Status: ${booking.status}');
-        bookingDateTime = DateTime(
-          date.year,
-          date.month,
-          date.day,
-          time.hour,
-          time.minute,
-        );
-        log('Booking ID ${booking.id} dateTime: $bookingDateTime, isBefore now: ${bookingDateTime.isBefore(now)}');
-      } catch (e, stackTrace) {
-        log('Error parsing date/time for booking ID ${booking.id}: $e\nStack: $stackTrace');
-        continue;
-      }
-      if (booking.status == 'booked' && !bookingDateTime.isBefore(now)) {
-        upcomingBookings.add(booking);
-        log('Added booking ID ${booking.id} to upcomingBookings');
-      } else if (booking.status != 'booked' && bookingDateTime.isBefore(now)) {
-        pastBookings.add(booking);
-        log('Added booking ID ${booking.id} to pastBookings');
-      } else {
-        log('Booking ID ${booking.id} excluded from both tabs: status=${booking.status}, dateTime=$bookingDateTime');
-      }
-    }
-    log('Upcoming bookings: ${upcomingBookings.length}, IDs: ${upcomingBookings.map((b) => b.id).toList()}');
-    log('Past bookings: ${pastBookings.length}, IDs: ${pastBookings.map((b) => b.id).toList()}');
-    _sortBookingsList(allBookings);
-    _sortBookingsList(upcomingBookings);
-    _sortBookingsList(pastBookings);
-  }
-
-  void _sortBookingsList(List<Booking> bookings) {
-    bookings.sort((a, b) {
-      DateTime? dateA, dateB;
-      try {
-        dateA = a.date != null ? DateTime.parse(a.date!) : null;
-        dateB = b.date != null ? DateTime.parse(b.date!) : null;
-        if (dateA != null && a.time != null) {
-          final timeA = DateFormat('HH:mm:ss').parse(a.time!).toLocal();
-          dateA = DateTime(
-              dateA.year, dateA.month, dateA.day, timeA.hour, timeA.minute);
-        }
-        if (dateB != null && b.time != null) {
-          final timeB = DateFormat('HH:mm:ss').parse(b.time!).toLocal();
-          dateB = DateTime(
-              dateB.year, dateB.month, dateB.day, timeB.hour, timeB.minute);
-        }
-      } catch (e, stackTrace) {
-        log('Error parsing date/time for sorting booking IDs ${a.id} vs ${b.id}: $e\nStack: $stackTrace');
-      }
-      if (dateA == null && dateB == null) return 0;
-      if (dateA == null) return 1;
-      if (dateB == null) return -1;
-      return dateB.compareTo(dateA); // Descending order
-    });
-    log('Sorted booking IDs: ${bookings.map((b) => b.id).join(', ')}');
   }
 
   Widget _buildShimmer() {
@@ -268,7 +114,7 @@ class _MyBookingsState extends State<MyBookings>
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(BookingsViewModel viewModel) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -276,7 +122,7 @@ class _MyBookingsState extends State<MyBookings>
           Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
           const SizedBox(height: 16),
           Text(
-            _errorMessage ?? 'Something went wrong',
+            viewModel.errorMessage ?? 'Something went wrong',
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.w500,
@@ -286,7 +132,7 @@ class _MyBookingsState extends State<MyBookings>
           ),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: _fetchBookings,
+            onPressed: () => viewModel.refresh(),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blueAccent,
               foregroundColor: Colors.white,
@@ -306,25 +152,25 @@ class _MyBookingsState extends State<MyBookings>
   }
 
   Widget _buildBookingList(
-      List<Booking> bookings, ScrollController controller) {
-    if (_isLoading && !_isLoadingMore) {
+      BookingsViewModel viewModel, List<Booking> bookings, ScrollController controller) {
+    if (viewModel.isLoading && !viewModel.isLoadingMore) {
       log('Showing shimmer for initial loading');
       return _buildShimmer();
     }
-    if (_errorMessage != null) {
-      log('Showing error state: $_errorMessage');
-      return _buildErrorState();
+    if (viewModel.isError) {
+      log('Showing error state: ${viewModel.errorMessage}');
+      return _buildErrorState(viewModel);
     }
-    if (bookings.isEmpty && !_isLoading && !_isLoadingMore) {
+    if (bookings.isEmpty && !viewModel.isLoading && !viewModel.isLoadingMore) {
       log('Showing empty state');
       return _buildEmptyState();
     }
     log('Building booking list with ${bookings.length} items, IDs: ${bookings.map((b) => b.id).toList()}');
     return RefreshIndicator(
-      onRefresh: () => _fetchBookings(),
+      onRefresh: () => viewModel.refresh(),
       child: ListView.builder(
         controller: controller,
-        itemCount: bookings.length + (_nextPageUrl != null ? 1 : 0),
+        itemCount: bookings.length + (viewModel.hasMorePages ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= bookings.length) {
             log('Rendering pagination loader');
@@ -377,7 +223,7 @@ class _MyBookingsState extends State<MyBookings>
                     ),
                   );
                   if (result == true) {
-                    _fetchBookings();
+                    viewModel.refresh();
                   }
                 },
                 child: Padding(
@@ -732,51 +578,56 @@ class _MyBookingsState extends State<MyBookings>
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: kScreenBg,
-      appBar: AppBar(
-        title: const Text(
-          "My Bookings",
-          style: TextStyle(
-            fontSize: 22,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
-        ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [kPrimaryDarkColor, kPrice],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return Consumer<BookingsViewModel>(
+      builder: (context, viewModel, child) {
+        return Scaffold(
+          backgroundColor: kScreenBg,
+          appBar: AppBar(
+            title: const Text(
+              "My Bookings",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                color: Colors.white,
+              ),
+            ),
+            flexibleSpace: Container(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [kPrimaryDarkColor, kPrice],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+            ),
+            bottom: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white70,
+              labelStyle:
+                  const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              unselectedLabelStyle:
+                  const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
+              tabs: const [
+                Tab(text: "All"),
+                Tab(text: "Upcoming"),
+                Tab(text: "Past"),
+              ],
             ),
           ),
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white70,
-          labelStyle:
-              const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          unselectedLabelStyle:
-              const TextStyle(fontSize: 14, fontWeight: FontWeight.w400),
-          tabs: const [
-            Tab(text: "All"),
-            Tab(text: "Upcoming"),
-            Tab(text: "Past"),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildBookingList(allBookings, _allScrollController),
-          _buildBookingList(upcomingBookings, _upcomingScrollController),
-          _buildBookingList(pastBookings, _pastScrollController),
-        ],
-      ),
+          body: TabBarView(
+            controller: _tabController,
+            children: [
+              _buildBookingList(viewModel, viewModel.allBookings, _allScrollController),
+              _buildBookingList(viewModel, viewModel.upcomingBookings, _upcomingScrollController),
+              _buildBookingList(viewModel, viewModel.pastBookings, _pastScrollController),
+            ],
+          ),
+        );
+      },
     );
   }
 }
