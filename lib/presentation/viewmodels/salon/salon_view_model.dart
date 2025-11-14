@@ -19,7 +19,7 @@ class SalonViewModel extends BaseViewModel {
   SalonData? get salonData => _salonData;
   List<Section>? get sections => _salonData?.sections;
   Location? get location => _salonData?.location;
-  
+
   String get salonName => _salonData?.name ?? '';
   String get salonLogo => _salonData?.logo ?? '';
   List<String> get salonImages => _salonData?.images ?? [];
@@ -31,13 +31,13 @@ class SalonViewModel extends BaseViewModel {
   String get salonKind => _salonData?.kind ?? '';
   String get salonGender => _salonData?.gender ?? '';
   bool get isFavourite => _salonData?.isFavourite ?? false;
-  
+
   // Social media
   String get facebook => _salonData?.fackebook ?? '';
   String get instagram => _salonData?.instagram ?? '';
   String get twitter => _salonData?.twitter ?? '';
   String get linkedin => _salonData?.linkedin ?? '';
-  
+
   bool get hasDetails => _salonData != null;
   bool get hasSections => sections != null && sections!.isNotEmpty;
   bool get hasLocation => location != null;
@@ -79,9 +79,10 @@ class SalonViewModel extends BaseViewModel {
   /// Get all services from all sections
   List<dynamic> getAllSectionData() {
     if (sections == null) return [];
-    
+
     return sections!
-        .expand((section) => (section.data is List) ? section.data as List : [section.data])
+        .expand((section) =>
+            (section.data is List) ? section.data as List : [section.data])
         .toList();
   }
 
@@ -90,14 +91,14 @@ class SalonViewModel extends BaseViewModel {
     if (sections == null || sectionIndex >= sections!.length) {
       return null;
     }
-    
+
     return sections![sectionIndex].data;
   }
 
   /// Get section names
   List<String> getSectionNames() {
     if (sections == null) return [];
-    
+
     return sections!
         .map((section) => section.name ?? '')
         .where((name) => name.isNotEmpty)

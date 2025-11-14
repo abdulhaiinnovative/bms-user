@@ -14,8 +14,8 @@ class BookingsViewModel extends BaseViewModel {
 
   // State
   List<Booking> _allBookings = [];
-  List<Booking> _upcomingBookings = [];
-  List<Booking> _pastBookings = [];
+  final List<Booking> _upcomingBookings = [];
+  final List<Booking> _pastBookings = [];
   bool _isRefreshing = false;
   bool _isLoadingMore = false;
 
@@ -60,7 +60,7 @@ class BookingsViewModel extends BaseViewModel {
 
         if (response.status == 1 && response.paginatedData != null) {
           final newBookings = response.paginatedData?.data ?? [];
-          
+
           if (!refresh) {
             if (newBookings.isNotEmpty) {
               _allBookings.addAll(newBookings);
@@ -75,7 +75,7 @@ class BookingsViewModel extends BaseViewModel {
           _nextPageUrl = response.paginatedData?.nextPageUrl;
 
           log('Bookings loaded successfully - Total: $totalBookings, Current Page: $currentPage, Last Page: $lastPage');
-          
+
           // Filter bookings into upcoming and past
           _filterBookings();
         }
@@ -91,16 +91,16 @@ class BookingsViewModel extends BaseViewModel {
   void _filterBookings() {
     final now = DateTime.now();
     log('Filtering bookings, current time: $now');
-    
+
     _upcomingBookings.clear();
     _pastBookings.clear();
-    
+
     for (var booking in _allBookings) {
       if (booking.date == null) {
         log('Skipping booking ID ${booking.id} with null date');
         continue;
       }
-      
+
       DateTime? bookingDateTime;
       try {
         final date = DateTime.tryParse(booking.date!);
@@ -108,11 +108,11 @@ class BookingsViewModel extends BaseViewModel {
           log('Invalid date for booking ID ${booking.id}: ${booking.date}');
           continue;
         }
-        
+
         final time = booking.time != null
             ? DateFormat('HH:mm:ss').parse(booking.time!).toLocal()
             : DateTime(1970, 1, 1, 0, 0);
-            
+
         bookingDateTime = DateTime(
           date.year,
           date.month,
@@ -120,28 +120,28 @@ class BookingsViewModel extends BaseViewModel {
           time.hour,
           time.minute,
         );
-        
+
         log('Booking ID ${booking.id} dateTime: $bookingDateTime, isBefore now: ${bookingDateTime.isBefore(now)}');
       } catch (e, stackTrace) {
         log('Error parsing date/time for booking ID ${booking.id}: $e\nStack: $stackTrace');
         continue;
       }
-      
+
       // Upcoming: status is 'booked' and time is in the future
       if (booking.status == 'booked' && !bookingDateTime.isBefore(now)) {
         _upcomingBookings.add(booking);
         log('Added booking ID ${booking.id} to upcomingBookings');
-      } 
+      }
       // Past: not booked or time is in the past
       else if (booking.status != 'booked' || bookingDateTime.isBefore(now)) {
         _pastBookings.add(booking);
         log('Added booking ID ${booking.id} to pastBookings');
       }
     }
-    
+
     log('Upcoming bookings: ${_upcomingBookings.length}');
     log('Past bookings: ${_pastBookings.length}');
-    
+
     // Sort bookings by date descending
     _sortBookingsList(_allBookings);
     _sortBookingsList(_upcomingBookings);
@@ -154,11 +154,11 @@ class BookingsViewModel extends BaseViewModel {
       try {
         final dateA = DateTime.tryParse(a.date ?? '');
         final dateB = DateTime.tryParse(b.date ?? '');
-        
+
         if (dateA == null && dateB == null) return 0;
         if (dateA == null) return 1;
         if (dateB == null) return -1;
-        
+
         return dateB.compareTo(dateA); // Descending order
       } catch (e) {
         return 0;

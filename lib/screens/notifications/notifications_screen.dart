@@ -91,7 +91,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         return Scaffold(
           appBar: AppBar(
             title: const Text('Notifications'),
-        centerTitle: false,
+            centerTitle: false,
             actions: [
               if (viewModel.unreadCount > 0)
                 TextButton.icon(

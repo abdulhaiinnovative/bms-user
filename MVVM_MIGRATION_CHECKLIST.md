@@ -8,6 +8,7 @@
 ## 🎯 Quick Start Guide
 
 ### Before You Begin
+
 - [ ] Read `MVVM_MIGRATION_GUIDE.md`
 - [ ] Read `ARCHITECTURE_ANALYSIS.md`
 - [ ] Create feature branch: `git checkout -b feature/mvvm-migration`
@@ -19,6 +20,7 @@
 ## 📁 Phase 1: Foundation Setup (Week 1-2)
 
 ### Directory Structure
+
 - [ ] Create `lib/core/` directory
 - [ ] Create `lib/core/base/` directory
 - [ ] Create `lib/core/constants/` directory
@@ -41,6 +43,7 @@
   - [ ] `notification/`
 
 ### Base Classes
+
 - [ ] Create `lib/core/base/base_view_model.dart`
   - [ ] ViewState enum
   - [ ] Base state management
@@ -57,6 +60,7 @@
   - [ ] Failure classes for better error handling
 
 ### Constants Organization
+
 - [ ] Split `constants.dart` into:
   - [ ] `lib/core/constants/api_constants.dart`
   - [ ] `lib/core/constants/app_constants.dart`
@@ -69,49 +73,44 @@
 ### Create Repository Classes
 
 #### Core Repositories
+
 - [ ] `lib/data/repositories/auth_repository.dart`
   - [ ] login()
   - [ ] signup()
   - [ ] googleSignIn()
   - [ ] resetPassword()
   - [ ] updateProfile()
-  
 - [ ] `lib/data/repositories/home_repository.dart`
   - [ ] fetchHomeData()
   - [ ] refreshHomeData()
-  
 - [ ] `lib/data/repositories/search_repository.dart`
   - [ ] searchServices()
   - [ ] searchDeals()
   - [ ] searchSalons()
   - [ ] Pagination support
-  
 - [ ] `lib/data/repositories/salon_repository.dart`
   - [ ] fetchSalonDetails()
   - [ ] fetchSalonServices()
   - [ ] fetchSalonDeals()
-  
 - [ ] `lib/data/repositories/booking_repository.dart`
   - [ ] fetchBookings()
   - [ ] createBooking()
   - [ ] cancelBooking()
   - [ ] Pagination support
-  
 - [ ] `lib/data/repositories/favourite_repository.dart`
   - [ ] fetchFavourites()
   - [ ] addFavourite()
   - [ ] removeFavourite()
-  
 - [ ] `lib/data/repositories/profile_repository.dart`
   - [ ] fetchUserProfile()
   - [ ] updateProfile()
   - [ ] uploadProfileImage()
-  
 - [ ] `lib/data/repositories/cart_repository.dart` (if needed)
   - [ ] Local cart management
   - [ ] Persistence
 
 ### Repository Testing
+
 - [ ] Unit test AuthRepository
 - [ ] Unit test HomeRepository
 - [ ] Unit test SearchRepository
@@ -122,23 +121,25 @@
 ## 🎨 Phase 3: ViewModels (Week 3-4)
 
 ### Authentication ViewModels
+
 - [ ] Move `lib/providers/auth/auth_provider.dart` to:
   - [ ] `lib/presentation/viewmodels/auth/auth_viewmodel.dart`
   - [ ] Rename class: `AuthProvider` → `AuthViewModel`
   - [ ] Extend `BaseViewModel`
   - [ ] Update imports across app
-  
 - [ ] Create `lib/presentation/viewmodels/auth/login_viewmodel.dart` (optional)
 - [ ] Create `lib/presentation/viewmodels/auth/signup_viewmodel.dart` (optional)
 
 ### Home ViewModels
+
 - [ ] `lib/presentation/viewmodels/home/home_viewmodel.dart`
   - [ ] Extend BaseViewModel
   - [ ] Use HomeRepository
   - [ ] State: sliders, categories, salons, deals, services
   - [ ] Methods: loadHomeData(), refreshData()
-  
+
 ### Search ViewModels
+
 - [ ] Move `lib/screens/search_final/search_provider_new.dart` to:
   - [ ] `lib/presentation/viewmodels/search/search_viewmodel.dart`
   - [ ] Rename class: `SearchProviderNew` → `SearchViewModel`
@@ -147,6 +148,7 @@
   - [ ] Update all imports
 
 ### Salon ViewModels
+
 - [ ] `lib/presentation/viewmodels/salon/salon_detail_viewmodel.dart`
   - [ ] Salon info state
   - [ ] Services/deals state
@@ -154,13 +156,13 @@
   - [ ] Methods: loadSalonDetails(), loadServices()
 
 ### Booking ViewModels
+
 - [ ] `lib/presentation/viewmodels/booking/my_bookings_viewmodel.dart`
   - [ ] All bookings state
   - [ ] Upcoming bookings state
   - [ ] Past bookings state
   - [ ] Pagination support
   - [ ] Methods: loadBookings(), loadMore(), cancelBooking()
-  
 - [ ] `lib/presentation/viewmodels/booking/booking_flow_viewmodel.dart`
   - [ ] Selected services state
   - [ ] Selected professional state
@@ -169,27 +171,30 @@
   - [ ] Methods: Step-by-step booking flow
 
 ### Cart ViewModel
+
 - [ ] `lib/presentation/viewmodels/cart/cart_viewmodel.dart`
   - [ ] Cart items state
   - [ ] Total amount calculation
   - [ ] Methods: addToCart(), removeFromCart(), clearCart()
 
 ### Profile ViewModels
+
 - [ ] `lib/presentation/viewmodels/profile/profile_viewmodel.dart`
   - [ ] User data state
   - [ ] Methods: loadProfile(), updateProfile()
-  
 - [ ] `lib/presentation/viewmodels/profile/favourites_viewmodel.dart`
   - [ ] Favourites list state
   - [ ] Methods: loadFavourites(), toggleFavourite()
 
 ### Notification ViewModel
+
 - [ ] Move `lib/providers/notification/notification_provider.dart` to:
   - [ ] `lib/presentation/viewmodels/notification/notification_viewmodel.dart`
   - [ ] Rename class
   - [ ] Extend BaseViewModel
 
 ### ViewModel Testing
+
 - [ ] Unit test HomeViewModel
 - [ ] Unit test SearchViewModel
 - [ ] Unit test MyBookingsViewModel
@@ -203,6 +208,7 @@
 ### Simple Screens (Priority 3)
 
 #### Profile Screen
+
 - [ ] Refactor `lib/screens/profile/profile_screen.dart`
   - [ ] Convert to StatelessWidget (if possible)
   - [ ] Add ChangeNotifierProvider for ProfileViewModel
@@ -212,6 +218,7 @@
 - [ ] Test profile screen
 
 #### Favourites Screen
+
 - [ ] Refactor `lib/screens/favourites/favourites_screen.dart`
   - [ ] Convert to StatelessWidget
   - [ ] Add FavouritesViewModel
@@ -222,6 +229,7 @@
 - [ ] Test favourites screen
 
 #### Cart Screen
+
 - [ ] Refactor `lib/screens/cart/cart_screen.dart`
   - [ ] Use CartViewModel
   - [ ] Remove setState calls
@@ -230,6 +238,7 @@
 ### Medium Screens (Priority 2)
 
 #### Home Screen
+
 - [ ] Refactor `lib/screens/home/home_screen.dart`
   - [ ] Convert to StatelessWidget
   - [ ] Add ChangeNotifierProvider(create: HomeViewModel()..loadHomeData())
@@ -246,6 +255,7 @@
   - [ ] Test pull-to-refresh
 
 #### Search Screen
+
 - [ ] Refactor `lib/screens/search_final/search_service_screen_new.dart`
   - [ ] Update Provider references (SearchProviderNew → SearchViewModel)
   - [ ] Update all imports
@@ -254,6 +264,7 @@
   - [ ] Test all three tabs (Services, Deals, Salons)
 
 #### My Account Screen
+
 - [ ] Refactor `lib/screens/profile/my_account_screen.dart`
   - [ ] Use ProfileViewModel
   - [ ] Remove setState calls
@@ -263,6 +274,7 @@
 ### Complex Screens (Priority 1 - Most Important)
 
 #### Salon Services & Category List
+
 - [ ] Refactor `lib/screens/test_scroll/salon_category_and_services_list.dart`
   - [ ] Create SalonDetailViewModel
   - [ ] Create CartViewModel (if not done)
@@ -276,6 +288,7 @@
   - [ ] Test professional selection flow
 
 #### My Bookings Screen
+
 - [ ] Refactor `lib/screens/history_bookings/my_bookings.dart`
   - [ ] Add MyBookingsViewModel
   - [ ] Convert main screen to use ViewModel
@@ -291,24 +304,23 @@
   - [ ] Test pull-to-refresh
 
 #### Booking Flow
+
 - [ ] Refactor `lib/screens/test_scroll/select_professionals.dart`
   - [ ] Use BookingFlowViewModel
   - [ ] Remove setState calls
-  
 - [ ] Refactor `lib/screens/test_scroll/select_time_screen.dart`
   - [ ] Use BookingFlowViewModel
   - [ ] Remove setState calls
-  
 - [ ] Refactor `lib/screens/test_scroll/SelectDateScreen.dart`
   - [ ] Use BookingFlowViewModel
   - [ ] Remove setState calls
-  
 - [ ] Refactor `lib/screens/test_scroll/confirm_booking_screen.dart`
   - [ ] Use BookingFlowViewModel
   - [ ] Remove setState calls
   - [ ] Test complete booking flow
 
 #### Auth Screen
+
 - [ ] Consider refactoring `lib/screens/auth/auth_screen.dart`
   - [ ] Already uses AuthProvider well
   - [ ] Just rename AuthProvider → AuthViewModel
@@ -320,6 +332,7 @@
 ## 🔧 Phase 5: Main App Updates (Week 5)
 
 ### Update main.dart
+
 - [ ] Update `lib/main.dart`
   - [ ] Update all Provider imports
   - [ ] Change `AuthProvider` → `AuthViewModel`
@@ -329,12 +342,14 @@
   - [ ] Verify MultiProvider setup
 
 ### Update Routes
+
 - [ ] Review `lib/routes.dart`
   - [ ] Ensure all routes work
   - [ ] Consider route guards with AuthViewModel
   - [ ] Test navigation flows
 
 ### Update Theme
+
 - [ ] Optionally refactor `lib/theme.dart`
   - [ ] Move to `lib/theme/app_theme.dart`
   - [ ] Split colors into `app_colors.dart`
@@ -345,6 +360,7 @@
 ## 🧪 Phase 6: Testing (Week 6)
 
 ### Unit Tests
+
 - [ ] Test all ViewModels
   - [ ] AuthViewModel
   - [ ] HomeViewModel
@@ -356,6 +372,7 @@
   - [ ] BookingFlowViewModel
 
 ### Widget Tests
+
 - [ ] Test critical user flows
   - [ ] Login flow
   - [ ] Home screen rendering
@@ -365,12 +382,14 @@
   - [ ] Favourites toggle
 
 ### Integration Tests
+
 - [ ] End-to-end user journeys
   - [ ] Complete booking flow
   - [ ] Search → View salon → Add service → Book
   - [ ] Profile update flow
 
 ### Manual QA
+
 - [ ] Home screen
   - [ ] All categories load
   - [ ] All salons load
@@ -378,7 +397,6 @@
   - [ ] All services load
   - [ ] Pull-to-refresh works
   - [ ] Navigation works
-  
 - [ ] Search
   - [ ] Service search works
   - [ ] Deal search works
@@ -386,7 +404,6 @@
   - [ ] Filters work
   - [ ] Sorting works
   - [ ] Pagination works
-  
 - [ ] Booking
   - [ ] View salon works
   - [ ] Add services to cart
@@ -396,13 +413,11 @@
   - [ ] Confirm booking
   - [ ] View bookings
   - [ ] Cancel booking
-  
 - [ ] Profile
   - [ ] View profile
   - [ ] Update profile
   - [ ] View favourites
   - [ ] Add/remove favourites
-  
 - [ ] Authentication
   - [ ] Login works
   - [ ] Signup works
@@ -415,11 +430,11 @@
 ## 🚀 Phase 7: Cleanup & Polish (Week 7)
 
 ### Code Cleanup
+
 - [ ] Remove old unused files
   - [ ] Old providers (if duplicates exist)
   - [ ] Unused API services
   - [ ] Test files in main code
-  
 - [ ] Remove commented code
 - [ ] Remove debug print statements
 - [ ] Remove unused imports
@@ -427,6 +442,7 @@
 - [ ] Fix all analyzer warnings
 
 ### Documentation
+
 - [ ] Update README.md
 - [ ] Add architecture diagram
 - [ ] Document folder structure
@@ -435,6 +451,7 @@
 - [ ] Create developer onboarding guide
 
 ### Performance
+
 - [ ] Profile app performance
 - [ ] Optimize ViewModel rebuilds
 - [ ] Check for memory leaks
@@ -442,6 +459,7 @@
 - [ ] Review lazy loading
 
 ### Code Review
+
 - [ ] Self code review
 - [ ] Peer code review
 - [ ] Address feedback
@@ -452,6 +470,7 @@
 ## 📊 Progress Tracking
 
 ### Overall Progress
+
 - [ ] Foundation: 0% complete
 - [ ] Repositories: 0% complete
 - [ ] ViewModels: 0% complete
@@ -460,6 +479,7 @@
 - [ ] Cleanup: 0% complete
 
 ### By Feature
+
 - [ ] Authentication: Already good (just rename)
 - [ ] Home: 0% complete
 - [ ] Search: 50% complete (Provider exists)
@@ -475,6 +495,7 @@
 ## 🎯 Success Criteria
 
 ### Code Quality
+
 - [ ] No setState in Views (except minimal StatefulWidget wrappers)
 - [ ] All business logic in ViewModels
 - [ ] All API calls in Repositories
@@ -483,17 +504,20 @@
 - [ ] Clean separation of concerns
 
 ### Testing
+
 - [ ] 80%+ code coverage on ViewModels
 - [ ] All critical flows have widget tests
 - [ ] Manual QA passed
 
 ### Performance
+
 - [ ] No performance regressions
 - [ ] Smooth scrolling
 - [ ] Fast screen transitions
 - [ ] Responsive UI
 
 ### Documentation
+
 - [ ] Architecture documented
 - [ ] Code examples provided
 - [ ] Developer guide created
@@ -503,18 +527,23 @@
 ## 🆘 Common Issues & Solutions
 
 ### Issue: "Provider not found"
+
 **Solution**: Make sure ChangeNotifierProvider is added at correct level in widget tree
 
 ### Issue: "setState after dispose"
+
 **Solution**: ViewModels should handle this - check mounted status if needed
 
 ### Issue: "Too many rebuilds"
+
 **Solution**: Use Selector instead of Consumer for granular rebuilds
 
 ### Issue: "Tests failing"
+
 **Solution**: Mock repositories properly using mockito
 
 ### Issue: "Navigation not working after refactor"
+
 **Solution**: Check that context has access to Provider
 
 ---
@@ -530,15 +559,14 @@
 
 **End of Checklist**
 
-*Keep this document updated as you progress through migration!*
+_Keep this document updated as you progress through migration!_
 
 ---
 
 ## 📈 Update Log
 
-| Date | Update | By |
-|------|--------|-----|
+| Date       | Update                    | By     |
+| ---------- | ------------------------- | ------ |
 | 2025-11-13 | Initial checklist created | System |
-| | | |
-| | | |
-
+|            |                           |        |
+|            |                           |        |

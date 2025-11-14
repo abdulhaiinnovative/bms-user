@@ -6,6 +6,7 @@
 ---
 
 ## 📚 Table of Contents
+
 1. [Base Classes](#base-classes)
 2. [Repository Examples](#repository-examples)
 3. [ViewModel Examples](#viewmodel-examples)
@@ -29,7 +30,7 @@ enum ViewState { idle, loading, success, error }
 abstract class BaseViewModel extends ChangeNotifier {
   ViewState _state = ViewState.idle;
   String? _errorMessage;
-  
+
   // Getters
   ViewState get state => _state;
   String? get errorMessage => _errorMessage;
@@ -37,32 +38,32 @@ abstract class BaseViewModel extends ChangeNotifier {
   bool get isSuccess => _state == ViewState.success;
   bool get isError => _state == ViewState.error;
   bool get isIdle => _state == ViewState.idle;
-  
+
   // State setters
   void setLoading() {
     _state = ViewState.loading;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   void setSuccess() {
     _state = ViewState.success;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   void setError(String message) {
     _state = ViewState.error;
     _errorMessage = message;
     notifyListeners();
   }
-  
+
   void setIdle() {
     _state = ViewState.idle;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   // Helper for async operations
   Future<T?> runAsync<T>(
     Future<T> Function() action, {
@@ -128,7 +129,7 @@ import 'package:app/models/YOUR_MODEL.dart';
 import 'package:app/services/protected_http_client.dart';
 
 class YourRepository extends BaseRepository {
-  
+
   Future<YourModel> fetchData({Map<String, dynamic>? params}) async {
     return handleApiCall(
       () async {
@@ -136,7 +137,7 @@ class YourRepository extends BaseRepository {
           '/your-endpoint',
           // Add query params if needed
         );
-        
+
         if (response.statusCode == 200) {
           return YourModel.fromJson(jsonDecode(response.body));
         } else {
@@ -146,7 +147,7 @@ class YourRepository extends BaseRepository {
       errorPrefix: 'Fetch Data Error',
     );
   }
-  
+
   Future<void> createItem(Map<String, dynamic> data) async {
     return handleApiCall(
       () async {
@@ -154,7 +155,7 @@ class YourRepository extends BaseRepository {
           '/your-endpoint',
           body: jsonEncode(data),
         );
-        
+
         if (response.statusCode != 201) {
           throw Exception('Failed to create item');
         }
@@ -175,12 +176,12 @@ import 'package:app/models/HomePageResponse.dart';
 import 'package:app/services/protected_http_client.dart';
 
 class HomeRepository extends BaseRepository {
-  
+
   Future<HomePageResponse> fetchHomeData() async {
     return handleApiCall(
       () async {
         final response = await ProtectedHttpClient.get('/home-page');
-        
+
         if (response.statusCode == 200) {
           log('✅ Home data fetched successfully');
           return HomePageResponse.fromJson(jsonDecode(response.body));
@@ -203,7 +204,7 @@ import 'package:app/models/MyBookingResponse.dart';
 import 'package:app/services/protected_http_client.dart';
 
 class BookingRepository extends BaseRepository {
-  
+
   Future<MyBookingResponse> fetchBookings({
     int page = 1,
     int limit = 10,
@@ -216,15 +217,15 @@ class BookingRepository extends BaseRepository {
           'limit': limit,
           if (status != null) 'status': status,
         };
-        
+
         final queryString = params.entries
             .map((e) => '${e.key}=${e.value}')
             .join('&');
-        
+
         final response = await ProtectedHttpClient.get(
           '/mybookings?$queryString',
         );
-        
+
         if (response.statusCode == 200) {
           return MyBookingResponse.fromJson(jsonDecode(response.body));
         } else {
@@ -250,19 +251,19 @@ import 'package:app/models/your_model.dart';
 
 class YourViewModel extends BaseViewModel {
   final YourRepository _repository;
-  
+
   YourViewModel({YourRepository? repository})
       : _repository = repository ?? YourRepository();
-  
+
   // State variables (private)
   List<YourItem>? _items;
   YourItem? _selectedItem;
-  
+
   // Getters (public)
   List<YourItem>? get items => _items;
   YourItem? get selectedItem => _selectedItem;
   bool get hasData => _items != null && _items!.isNotEmpty;
-  
+
   // Methods
   Future<void> loadData() async {
     await runAsync(
@@ -273,12 +274,12 @@ class YourViewModel extends BaseViewModel {
       errorMessage: 'Failed to load data',
     );
   }
-  
+
   void selectItem(YourItem item) {
     _selectedItem = item;
     notifyListeners();
   }
-  
+
   Future<void> refreshData() async {
     _items = null;
     await loadData();
@@ -295,17 +296,17 @@ import 'package:app/models/HomePageResponse.dart';
 
 class HomeViewModel extends BaseViewModel {
   final HomeRepository _repository;
-  
+
   HomeViewModel({HomeRepository? repository})
       : _repository = repository ?? HomeRepository();
-  
+
   // State
   List<Type1>? _sliders;
   List<CategorySection>? _categories;
   List<TopSalonSection>? _topSalons;
   List<DealSection>? _deals;
   List<ServiceSection>? _services;
-  
+
   // Getters
   List<Type1>? get sliders => _sliders;
   List<CategorySection>? get categories => _categories;
@@ -313,7 +314,7 @@ class HomeViewModel extends BaseViewModel {
   List<DealSection>? get deals => _deals;
   List<ServiceSection>? get services => _services;
   bool get hasData => _sliders != null || _categories != null;
-  
+
   // Methods
   Future<void> loadHomeData() async {
     await runAsync(
@@ -328,12 +329,12 @@ class HomeViewModel extends BaseViewModel {
       errorMessage: 'Failed to load home data',
     );
   }
-  
+
   Future<void> refreshData() async {
     _clearData();
     await loadHomeData();
   }
-  
+
   void _clearData() {
     _sliders = null;
     _categories = null;
@@ -354,19 +355,19 @@ import 'package:app/models/booking_model.dart';
 
 class MyBookingsViewModel extends BaseViewModel {
   final BookingRepository _repository;
-  
+
   MyBookingsViewModel({BookingRepository? repository})
       : _repository = repository ?? BookingRepository();
-  
+
   // State
   List<Booking> _allBookings = [];
   int _currentPage = 1;
   bool _hasMoreData = true;
-  
+
   // Getters
   List<Booking> get allBookings => _allBookings;
   bool get hasMoreData => _hasMoreData;
-  
+
   // Load initial or refresh
   Future<void> loadBookings({bool refresh = false}) async {
     if (refresh) {
@@ -374,30 +375,30 @@ class MyBookingsViewModel extends BaseViewModel {
       _hasMoreData = true;
       _allBookings.clear();
     }
-    
+
     await runAsync(
       () async {
         final response = await _repository.fetchBookings(
           page: _currentPage,
           limit: 10,
         );
-        
+
         if (refresh) {
           _allBookings = response.data?.bookings ?? [];
         } else {
           _allBookings.addAll(response.data?.bookings ?? []);
         }
-        
+
         _hasMoreData = response.data?.nextPageUrl != null;
       },
       errorMessage: 'Failed to load bookings',
     );
   }
-  
+
   // Load more for pagination
   Future<void> loadMore() async {
     if (!_hasMoreData || isLoading) return;
-    
+
     _currentPage++;
     await loadBookings();
   }
@@ -412,20 +413,20 @@ import 'package:app/models/HomePageResponse.dart';
 
 class CartViewModel extends ChangeNotifier {
   final Map<dynamic, int> _cartItems = {};
-  
+
   // Getters
   Map<dynamic, int> get cartItems => _cartItems;
   int get totalItems => _cartItems.length;
-  
+
   double get totalAmount {
     return _cartItems.entries.fold(
       0.0,
       (sum, entry) => sum + (_getItemPrice(entry.key) * entry.value),
     );
   }
-  
+
   bool isInCart(dynamic item) => _cartItems.containsKey(item);
-  
+
   // Methods
   void addToCart(dynamic item) {
     if (_cartItems.containsKey(item)) {
@@ -435,17 +436,17 @@ class CartViewModel extends ChangeNotifier {
     }
     notifyListeners();
   }
-  
+
   void removeFromCart(dynamic item) {
     _cartItems.remove(item);
     notifyListeners();
   }
-  
+
   void clearCart() {
     _cartItems.clear();
     notifyListeners();
   }
-  
+
   void updateQuantity(dynamic item, int quantity) {
     if (quantity <= 0) {
       _cartItems.remove(item);
@@ -454,7 +455,7 @@ class CartViewModel extends ChangeNotifier {
     }
     notifyListeners();
   }
-  
+
   double _getItemPrice(dynamic item) {
     if (item is Service) return (item.price ?? 0).toDouble();
     if (item is Deal) return (item.totalPrice ?? 0).toDouble();
@@ -480,13 +481,13 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Type1>? type1;
   List<CategorySection>? type2;
   bool _isLoading = true;
-  
+
   @override
   void initState() {
     super.initState();
     loadData();
   }
-  
+
   void loadData() async {
     HomeScreenAPI homeScreenAPI = HomeScreenAPI();
     try {
@@ -502,13 +503,13 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
       return CircularProgressIndicator();
     }
-    
+
     return ListView(
       children: [
         // UI code
@@ -548,12 +549,12 @@ class _HomeScreenContent extends StatelessWidget {
           if (viewModel.isLoading && !viewModel.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           // Error state
           if (viewModel.isError) {
             return _buildErrorState(context, viewModel);
           }
-          
+
           // Success state
           return RefreshIndicator(
             onRefresh: () => viewModel.refreshData(),
@@ -596,7 +597,7 @@ class _HomeScreenContent extends StatelessWidget {
 ```dart
 class MyBookings extends StatelessWidget {
   const MyBookings({super.key});
-  
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -608,33 +609,33 @@ class MyBookings extends StatelessWidget {
 
 class _MyBookingsContent extends StatefulWidget {
   const _MyBookingsContent();
-  
+
   @override
   State<_MyBookingsContent> createState() => _MyBookingsContentState();
 }
 
 class _MyBookingsContentState extends State<_MyBookingsContent> {
   final ScrollController _scrollController = ScrollController();
-  
+
   @override
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
   }
-  
+
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent * 0.8) {
       context.read<MyBookingsViewModel>().loadMore();
     }
   }
-  
+
   @override
   void dispose() {
     _scrollController.dispose();
     super.dispose();
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -644,16 +645,16 @@ class _MyBookingsContentState extends State<_MyBookingsContent> {
           if (viewModel.isLoading && viewModel.allBookings.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-          
+
           if (viewModel.isError && viewModel.allBookings.isEmpty) {
             return Center(child: Text(viewModel.errorMessage ?? 'Error'));
           }
-          
+
           return RefreshIndicator(
             onRefresh: () => viewModel.loadBookings(refresh: true),
             child: ListView.builder(
               controller: _scrollController,
-              itemCount: viewModel.allBookings.length + 
+              itemCount: viewModel.allBookings.length +
                          (viewModel.hasMoreData ? 1 : 0),
               itemBuilder: (context, index) {
                 if (index == viewModel.allBookings.length) {
@@ -664,7 +665,7 @@ class _MyBookingsContentState extends State<_MyBookingsContent> {
                     ),
                   );
                 }
-                
+
                 final booking = viewModel.allBookings[index];
                 return BookingCard(booking: booking);
               },
@@ -743,7 +744,7 @@ Timer? _debounce;
 
 void onSearchChanged(String query) {
   if (_debounce?.isActive ?? false) _debounce!.cancel();
-  
+
   _debounce = Timer(const Duration(milliseconds: 500), () {
     searchData(query);
   });
@@ -773,10 +774,10 @@ TextField(
 // In ViewModel
 Future<void> toggleFavourite(int salonId) async {
   final isCurrentlyFavourite = _favourites.contains(salonId);
-  
+
   try {
     setLoading();
-    
+
     if (isCurrentlyFavourite) {
       await _repository.removeFavourite(salonId);
       _favourites.remove(salonId);
@@ -784,7 +785,7 @@ Future<void> toggleFavourite(int salonId) async {
       await _repository.addFavourite(salonId);
       _favourites.add(salonId);
     }
-    
+
     setSuccess();
   } catch (e) {
     setError('Failed to update favourite');
@@ -794,8 +795,8 @@ Future<void> toggleFavourite(int salonId) async {
 // In View
 IconButton(
   icon: Icon(
-    viewModel.isFavourite(salon.id) 
-      ? Icons.favorite 
+    viewModel.isFavourite(salon.id)
+      ? Icons.favorite
       : Icons.favorite_border,
   ),
   onPressed: () {
@@ -870,7 +871,7 @@ void main() {
           ),
         ),
       );
-      
+
       when(mockRepository.fetchHomeData())
           .thenAnswer((_) async => mockResponse);
 
@@ -904,7 +905,7 @@ void main() {
       when(mockRepository.fetchHomeData())
           .thenAnswer((_) async => mockResponse);
       await viewModel.loadHomeData();
-      
+
       // Act - refresh
       await viewModel.refreshData();
 
@@ -930,7 +931,7 @@ import 'package:app/presentation/screens/home/home_screen.dart';
 import 'package:app/presentation/viewmodels/home/home_viewmodel.dart';
 
 void main() {
-  testWidgets('HomeScreen shows loading indicator initially', 
+  testWidgets('HomeScreen shows loading indicator initially',
     (WidgetTester tester) async {
     // Arrange
     final viewModel = HomeViewModel();
@@ -949,7 +950,7 @@ void main() {
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
   });
 
-  testWidgets('HomeScreen shows error message on error', 
+  testWidgets('HomeScreen shows error message on error',
     (WidgetTester tester) async {
     // Arrange
     final viewModel = HomeViewModel();
@@ -978,6 +979,7 @@ void main() {
 ## 🎓 Best Practices Checklist
 
 ### ViewModel
+
 - [ ] Extends BaseViewModel
 - [ ] Uses repository for data
 - [ ] No BuildContext reference
@@ -988,6 +990,7 @@ void main() {
 - [ ] Calls notifyListeners() when needed
 
 ### View
+
 - [ ] Stateless when possible
 - [ ] Uses Consumer/Selector
 - [ ] No business logic
@@ -997,6 +1000,7 @@ void main() {
 - [ ] Clean and readable
 
 ### Repository
+
 - [ ] Extends BaseRepository
 - [ ] Uses handleApiCall wrapper
 - [ ] Returns proper models
@@ -1004,6 +1008,7 @@ void main() {
 - [ ] Proper error messages
 
 ### Testing
+
 - [ ] Mock repositories
 - [ ] Test all states
 - [ ] Test error cases
@@ -1022,4 +1027,4 @@ void main() {
 
 **End of Quick Reference**
 
-*Keep this document handy while coding!*
+_Keep this document handy while coding!_

@@ -32,7 +32,7 @@ class _MyBookingsState extends State<MyBookings>
     _allScrollController.addListener(_scrollListener);
     _upcomingScrollController.addListener(_scrollListener);
     _pastScrollController.addListener(_scrollListener);
-    
+
     // Load bookings using ViewModel
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<BookingsViewModel>().loadBookings(refresh: true);
@@ -50,17 +50,19 @@ class _MyBookingsState extends State<MyBookings>
 
   void _scrollListener() {
     final viewModel = context.read<BookingsViewModel>();
-    
-    if (viewModel.isLoading || viewModel.isLoadingMore || !viewModel.hasMorePages) {
+
+    if (viewModel.isLoading ||
+        viewModel.isLoadingMore ||
+        !viewModel.hasMorePages) {
       return;
     }
-    
+
     final controller = _tabController.index == 0
         ? _allScrollController
         : _tabController.index == 1
             ? _upcomingScrollController
             : _pastScrollController;
-            
+
     if (controller.hasClients &&
         controller.position.pixels >=
             controller.position.maxScrollExtent * 0.9) {
@@ -151,8 +153,8 @@ class _MyBookingsState extends State<MyBookings>
     );
   }
 
-  Widget _buildBookingList(
-      BookingsViewModel viewModel, List<Booking> bookings, ScrollController controller) {
+  Widget _buildBookingList(BookingsViewModel viewModel, List<Booking> bookings,
+      ScrollController controller) {
     if (viewModel.isLoading && !viewModel.isLoadingMore) {
       log('Showing shimmer for initial loading');
       return _buildShimmer();
@@ -259,7 +261,8 @@ class _MyBookingsState extends State<MyBookings>
                                             Container(
                                           color: Colors.grey[200],
                                           child: Icon(Icons.store,
-                                              size: 28, color: Colors.grey[600]),
+                                              size: 28,
+                                              color: Colors.grey[600]),
                                         ),
                                       )
                                     : Container(
@@ -293,7 +296,8 @@ class _MyBookingsState extends State<MyBookings>
                                     const SizedBox(width: 4),
                                     Expanded(
                                       child: Text(
-                                        booking.salon?.address ?? 'Unknown Address',
+                                        booking.salon?.address ??
+                                            'Unknown Address',
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Colors.grey[600],
@@ -312,7 +316,8 @@ class _MyBookingsState extends State<MyBookings>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 6),
                             decoration: BoxDecoration(
-                              color: _getStatusColor(booking.status).withOpacity(0.15),
+                              color: _getStatusColor(booking.status)
+                                  .withOpacity(0.15),
                               borderRadius: BorderRadius.circular(20),
                               border: Border.all(
                                 color: _getStatusColor(booking.status),
@@ -331,11 +336,11 @@ class _MyBookingsState extends State<MyBookings>
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
                       Divider(height: 1, color: Colors.grey.shade300),
                       const SizedBox(height: 16),
-                      
+
                       // Booking details
                       if (title != '-')
                         Padding(
@@ -381,7 +386,7 @@ class _MyBookingsState extends State<MyBookings>
                             ],
                           ),
                         ),
-                      
+
                       // Date and Time row
                       Row(
                         children: [
@@ -404,9 +409,9 @@ class _MyBookingsState extends State<MyBookings>
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 12),
-                      
+
                       // Payment and Type row
                       Row(
                         children: [
@@ -429,11 +434,11 @@ class _MyBookingsState extends State<MyBookings>
                           ),
                         ],
                       ),
-                      
+
                       const SizedBox(height: 16),
                       Divider(height: 1, color: Colors.grey.shade300),
                       const SizedBox(height: 12),
-                      
+
                       // Price and action
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -478,9 +483,9 @@ class _MyBookingsState extends State<MyBookings>
                                 ),
                               ],
                             ),
-                            child: Row(
+                            child: const Row(
                               mainAxisSize: MainAxisSize.min,
-                              children: const [
+                              children: [
                                 Text(
                                   'View Details',
                                   style: TextStyle(
@@ -524,7 +529,8 @@ class _MyBookingsState extends State<MyBookings>
     }
   }
 
-  Widget _buildInfoCard(IconData icon, String label, String value, Color color) {
+  Widget _buildInfoCard(
+      IconData icon, String label, String value, Color color) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -561,7 +567,7 @@ class _MyBookingsState extends State<MyBookings>
                 const SizedBox(height: 2),
                 Text(
                   value,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: Colors.black87,
@@ -621,9 +627,12 @@ class _MyBookingsState extends State<MyBookings>
           body: TabBarView(
             controller: _tabController,
             children: [
-              _buildBookingList(viewModel, viewModel.allBookings, _allScrollController),
-              _buildBookingList(viewModel, viewModel.upcomingBookings, _upcomingScrollController),
-              _buildBookingList(viewModel, viewModel.pastBookings, _pastScrollController),
+              _buildBookingList(
+                  viewModel, viewModel.allBookings, _allScrollController),
+              _buildBookingList(viewModel, viewModel.upcomingBookings,
+                  _upcomingScrollController),
+              _buildBookingList(
+                  viewModel, viewModel.pastBookings, _pastScrollController),
             ],
           ),
         );

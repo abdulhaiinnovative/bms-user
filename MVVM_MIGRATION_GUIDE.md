@@ -25,7 +25,9 @@
 ## 🎯 Executive Summary
 
 ### Current State
+
 Your BMS Flutter app currently uses a **mixed architecture**:
+
 - ✅ **Good**: Already using Provider for some features (Auth, Search, Notifications)
 - ⚠️ **Mixed**: Direct API calls in StatefulWidgets (Home, Salons, Bookings, Favourites)
 - ⚠️ **Tight Coupling**: Business logic mixed with UI code
@@ -33,6 +35,7 @@ Your BMS Flutter app currently uses a **mixed architecture**:
 - ⚠️ **Code Duplication**: Similar API call patterns repeated in multiple screens
 
 ### Target State (MVVM)
+
 - **Model**: Data classes and repository pattern for API calls
 - **View**: Pure UI widgets (StatelessWidget where possible)
 - **ViewModel**: Business logic, state management using ChangeNotifier
@@ -43,6 +46,7 @@ Your BMS Flutter app currently uses a **mixed architecture**:
 ## 🔍 Current Architecture Analysis
 
 ### File Statistics
+
 - **Total Dart Files**: 462+ files
 - **Screens**: 50+ screens
 - **API Services**: 19 services
@@ -51,6 +55,7 @@ Your BMS Flutter app currently uses a **mixed architecture**:
 - **setState() Usage**: 140+ occurrences
 
 ### Current Folder Structure
+
 ```
 lib/
 ├── api_services/           # 19 API service files
@@ -90,7 +95,9 @@ lib/
 ### Identified Patterns
 
 #### ✅ Already Following MVVM (Good Examples)
+
 1. **AuthProvider** (`lib/providers/auth/auth_provider.dart`) - 675 lines
+
    - Proper ViewModel implementation
    - State management with enums
    - Clean API separation
@@ -102,17 +109,21 @@ lib/
    - Loading states
 
 #### ⚠️ Needs Migration (Current Approach)
+
 1. **HomeScreen** (`lib/screens/home/home_screen.dart`) - 308 lines
+
    - Direct API calls in StatefulWidget
    - setState for loading states
    - Business logic in UI layer
 
 2. **MyBookings** (`lib/screens/history_bookings/my_bookings.dart`) - 743 lines
+
    - Multiple setState calls
    - API calls in initState
    - Pagination logic in UI
 
 3. **SalonCategoryAndServicesList** (`lib/screens/test_scroll/salon_category_and_services_list.dart`) - 727 lines
+
    - Complex state management
    - Cart logic in UI layer
    - Multiple scroll controllers
@@ -160,11 +171,13 @@ lib/
 ### Key Principles
 
 1. **Separation of Concerns**
+
    - View: Only rendering and user input
    - ViewModel: Business logic and state
    - Model: Data and data sources
 
 2. **Unidirectional Data Flow**
+
    ```
    User Action → View → ViewModel → Repository → API
    API Response → Repository → ViewModel → View Update
@@ -182,9 +195,11 @@ lib/
 ### Phase-Based Approach (Recommended)
 
 #### Phase 1: Foundation (Week 1-2)
+
 **Objective**: Set up infrastructure without breaking existing code
 
 **Tasks**:
+
 1. Create `viewmodels/` directory structure
 2. Create `repositories/` directory structure
 3. Create base classes (BaseViewModel, BaseRepository)
@@ -192,14 +207,17 @@ lib/
 5. Update dependency injection in `main.dart`
 
 **Deliverables**:
+
 - Folder structure ready
 - Base classes created
 - Documentation updated
 
 #### Phase 2: Core Features (Week 3-4)
+
 **Objective**: Migrate critical user flows
 
 **Priority Order**:
+
 1. ✅ **Authentication** (Already done, review only)
 2. 🔄 **Home Screen** (High traffic)
 3. 🔄 **Search & Filters** (Already partial, complete it)
@@ -207,9 +225,11 @@ lib/
 5. 🔄 **Booking Flow** (Critical business flow)
 
 #### Phase 3: Secondary Features (Week 5-6)
+
 **Objective**: Migrate remaining screens
 
 **Screens**:
+
 - Favourites
 - My Bookings
 - Profile & Account
@@ -217,9 +237,11 @@ lib/
 - Cart
 
 #### Phase 4: Polish & Optimization (Week 7)
+
 **Objective**: Clean up, test, optimize
 
 **Tasks**:
+
 - Remove old code patterns
 - Add unit tests for ViewModels
 - Performance optimization
@@ -324,14 +346,14 @@ lib/
 
 ### Migration Mapping
 
-| Old Location | New Location | Action |
-|-------------|--------------|--------|
-| `lib/api_services/` | `lib/data/data_sources/remote/` | Refactor into repository pattern |
-| `lib/models/` | `lib/data/models/` | Move (no change needed) |
-| `lib/providers/` | `lib/presentation/viewmodels/` | Rename & restructure |
-| `lib/screens/` | `lib/presentation/screens/` | Refactor (remove business logic) |
-| `lib/components/` | `lib/presentation/widgets/` | Move |
-| `lib/constants.dart` | `lib/core/constants/` | Split into multiple files |
+| Old Location         | New Location                    | Action                           |
+| -------------------- | ------------------------------- | -------------------------------- |
+| `lib/api_services/`  | `lib/data/data_sources/remote/` | Refactor into repository pattern |
+| `lib/models/`        | `lib/data/models/`              | Move (no change needed)          |
+| `lib/providers/`     | `lib/presentation/viewmodels/`  | Rename & restructure             |
+| `lib/screens/`       | `lib/presentation/screens/`     | Refactor (remove business logic) |
+| `lib/components/`    | `lib/presentation/widgets/`     | Move                             |
+| `lib/constants.dart` | `lib/core/constants/`           | Split into multiple files        |
 
 ---
 
@@ -356,44 +378,44 @@ enum ViewState {
 abstract class BaseViewModel extends ChangeNotifier {
   ViewState _state = ViewState.idle;
   String? _errorMessage;
-  
+
   ViewState get state => _state;
   String? get errorMessage => _errorMessage;
-  
+
   bool get isLoading => _state == ViewState.loading;
   bool get isSuccess => _state == ViewState.success;
   bool get isError => _state == ViewState.error;
   bool get isIdle => _state == ViewState.idle;
-  
+
   void setState(ViewState newState) {
     _state = newState;
     notifyListeners();
   }
-  
+
   void setLoading() {
     _state = ViewState.loading;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   void setSuccess() {
     _state = ViewState.success;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   void setError(String message) {
     _state = ViewState.error;
     _errorMessage = message;
     notifyListeners();
   }
-  
+
   void setIdle() {
     _state = ViewState.idle;
     _errorMessage = null;
     notifyListeners();
   }
-  
+
   // Helper for async operations
   Future<T?> runAsync<T>(Future<T> Function() action, {
     String? errorMessage,
@@ -443,7 +465,7 @@ abstract class BaseRepository {
       throw Exception('${errorPrefix ?? "Error"}: $e');
     }
   }
-  
+
   // Pagination helper
   Map<String, dynamic> buildPaginationParams({
     int? page,
@@ -473,12 +495,12 @@ import 'package:app/models/HomePageResponse.dart';
 import 'package:app/services/protected_http_client.dart';
 
 class HomeRepository extends BaseRepository {
-  
+
   Future<HomePageResponse> fetchHomeData() async {
     return handleApiCall(
       () async {
         final response = await ProtectedHttpClient.get('/home-page');
-        
+
         if (response.statusCode == 200) {
           log('✅ Home data fetched successfully');
           return HomePageResponse.fromJson(jsonDecode(response.body));
@@ -489,7 +511,7 @@ class HomeRepository extends BaseRepository {
       errorPrefix: 'Home Data Error',
     );
   }
-  
+
   // Additional methods as needed
   Future<void> refreshHomeData() async {
     // Implement refresh logic
@@ -509,7 +531,7 @@ import 'package:app/models/MyBookingResponse.dart';
 import 'package:app/services/protected_http_client.dart';
 
 class BookingRepository extends BaseRepository {
-  
+
   Future<MyBookingResponse> fetchBookings({
     int page = 1,
     int limit = 10,
@@ -522,15 +544,15 @@ class BookingRepository extends BaseRepository {
           limit: limit,
           additionalParams: status != null ? {'status': status} : null,
         );
-        
+
         final queryString = params.entries
             .map((e) => '${e.key}=${e.value}')
             .join('&');
-        
+
         final response = await ProtectedHttpClient.get(
           '/mybookings?$queryString',
         );
-        
+
         if (response.statusCode == 200) {
           return MyBookingResponse.fromJson(jsonDecode(response.body));
         } else {
@@ -540,14 +562,14 @@ class BookingRepository extends BaseRepository {
       errorPrefix: 'Booking Fetch Error',
     );
   }
-  
+
   Future<void> cancelBooking(int bookingId) async {
     return handleApiCall(
       () async {
         final response = await ProtectedHttpClient.post(
           '/bookings/$bookingId/cancel',
         );
-        
+
         if (response.statusCode != 200) {
           throw Exception('Failed to cancel booking');
         }
@@ -571,26 +593,26 @@ import 'package:app/models/HomePageResponse.dart';
 
 class HomeViewModel extends BaseViewModel {
   final HomeRepository _repository;
-  
+
   HomeViewModel({HomeRepository? repository})
       : _repository = repository ?? HomeRepository();
-  
+
   // State variables
   List<Type1>? _sliders;
   List<CategorySection>? _categories;
   List<TopSalonSection>? _topSalons;
   List<DealSection>? _deals;
   List<ServiceSection>? _services;
-  
+
   // Getters
   List<Type1>? get sliders => _sliders;
   List<CategorySection>? get categories => _categories;
   List<TopSalonSection>? get topSalons => _topSalons;
   List<DealSection>? get deals => _deals;
   List<ServiceSection>? get services => _services;
-  
+
   bool get hasData => _sliders != null || _categories != null;
-  
+
   // Methods
   Future<void> loadHomeData() async {
     await runAsync(
@@ -605,12 +627,12 @@ class HomeViewModel extends BaseViewModel {
       errorMessage: 'Failed to load home data',
     );
   }
-  
+
   Future<void> refreshData() async {
     _clearData();
     await loadHomeData();
   }
-  
+
   void _clearData() {
     _sliders = null;
     _categories = null;
@@ -634,25 +656,25 @@ import 'package:intl/intl.dart';
 
 class MyBookingsViewModel extends BaseViewModel {
   final BookingRepository _repository;
-  
+
   MyBookingsViewModel({BookingRepository? repository})
       : _repository = repository ?? BookingRepository();
-  
+
   // State
   List<Booking> _allBookings = [];
   List<Booking> _upcomingBookings = [];
   List<Booking> _pastBookings = [];
-  
+
   int _currentPage = 1;
   bool _hasMoreData = true;
   String? _nextPageUrl;
-  
+
   // Getters
   List<Booking> get allBookings => _allBookings;
   List<Booking> get upcomingBookings => _upcomingBookings;
   List<Booking> get pastBookings => _pastBookings;
   bool get hasMoreData => _hasMoreData;
-  
+
   // Load initial data
   Future<void> loadBookings({bool refresh = false}) async {
     if (refresh) {
@@ -660,54 +682,54 @@ class MyBookingsViewModel extends BaseViewModel {
       _hasMoreData = true;
       _allBookings.clear();
     }
-    
+
     await runAsync(
       () async {
         final response = await _repository.fetchBookings(
           page: _currentPage,
           limit: 10,
         );
-        
+
         if (refresh) {
           _allBookings = response.data?.bookings ?? [];
         } else {
           _allBookings.addAll(response.data?.bookings ?? []);
         }
-        
+
         _nextPageUrl = response.data?.nextPageUrl;
         _hasMoreData = _nextPageUrl != null;
-        
+
         _filterAndSortBookings();
       },
       errorMessage: 'Failed to load bookings',
     );
   }
-  
+
   // Load more (pagination)
   Future<void> loadMore() async {
     if (!_hasMoreData || isLoading) return;
-    
+
     _currentPage++;
     await loadBookings();
   }
-  
+
   // Filter bookings
   void _filterAndSortBookings() {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
-    
+
     _upcomingBookings = _allBookings.where((booking) {
       final bookingDate = _parseDate(booking.date);
-      return bookingDate != null && 
-             (bookingDate.isAfter(today) || 
+      return bookingDate != null &&
+             (bookingDate.isAfter(today) ||
               bookingDate.isAtSameMomentAs(today));
     }).toList();
-    
+
     _pastBookings = _allBookings.where((booking) {
       final bookingDate = _parseDate(booking.date);
       return bookingDate != null && bookingDate.isBefore(today);
     }).toList();
-    
+
     // Sort
     _upcomingBookings.sort((a, b) {
       final dateA = _parseDate(a.date);
@@ -715,17 +737,17 @@ class MyBookingsViewModel extends BaseViewModel {
       if (dateA == null || dateB == null) return 0;
       return dateA.compareTo(dateB);
     });
-    
+
     _pastBookings.sort((a, b) {
       final dateA = _parseDate(a.date);
       final dateB = _parseDate(b.date);
       if (dateA == null || dateB == null) return 0;
       return dateB.compareTo(dateA); // Descending
     });
-    
+
     notifyListeners();
   }
-  
+
   DateTime? _parseDate(String? dateStr) {
     if (dateStr == null) return null;
     try {
@@ -734,7 +756,7 @@ class MyBookingsViewModel extends BaseViewModel {
       return null;
     }
   }
-  
+
   // Cancel booking
   Future<bool> cancelBooking(int bookingId) async {
     try {
@@ -795,12 +817,12 @@ class _HomeScreenContent extends StatelessWidget {
           if (viewModel.isLoading && !viewModel.hasData) {
             return _buildShimmer();
           }
-          
+
           // Error state
           if (viewModel.isError) {
             return _buildErrorState(context, viewModel);
           }
-          
+
           // Success state
           return RefreshIndicator(
             onRefresh: () => viewModel.refreshData(),
@@ -810,34 +832,34 @@ class _HomeScreenContent extends StatelessWidget {
                   children: [
                     const HomeHeader(),
                     const SizedBox(height: 10),
-                    
+
                     // Categories
-                    if (viewModel.categories != null && 
+                    if (viewModel.categories != null &&
                         viewModel.categories!.isNotEmpty)
                       CategoriesDashboard(
                         categories: viewModel.categories!,
                       ),
-                    
+
                     // Top Salons
-                    if (viewModel.topSalons != null && 
+                    if (viewModel.topSalons != null &&
                         viewModel.topSalons!.isNotEmpty)
                       SalonDashboard(
                         salons: viewModel.topSalons!,
                       ),
-                    
+
                     // Deals
                     if (viewModel.deals != null && viewModel.deals!.isNotEmpty)
                       DealsDashboard(
                         deals: viewModel.deals!,
                       ),
-                    
+
                     // Services
-                    if (viewModel.services != null && 
+                    if (viewModel.services != null &&
                         viewModel.services!.isNotEmpty)
                       ServicesDashboard(
                         services: viewModel.services!,
                       ),
-                    
+
                     const SizedBox(height: 20),
                   ],
                 ),
@@ -941,7 +963,7 @@ class _MyBookingsContent extends StatefulWidget {
 class _MyBookingsContentState extends State<_MyBookingsContent>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  
+
   final ScrollController _allScrollController = ScrollController();
   final ScrollController _upcomingScrollController = ScrollController();
   final ScrollController _pastScrollController = ScrollController();
@@ -950,7 +972,7 @@ class _MyBookingsContentState extends State<_MyBookingsContent>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    
+
     // Add pagination listeners
     _allScrollController.addListener(_onAllScroll);
     _upcomingScrollController.addListener(_onUpcomingScroll);
@@ -1100,7 +1122,7 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   GoogleSignIn.instance.initialize(
     serverClientId: '55638853518-g0g84a7rsoolhi6ugo76se0o0seovf9b.apps.googleusercontent.com',
   );
@@ -1119,7 +1141,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthViewModel()),
         ChangeNotifierProvider(create: (_) => SearchViewModel()),
         ChangeNotifierProvider(create: (_) => NotificationViewModel()),
-        
+
         // Screen-specific ViewModels can be provided at screen level
         // or here if they need to be global
       ],
@@ -1142,19 +1164,24 @@ class MyApp extends StatelessWidget {
 ### Priority 1: Critical User Flows
 
 #### 1. Authentication Flow ✅
+
 **Status**: Already implemented well
-**Files**: 
+**Files**:
+
 - `lib/providers/auth/auth_provider.dart` (675 lines)
-**Action**: Review and rename to `auth_viewmodel.dart`
+  **Action**: Review and rename to `auth_viewmodel.dart`
 
 #### 2. Home Screen 🔄
+
 **Current**: `lib/screens/home/home_screen.dart` (308 lines)
-**Target**: 
+**Target**:
+
 - ViewModel: `lib/presentation/viewmodels/home/home_viewmodel.dart`
 - Repository: `lib/data/repositories/home_repository.dart`
 - Screen: Refactor to StatelessWidget
 
 **Migration Steps**:
+
 1. Create HomeRepository
 2. Create HomeViewModel
 3. Refactor HomeScreen to use ViewModel
@@ -1164,7 +1191,9 @@ class MyApp extends StatelessWidget {
 **Estimated Time**: 4-6 hours
 
 #### 3. Search & Filters 🔄
-**Current**: 
+
+**Current**:
+
 - `lib/screens/search_final/search_service_screen_new.dart`
 - `lib/screens/search_final/search_provider_new.dart` (Partial MVVM)
 
@@ -1172,16 +1201,20 @@ class MyApp extends StatelessWidget {
 **Estimated Time**: 3-4 hours
 
 #### 4. Salon Details & Services 🔄
-**Current**: 
+
+**Current**:
+
 - `lib/screens/test_scroll/salon_category_and_services_list.dart` (727 lines)
 - Complex cart management in UI
 
 **Target**:
+
 - ViewModel: `lib/presentation/viewmodels/salon/salon_detail_viewmodel.dart`
 - ViewModel: `lib/presentation/viewmodels/cart/cart_viewmodel.dart`
 - Repository: `lib/data/repositories/salon_repository.dart`
 
 **Migration Steps**:
+
 1. Extract cart logic to CartViewModel
 2. Create SalonDetailViewModel
 3. Create SalonRepository
@@ -1191,12 +1224,15 @@ class MyApp extends StatelessWidget {
 **Estimated Time**: 8-10 hours
 
 #### 5. Booking Flow 🔄
+
 **Current**:
+
 - `lib/screens/history_bookings/my_bookings.dart` (743 lines)
 - `lib/screens/test_scroll/select_professionals.dart`
 - `lib/screens/test_scroll/confirm_booking_screen.dart`
 
 **Target**:
+
 - ViewModel: `lib/presentation/viewmodels/booking/my_bookings_viewmodel.dart`
 - ViewModel: `lib/presentation/viewmodels/booking/booking_flow_viewmodel.dart`
 - Repository: `lib/data/repositories/booking_repository.dart`
@@ -1206,18 +1242,22 @@ class MyApp extends StatelessWidget {
 ### Priority 2: Secondary Features
 
 #### 6. Favourites Screen 🔄
+
 **Current**: `lib/screens/favourites/favourites_screen.dart`
 **Estimated Time**: 3-4 hours
 
 #### 7. Profile & Account 🔄
+
 **Current**: `lib/screens/profile/my_account_screen.dart`
 **Estimated Time**: 3-4 hours
 
 #### 8. Notifications 🔄
+
 **Current**: Already has provider
 **Estimated Time**: 2-3 hours (review & refactor)
 
 #### 9. Cart Screen 🔄
+
 **Current**: `lib/screens/cart/cart_screen.dart`
 **Estimated Time**: 3-4 hours
 
@@ -1294,7 +1334,7 @@ import 'package:app/presentation/screens/home/home_screen.dart';
 import 'package:app/presentation/viewmodels/home/home_viewmodel.dart';
 
 void main() {
-  testWidgets('HomeScreen shows loading indicator initially', 
+  testWidgets('HomeScreen shows loading indicator initially',
     (WidgetTester tester) async {
     // Arrange
     final viewModel = HomeViewModel();
@@ -1320,6 +1360,7 @@ void main() {
 ## ⏱️ Timeline & Milestones
 
 ### Week 1-2: Foundation
+
 - [ ] Create folder structure
 - [ ] Create base classes (BaseViewModel, BaseRepository)
 - [ ] Set up dependency injection
@@ -1327,6 +1368,7 @@ void main() {
 - [ ] Team training on MVVM
 
 ### Week 3-4: Core Features
+
 - [ ] Migrate Home Screen
 - [ ] Complete Search implementation
 - [ ] Migrate Salon Details
@@ -1334,6 +1376,7 @@ void main() {
 - [ ] Unit tests for ViewModels
 
 ### Week 5-6: Secondary Features
+
 - [ ] Migrate Favourites
 - [ ] Migrate Profile
 - [ ] Migrate Cart
@@ -1341,6 +1384,7 @@ void main() {
 - [ ] Integration tests
 
 ### Week 7: Polish
+
 - [ ] Code cleanup
 - [ ] Performance optimization
 - [ ] Documentation update
@@ -1352,6 +1396,7 @@ void main() {
 ## 📚 Best Practices
 
 ### 1. ViewModel Guidelines
+
 - **Single Responsibility**: One ViewModel per screen/feature
 - **No BuildContext**: ViewModels should never have access to BuildContext
 - **Immutable Getters**: Expose data through getters, not direct fields
@@ -1359,18 +1404,21 @@ void main() {
 - **Error Handling**: Always handle errors gracefully
 
 ### 2. View Guidelines
+
 - **Stateless Preferred**: Use StatelessWidget unless absolutely necessary
 - **Consumer/Selector**: Use appropriate Provider widgets
 - **No Business Logic**: Views should only handle UI
 - **Separation**: Split large screens into smaller widgets
 
 ### 3. Repository Guidelines
+
 - **Single Data Source**: One repository per entity
 - **Error Handling**: Consistent error handling
 - **Caching Strategy**: Implement caching where appropriate
 - **Type Safety**: Use strongly typed responses
 
 ### 4. Testing Guidelines
+
 - **Unit Tests**: Test all ViewModels
 - **Widget Tests**: Test critical UI flows
 - **Integration Tests**: Test end-to-end user journeys
@@ -1381,11 +1429,13 @@ void main() {
 ## 🎓 Learning Resources
 
 ### MVVM in Flutter
+
 1. [Flutter MVVM Architecture Guide](https://medium.com/flutter-community/flutter-mvvm-architecture-f8bed2521958)
 2. [Provider Documentation](https://pub.dev/packages/provider)
 3. [Clean Architecture in Flutter](https://resocoder.com/flutter-clean-architecture-tdd/)
 
 ### Repository Pattern
+
 1. [Repository Pattern in Flutter](https://medium.com/flutter-community/repository-design-pattern-in-flutter-89da6c5d1106)
 2. [Data Layer Best Practices](https://docs.flutter.dev/cookbook/architecture/data-layer)
 
@@ -1405,6 +1455,7 @@ void main() {
 ## 📞 Support & Questions
 
 For questions during migration:
+
 1. Review this document
 2. Check existing well-implemented examples (AuthProvider)
 3. Refer to code examples in this guide
@@ -1417,12 +1468,14 @@ For questions during migration:
 Use this checklist to track migration progress:
 
 ### Foundation
+
 - [ ] Folder structure created
 - [ ] BaseViewModel implemented
 - [ ] BaseRepository implemented
 - [ ] main.dart updated
 
 ### Repositories
+
 - [ ] HomeRepository
 - [ ] SalonRepository
 - [ ] BookingRepository
@@ -1431,6 +1484,7 @@ Use this checklist to track migration progress:
 - [ ] ProfileRepository
 
 ### ViewModels
+
 - [ ] HomeViewModel
 - [ ] SalonDetailViewModel
 - [ ] MyBookingsViewModel
@@ -1441,6 +1495,7 @@ Use this checklist to track migration progress:
 - [ ] CartViewModel
 
 ### Screens Migrated
+
 - [ ] Home Screen
 - [ ] Search Screen
 - [ ] Salon Detail Screen
@@ -1451,6 +1506,7 @@ Use this checklist to track migration progress:
 - [ ] Cart Screen
 
 ### Testing
+
 - [ ] ViewModel unit tests
 - [ ] Widget tests
 - [ ] Integration tests
@@ -1460,4 +1516,4 @@ Use this checklist to track migration progress:
 
 **End of Migration Guide**
 
-*Generated for BookMySpot Flutter App - November 13, 2025*
+_Generated for BookMySpot Flutter App - November 13, 2025_

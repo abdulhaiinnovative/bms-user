@@ -126,7 +126,8 @@ class NotificationsViewModel extends BaseViewModel {
         // Update local state
         final index = _notifications.indexWhere((n) => n.id == notificationId);
         if (index != -1) {
-          _notifications[index] = _notifications[index].copyWith(readAt: DateTime.now().toString());
+          _notifications[index] =
+              _notifications[index].copyWith(readAt: DateTime.now().toString());
           _unreadCount = (_unreadCount - 1).clamp(0, _totalNotifications);
           notifyListeners();
           log('NotificationsViewModel: Notification $notificationId marked as read locally');

@@ -26,10 +26,11 @@ class ProfileViewModel extends BaseViewModel {
   int get loyaltyPoints => _userData?.loyalty ?? 0;
   int get appointmentCount => _userData?.appointment ?? 0;
   bool get isProfileComplete => (_userData?.completeStatus ?? 0) == 1;
-  
+
   // Marketing preferences
   bool get emailMarketing => (_userData?.emailMarketing ?? 0) == 1;
-  bool get marketingNotification => (_userData?.marketingNotification ?? 0) == 1;
+  bool get marketingNotification =>
+      (_userData?.marketingNotification ?? 0) == 1;
 
   /// Load user profile data
   Future<void> loadProfile() async {

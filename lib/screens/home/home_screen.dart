@@ -190,8 +190,7 @@ class HomeScreenState extends State<HomeScreen> {
                     backgroundColor:
                         Colors.white, // Set background to transparent
                     elevation: 0, // Remove shadow
-                    automaticallyImplyLeading:
-                        false, // Hide the back button
+                    automaticallyImplyLeading: false, // Hide the back button
                   ),
                   SliverList(
                     delegate: SliverChildListDelegate(
@@ -206,8 +205,7 @@ class HomeScreenState extends State<HomeScreen> {
                                   const SizedBox(height: 10),
                                   SalonDashboard(type3: viewModel.salons!),
                                   DealsDashboard(type4: viewModel.deals!),
-                                  ServicesDashboard(
-                                      type4: viewModel.services!),
+                                  ServicesDashboard(type4: viewModel.services!),
                                   const SizedBox(height: 10),
                                 ],
                               ),
