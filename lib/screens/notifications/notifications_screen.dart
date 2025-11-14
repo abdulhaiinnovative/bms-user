@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../providers/notification/notification_provider.dart';
 import '../../models/notification/notification_model.dart';
 import '../../constants.dart';
+import '../../presentation/viewmodels/notifications/notifications_view_model.dart';
 import 'components/notification_card.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -20,14 +20,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    // Fetch notifications on first load
+    // Load notifications using ViewModel
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider =
-          Provider.of<NotificationProvider>(context, listen: false);
-      if (provider.notifications.isEmpty) {
-        provider.fetchNotifications(refresh: true);
-      }
-      provider.fetchUnreadCount();
+      final viewModel = context.read<NotificationsViewModel>();
+      viewModel.loadNotifications(refresh: true);
+      viewModel.loadUnreadCount();
     });
 
     // Listen to scroll for pagination
@@ -44,22 +41,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void _onScroll() {
     if (_scrollController.position.pixels >=
         _scrollController.position.maxScrollExtent - 200) {
-      final provider =
-          Provider.of<NotificationProvider>(context, listen: false);
-      if (!provider.isLoadingMore && provider.hasMore) {
-        provider.loadMore();
-      }
+      context.read<NotificationsViewModel>().loadNextPage();
     }
   }
 
   Future<void> _handleRefresh() async {
-    final provider = Provider.of<NotificationProvider>(context, listen: false);
-    await provider.fetchNotifications(refresh: true);
-    await provider.fetchUnreadCount();
+    await context.read<NotificationsViewModel>().refresh();
   }
 
   void _handleMarkAllRead() async {
-    final provider = Provider.of<NotificationProvider>(context, listen: false);
+    final viewModel = context.read<NotificationsViewModel>();
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -80,7 +71,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     );
 
     if (confirmed == true) {
-      await provider.markAllAsRead();
+      await viewModel.markAllAsRead();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -95,167 +86,161 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Notifications'),
+    return Consumer<NotificationsViewModel>(
+      builder: (context, viewModel, child) {
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Notifications'),
         centerTitle: false,
-        actions: [
-          Consumer<NotificationProvider>(
-            builder: (context, provider, child) {
-              if (provider.unreadCount > 0) {
-                return TextButton.icon(
+            actions: [
+              if (viewModel.unreadCount > 0)
+                TextButton.icon(
                   onPressed: _handleMarkAllRead,
                   icon: const Icon(Icons.done_all, size: 18),
                   label: const Text('Mark All'),
                   style: TextButton.styleFrom(
                     foregroundColor: kPrimaryColor,
                   ),
-                );
-              }
-              return const SizedBox.shrink();
-            },
+                ),
+              const SizedBox(width: 8),
+            ],
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: Consumer<NotificationProvider>(
-        builder: (context, provider, child) {
-          // Initial loading state
-          if (provider.isLoading && provider.notifications.isEmpty) {
-            return const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
-              ),
-            );
-          }
+          body: _buildBody(viewModel),
+        );
+      },
+    );
+  }
 
-          // Error state
-          if (provider.errorMessage != null && provider.notifications.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      size: 64,
-                      color: Colors.grey[400],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Oops! Something went wrong',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      provider.errorMessage ?? 'Failed to load notifications',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        provider.clearError();
-                        provider.fetchNotifications(refresh: true);
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: const Text('Try Again'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: kPrimaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 12,
-                        ),
-                      ),
-                    ),
-                  ],
+  Widget _buildBody(NotificationsViewModel viewModel) {
+    // Initial loading state
+    if (viewModel.isLoading && viewModel.notifications.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+        ),
+      );
+    }
+
+    // Error state
+    if (viewModel.isError && viewModel.notifications.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.error_outline,
+                size: 64,
+                color: Colors.grey[400],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Oops! Something went wrong',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                viewModel.errorMessage ?? 'Failed to load notifications',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () => viewModel.refresh(),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Try Again'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 12,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Empty state
+    if (viewModel.notifications.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.notifications_none,
+                size: 80,
+                color: Colors.grey[300],
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'No Notifications Yet',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[800],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                "You're all caught up!",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // List of notifications
+    return RefreshIndicator(
+      onRefresh: _handleRefresh,
+      color: kPrimaryColor,
+      child: ListView.separated(
+        controller: _scrollController,
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        itemCount: viewModel.notifications.length +
+            (viewModel.isLoading && viewModel.currentPage > 1 ? 1 : 0),
+        separatorBuilder: (context, index) => const Divider(height: 1),
+        itemBuilder: (context, index) {
+          // Loading indicator at bottom
+          if (index == viewModel.notifications.length) {
+            return Container(
+              padding: const EdgeInsets.all(16),
+              alignment: Alignment.center,
+              child: const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
                 ),
               ),
             );
           }
 
-          // Empty state
-          if (provider.notifications.isEmpty) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.notifications_none,
-                      size: 80,
-                      color: Colors.grey[300],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'No Notifications Yet',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'When you get notifications, they\'ll show up here',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // List of notifications
-          return RefreshIndicator(
-            onRefresh: _handleRefresh,
-            color: kPrimaryColor,
-            child: ListView.separated(
-              controller: _scrollController,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              itemCount: provider.notifications.length +
-                  (provider.isLoadingMore ? 1 : 0),
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                // Loading indicator at bottom
-                if (index == provider.notifications.length) {
-                  return Container(
-                    padding: const EdgeInsets.all(16),
-                    alignment: Alignment.center,
-                    child: const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor:
-                            AlwaysStoppedAnimation<Color>(kPrimaryColor),
-                      ),
-                    ),
-                  );
-                }
-
-                final notification = provider.notifications[index];
-                return NotificationCard(
-                  notification: notification,
-                  onTap: () => _handleNotificationTap(notification),
-                );
-              },
-            ),
+          final notification = viewModel.notifications[index];
+          return NotificationCard(
+            notification: notification,
+            onTap: () => _handleNotificationTap(notification),
           );
         },
       ),
@@ -263,11 +248,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   void _handleNotificationTap(NotificationItem notification) async {
-    final provider = Provider.of<NotificationProvider>(context, listen: false);
+    final viewModel = context.read<NotificationsViewModel>();
 
     // Mark as read if not already read
     if (!notification.isRead) {
-      await provider.markAsRead(notification.id);
+      await viewModel.markAsRead(notification.id);
     }
 
     // Handle navigation based on notification data
