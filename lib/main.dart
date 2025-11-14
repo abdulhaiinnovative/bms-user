@@ -10,6 +10,7 @@ import 'package:app/presentation/viewmodels/home/home_view_model.dart';
 import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
 import 'package:app/presentation/viewmodels/profile/profile_view_model.dart';
 import 'package:app/presentation/viewmodels/notifications/notifications_view_model.dart';
+import 'package:app/presentation/viewmodels/salon/salon_view_model.dart';
 import 'package:app/screens/splash/splash_screen.dart';
 import 'firebase_options.dart';
 import 'routes.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => FavouritesViewModel()),
         ChangeNotifierProvider(create: (context) => ProfileViewModel()),
         ChangeNotifierProvider(create: (context) => NotificationsViewModel()),
+        ChangeNotifierProvider(create: (context) => SalonViewModel()),
       ],
       child: const MyApp(),
     ),
