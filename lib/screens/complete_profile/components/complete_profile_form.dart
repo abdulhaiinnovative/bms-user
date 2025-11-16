@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
-import '../../../api_services/ProfileUpdateAPI.dart';
 import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../constants.dart';
 import '../../../models/auth/social_auth_response.dart';
 import '../../../providers/auth/auth_provider.dart';
+import '../../../presentation/viewmodels/profile/profile_view_model.dart';
 import '../../../services/fcm_token_service.dart';
 import '../../init_screen.dart';
 
@@ -441,7 +441,9 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                     // Handle regular profile update
                     print(
                         '🔵 CompleteProfileForm: Updating regular profile...');
-                    final response = await ProfileUpdateAPI.updateUserProfile({
+
+                    final profileViewModel = context.read<ProfileViewModel>();
+                    final success = await profileViewModel.updateProfile({
                       "first_name": firstName,
                       "last_name": lastName,
                       "name": "$firstName $lastName",
@@ -463,20 +465,19 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
                     Navigator.pop(context); // Close loading dialog
 
-                    log("Profile updated: lastname ${response.response?.data?.lastName}");
-
-                    if (response.status == true) {
+                    if (success) {
+                      log("Profile updated successfully");
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text("Profile updated successfully")),
                       );
                       Navigator.pushNamed(context, InitScreen.routeName);
                     } else {
-                      log("Profile update failed: ${response.message}");
+                      log("Profile update failed: ${profileViewModel.errorMessage}");
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                            content:
-                                Text("Error: ${response.message.toString()}")),
+                            content: Text(
+                                "Error: ${profileViewModel.errorMessage ?? 'Update failed'}")),
                       );
                     }
                   }
