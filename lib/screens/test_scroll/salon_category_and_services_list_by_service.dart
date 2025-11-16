@@ -1,12 +1,10 @@
 import 'dart:developer';
 
-import 'package:app/models/SalonServicesCategorizedResponse.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
-import 'package:app/utlis/authutils/auth_manager.dart';
+import 'package:app/presentation/viewmodels/salon_services/salon_services_view_model.dart';
 import 'package:flutter/material.dart';
-// import 'package:app/screens/test_scroll/jewellery_repository.dart';
-import '../../api_services/salon_services_categorized_api.dart';
+import 'package:provider/provider.dart';
 import '../../constants.dart';
 import 'CartSummarySection.dart';
 
@@ -82,7 +80,6 @@ class _SalonCategoryAndServicesListByServiceState
   }
 
   Deal? mDeal;
-  SalonServicesCategorizedResponse? responseData;
   var mSalonName;
   var mSalonImage;
   var mSalonAddess;
@@ -124,36 +121,39 @@ class _SalonCategoryAndServicesListByServiceState
   }
 
   Future<void> loadData() async {
+    final viewModel = context.read<SalonServicesViewModel>();
+
     setState(() {
       scrollController = ScrollController();
       scrollController.addListener(animateToTab);
     });
 
-    SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
-
     log("mDeal?.services?[0]?.salon?.id  ${mDeal?.services?[0].salon?.id}");
 
-    responseData = await api.fetchAllServicesAndDealsCategorizedData(
-        mDeal?.services?[0].salon?.id ?? 0);
+    int salonId = mDeal?.services?[0].salon?.id ?? 0;
 
-    if (responseData != null) {
+    // Load data using ViewModel
+    await viewModel.loadCategorizedServices(salonId);
+
+    // Process the loaded data
+    if (viewModel.categories != null && viewModel.categories!.isNotEmpty) {
       setState(() {
-        responseData?.response?.data?.forEach((category) {
+        tabNames.clear();
+        serviceItem.clear();
+        salonCategories.clear();
+
+        viewModel.categories!.forEach((category) {
           log('Category: ${category.name}');
           // Add category name to tabNames
           tabNames.add(category.name ?? "NA");
           // Create a new list for this category's services
           List<Service> categoryServices = [];
-          // Add services to the category's list
-          // category.items?.forEach((item) {
-          //   log('Item: ${item.name}, Price: ${item.price}');
-          //   categoryServices.add(item);
-          // });
-          // Add services to the category's list
-          // category.services?.forEach((item) {
-          //   log('Item: ${item.name}, Price: ${item.price}');
-          //   categoryServices.add(item);
-          // });
+          // Add services to the category's list (if they are Service type)
+          category.items?.forEach((item) {
+            if (item is Service) {
+              categoryServices.add(item);
+            }
+          });
           // Add the category's service list to serviceItem
           serviceItem.add(categoryServices);
           salonCategories.add(GlobalKey());
@@ -174,9 +174,9 @@ class _SalonCategoryAndServicesListByServiceState
       log("tabNames:::: ${tabNames.length}");
       log("serviceItem:::: ${serviceItem.length}");
 
-      log("responseData:::: ${responseData?.response?.data?.first.name}");
+      log("First category name: ${viewModel.categories!.first.name}");
     } else {
-      log("responseData::::No data received");
+      log("No data received from ViewModel");
     }
   }
 
