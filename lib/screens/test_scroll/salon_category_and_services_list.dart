@@ -1,13 +1,11 @@
 import 'dart:developer';
 
 import 'package:app/components/book_now.dart';
-import 'package:app/models/SalonServicesCategorizedResponse.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
-import 'package:app/utlis/authutils/auth_manager.dart';
+import 'package:app/presentation/viewmodels/salon_services/salon_services_view_model.dart';
 import 'package:flutter/material.dart';
-// import 'package:app/screens/test_scroll/jewellery_repository.dart';
-import '../../api_services/salon_services_categorized_api.dart';
+import 'package:provider/provider.dart';
 import '../../constants.dart';
 import 'CartSummarySection.dart';
 
@@ -91,7 +89,6 @@ class _SalonCategoryAndServicesListState
   Service? mSericve;
   Deal? mDeal;
 
-  SalonServicesCategorizedResponse? responseData;
   var mSalonName;
   var mSalonImage;
   var mSalonAddess;
@@ -147,31 +144,35 @@ class _SalonCategoryAndServicesListState
   }
 
   Future<void> loadData() async {
+    final viewModel = context.read<SalonServicesViewModel>();
+
     setState(() {
       scrollController = ScrollController();
       scrollController.addListener(animateToTab);
     });
 
-    SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
-
     log("Fetching categorized services...");
 
+    int salonId = 0;
     if (mDeal != null) {
-      responseData = await api
-          .fetchAllServicesAndDealsCategorizedData(mDeal?.salon?.id ?? 0);
-      log("::::mDeal?.services?[0]?.salon?.id  ${mDeal?.salon?.id}");
+      salonId = mDeal?.salon?.id ?? 0;
+      log("::::mDeal salon id: $salonId");
     } else {
-      responseData = await api
-          .fetchAllServicesAndDealsCategorizedData(mSericve?.salon?.id ?? 0);
-      log("::::mSericve?.services?[0]?.salon?.id  ${mDeal?.salon?.id}");
+      salonId = mSericve?.salon?.id ?? 0;
+      log("::::mService salon id: $salonId");
     }
 
-    print(
-        'responseData?.response?.data?.length:0: ${responseData?.response?.data?.length}');
+    // Load data using ViewModel
+    await viewModel.loadCategorizedServices(salonId);
 
-    if (responseData != null) {
+    // Process the loaded data
+    if (viewModel.categories != null && viewModel.categories!.isNotEmpty) {
       setState(() {
-        responseData?.response?.data?.forEach((category) {
+        tabNames.clear();
+        serviceItem.clear();
+        salonCategories.clear();
+
+        viewModel.categories!.forEach((category) {
           log('Category: ${category.name}');
           // Add category name to tabNames
           tabNames.add(category.name ?? "NA");
@@ -180,36 +181,18 @@ class _SalonCategoryAndServicesListState
           // Add services to the category's list
           category.items?.forEach((item) {
             log('Item: ${item.name}, Price: ${item.price}');
-
-            if (item is Service) {
-              categoryServices.add(item);
-            } else {
-              categoryServices.add(item);
-            }
+            categoryServices.add(item);
           });
           // Add the category's service list to serviceItem
           serviceItem.add(categoryServices);
           salonCategories.add(GlobalKey());
         });
-
-        // int i = 0;
-        // responseData?.response?.data?.forEach((category) {
-        //   log('Category: ${category.name}');
-        //   tabNames.add(category.name ?? "NA");
-        //   i++;
-        //   category.services?.forEach((item) {
-        //     log('Item: ${item.name}, Price: ${item.price}');
-        //     serviceItem.add(item, "i");
-        //   });
-        // });
       });
 
       log("tabNames:::: ${tabNames.length}");
       log("serviceItem:::: ${serviceItem.length}");
-
-      log("responseData:::--: ${responseData?.response?.data?.first.name}");
     } else {
-      log("responseData::::No data received");
+      log("No categorized data received");
     }
   }
 
