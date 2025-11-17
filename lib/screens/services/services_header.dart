@@ -8,7 +8,7 @@ import 'package:app/components/price_range.dart';
 import 'package:app/components/sorting.dart';
 import 'package:app/constants.dart';
 
-import '../../providers/SearchProvider.dart';
+import '../../screens/search_final/search_provider_new.dart';
 import '../home/components/search_field.dart';
 
 
@@ -55,20 +55,20 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                   if (widget.tabController.index == 0) {
                     log('Service.');
                     if (searchController.text.isNotEmpty) {
-                      Provider.of<SearchProvider>(context, listen: false)
-                          .searchServices("", searchController.text);
+                      context.read<SearchProviderNew>()
+                          .searchServices(searchController.text);
                     }
                   } else if (widget.tabController.index == 1) {
                     log('Deals');
                     if (searchController.text.isNotEmpty) {
-                      Provider.of<SearchProvider>(context, listen: false)
-                          .searchSalons(searchController.text, "");
+                      context.read<SearchProviderNew>()
+                          .searchDeals(searchController.text);
                     }
                   } else {
                   log('Salon');
                   if (searchController.text.isNotEmpty) {
-                  Provider.of<SearchProvider>(context, listen: false)
-                      .searchSalons(searchController.text, "");
+                  context.read<SearchProviderNew>()
+                      .searchSalons(searchController.text);
                   }
                   }
                 },
