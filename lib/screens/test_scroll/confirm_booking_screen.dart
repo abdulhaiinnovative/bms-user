@@ -1,7 +1,8 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
-import '../../api_services/BookingService.dart';
+import '../../presentation/viewmodels/bookings/bookings_view_model.dart';
 import '../../models/home/Professional.dart';
 import '../../models/HomePageResponse.dart';
 import 'CustomAppBar.dart';
@@ -40,7 +41,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         _cartItems = arguments['cartItems'] as Map<dynamic, int>?;
         _selectedDay = arguments['selectedDay'] as DateTime?;
         _selectedTime = arguments['selectedTime'] as String?;
-        _selectedProfessionals = arguments['selectedProfessionals'] as List<Professional>? ?? [];
+        _selectedProfessionals =
+            arguments['selectedProfessionals'] as List<Professional>? ?? [];
         _salonName = arguments['salonName'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
 
@@ -90,7 +92,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                     icon: Icons.storefront,
                     title: '$_salonName',
                     children: [
-                      _buildDetailRow(Icons.location_on, _salonAddress ?? 'Address not available'),
+                      _buildDetailRow(Icons.location_on,
+                          _salonAddress ?? 'Address not available'),
                     ],
                   ),
                   SizedBox(height: kSectionSpacing),
@@ -98,19 +101,26 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                     icon: Icons.calendar_today,
                     title: 'Booking Details',
                     children: [
-                      _buildDetailRow(Icons.date_range,
+                      _buildDetailRow(
+                          Icons.date_range,
                           _selectedDay != null
                               ? DateFormat('EEE, MMM d').format(_selectedDay!)
                               : 'Date not selected'),
-                      _buildDetailRow(Icons.access_time, _selectedTime ?? 'Time not selected'),
+                      _buildDetailRow(Icons.access_time,
+                          _selectedTime ?? 'Time not selected'),
                     ],
                   ),
                   SizedBox(height: kSectionSpacing),
                   _buildSectionCard(
                     icon: Icons.spa,
                     title: 'Selected Items (${_cartItems?.length ?? 0})',
-                    children: _cartItems?.entries.map((entry) => _buildDynamicItem(entry)).toList()
-                        ?? [_buildEmptyState('No items selected', Icons.warning_amber)],
+                    children: _cartItems?.entries
+                            .map((entry) => _buildDynamicItem(entry))
+                            .toList() ??
+                        [
+                          _buildEmptyState(
+                              'No items selected', Icons.warning_amber)
+                        ],
                   ),
                   SizedBox(height: kSectionSpacing),
                   _buildSectionCard(
@@ -118,56 +128,82 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                     title: 'Professionals',
                     children: _selectedProfessionals.isNotEmpty
                         ? [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: _selectedProfessionals.map((prof) => Chip(
-                          avatar: CircleAvatar(
-                            backgroundImage: prof.image != null && prof.image!.isNotEmpty
-                                ? NetworkImage(prof.image!)
-                                : null,
-                            backgroundColor: prof.image != null && prof.image!.isNotEmpty
-                                ? null
-                                : Theme.of(context).colorScheme.surface,
-                            radius: 16,
-                          ),
-                          label: Text(
-                            prof.name ?? "Unknown",
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Theme.of(context).textTheme.bodyMedium?.color,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                          backgroundColor: kCardBG,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(18),
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          elevation: 2,
-                          shadowColor: Theme.of(context).shadowColor.withOpacity(0.1),
-                        )).toList(),
-                      )
-                    ]
-                        : [_buildEmptyState('Any professional', Icons.person_outline)],
+                            Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: _selectedProfessionals
+                                  .map((prof) => Chip(
+                                        avatar: CircleAvatar(
+                                          backgroundImage: prof.image != null &&
+                                                  prof.image!.isNotEmpty
+                                              ? NetworkImage(prof.image!)
+                                              : null,
+                                          backgroundColor: prof.image != null &&
+                                                  prof.image!.isNotEmpty
+                                              ? null
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .surface,
+                                          radius: 16,
+                                        ),
+                                        label: Text(
+                                          prof.name ?? "Unknown",
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Theme.of(context)
+                                                .textTheme
+                                                .bodyMedium
+                                                ?.color,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        backgroundColor: kCardBG,
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 12, vertical: 8),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(18),
+                                          side: BorderSide(
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .outline
+                                                .withOpacity(0.3),
+                                            width: 1,
+                                          ),
+                                        ),
+                                        elevation: 2,
+                                        shadowColor: Theme.of(context)
+                                            .shadowColor
+                                            .withOpacity(0.1),
+                                      ))
+                                  .toList(),
+                            )
+                          ]
+                        : [
+                            _buildEmptyState(
+                                'Any professional', Icons.person_outline)
+                          ],
                   ),
                   SizedBox(height: kSectionSpacing),
                   _buildSectionCard(
                     icon: Icons.payment,
                     title: 'Payment Method',
                     children: [
-                      _buildPaymentOption(context, title: 'Credit/Debit Card', icon: Icons.credit_card, value: 'Card'),
-                      _buildPaymentOption(context, title: 'Cash at Salon', icon: Icons.money, value: 'Cash'),
+                      _buildPaymentOption(context,
+                          title: 'Credit/Debit Card',
+                          icon: Icons.credit_card,
+                          value: 'Card'),
+                      _buildPaymentOption(context,
+                          title: 'Cash at Salon',
+                          icon: Icons.money,
+                          value: 'Cash'),
                     ],
                   ),
                   SizedBox(height: kSectionSpacing),
                   _buildNotesCard(),
                   SizedBox(height: kSectionSpacing * 1.5),
-                  const SizedBox(height: 120), // Space for the positioned button
+                  const SizedBox(
+                      height: 120), // Space for the positioned button
                 ],
               ),
             ),
@@ -176,7 +212,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               left: 0,
               right: 0,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 42),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 42),
                 decoration: const BoxDecoration(
                   color: Colors.white,
                   boxShadow: [
@@ -191,8 +228,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 child: ElevatedButton(
                   onPressed: _paymentMethod != null ? _confirmBooking : null,
                   style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(double.infinity, 48), // Full-width button
-                    backgroundColor: _selectedTime != null ? kPrimaryDarkColor : Colors.grey,
+                    minimumSize:
+                        const Size(double.infinity, 48), // Full-width button
+                    backgroundColor:
+                        _selectedTime != null ? kPrimaryDarkColor : Colors.grey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -227,7 +266,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     // Detect type and extract data
     if (item is Deal) {
       name = item.name;
-      description = item.services?.map((s) => s.name).join(', ') ?? 'No services listed';
+      description =
+          item.services?.map((s) => s.name).join(', ') ?? 'No services listed';
       price = item.price;
       discountedPrice = item.discountValue;
     } else if (item is Service) {
@@ -237,10 +277,18 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       discountedPrice = item.discountAmount;
     } else {
       // fallback for unknown type
-      try { name = item.name; } catch (_) {}
-      try { description = item.description; } catch (_) {}
-      try { price = item.price; } catch (_) {}
-      try { discountedPrice = item.discounted_price; } catch (_) {}
+      try {
+        name = item.name;
+      } catch (_) {}
+      try {
+        description = item.description;
+      } catch (_) {}
+      try {
+        price = item.price;
+      } catch (_) {}
+      try {
+        discountedPrice = item.discounted_price;
+      } catch (_) {}
     }
 
     return ListTile(
@@ -264,31 +312,31 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       ),
       trailing: discountedPrice != null && discountedPrice < item.price
           ? Column(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            '\$${price?.toStringAsFixed(0) ?? '0'}',
-            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-              color: Colors.grey,
-              decoration: TextDecoration.lineThrough,
-            ),
-          ),
-          Text(
-            '\$${discountedPrice.toString()}',
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-          ),
-        ],
-      )
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '\$${price?.toStringAsFixed(0) ?? '0'}',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: Colors.grey,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                ),
+                Text(
+                  '\$${discountedPrice.toString()}',
+                  style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                ),
+              ],
+            )
           : Text(
-        '\$${price?.toStringAsFixed(0) ?? '0'}',
-        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-          fontWeight: FontWeight.w600,
-        ),
-      ),
+              '\$${price?.toStringAsFixed(0) ?? '0'}',
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+            ),
     );
   }
 
@@ -320,8 +368,8 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               title: Text(
                 title,
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+                      fontWeight: FontWeight.w600,
+                    ),
               ),
               minLeadingWidth: 6,
             ),
@@ -339,18 +387,19 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         children: [
           Icon(icon, size: 20, color: Theme.of(context).colorScheme.outline),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+          Expanded(
+              child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
         ],
       ),
     );
   }
 
   Widget _buildPaymentOption(
-      BuildContext context, {
-        required String title,
-        required IconData icon,
-        required String value,
-      }) {
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+    required String value,
+  }) {
     final isSelected = _paymentMethod == value;
     return InkWell(
       onTap: () => setState(() => _paymentMethod = value),
@@ -364,7 +413,9 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               : Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(kCardRadius),
           border: Border.all(
-            color: isSelected ? Theme.of(context).colorScheme.primary : Colors.transparent,
+            color: isSelected
+                ? Theme.of(context).colorScheme.primary
+                : Colors.transparent,
             width: 2,
           ),
         ),
@@ -382,8 +433,9 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               child: Text(
                 title,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                ),
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.normal,
+                    ),
               ),
             ),
             Radio<String>(
@@ -416,15 +468,13 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               leading: Icon(Icons.edit_note, color: colorScheme.primary),
               title: Text('Booking Notes', style: textTheme.titleMedium),
             ),
-
             TextField(
               controller: _notesController,
               maxLines: 3,
               decoration: const InputDecoration(
-                filled: true,
-                hintText: 'Special requests, notes...',
-                contentPadding: EdgeInsets.all(16)
-              ),
+                  filled: true,
+                  hintText: 'Special requests, notes...',
+                  contentPadding: EdgeInsets.all(16)),
             ),
           ],
         ),
@@ -447,9 +497,9 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   void _confirmBooking() {
     log('Confirm booking tapped');
-    // Call your API
 
-    BookingService().createBooking(
+    final bookingsViewModel = context.read<BookingsViewModel>();
+    bookingsViewModel.createBooking(
       context: context,
       cartItems: _cartItems,
       selectedDay: _selectedDay,
@@ -458,7 +508,5 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       paymentMethod: _paymentMethod,
       bookingType: 'appointment', // can adjust dynamically
     );
-
-
   }
 }
