@@ -3,9 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
-import 'package:app/providers/SearchProvider.dart';
 import 'package:app/providers/auth/auth_provider.dart';
-import 'package:app/providers/notification/notification_provider.dart';
 import 'package:app/presentation/viewmodels/home/home_view_model.dart';
 import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
 import 'package:app/presentation/viewmodels/profile/profile_view_model.dart';
@@ -35,10 +33,11 @@ Future<void> main() async {
   runApp(
     MultiProvider(
       providers: [
+        // Authentication Provider (keep for auth infrastructure)
         ChangeNotifierProvider(create: (context) => AuthProvider()),
-        ChangeNotifierProvider(create: (context) => SearchProvider()),
+        
+        // MVVM ViewModels
         ChangeNotifierProvider(create: (context) => SearchProviderNew()),
-        ChangeNotifierProvider(create: (context) => NotificationProvider()),
         ChangeNotifierProvider(create: (context) => HomeViewModel()),
         ChangeNotifierProvider(create: (context) => FavouritesViewModel()),
         ChangeNotifierProvider(create: (context) => ProfileViewModel()),
