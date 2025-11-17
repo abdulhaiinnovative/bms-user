@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 import '../../../constants.dart';
-import '../../../providers/notification/notification_provider.dart';
+import '../../../presentation/viewmodels/notifications/notifications_view_model.dart';
 import '../../notifications/notifications_screen.dart';
 
 class NotificationBellButton extends StatefulWidget {
@@ -18,16 +18,15 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
     super.initState();
     // Fetch unread count when widget is first created
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<NotificationProvider>(context, listen: false)
-          .fetchUnreadCount();
+      context.read<NotificationsViewModel>().loadUnreadCount();
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<NotificationProvider>(
-      builder: (context, notificationProvider, child) {
-        final unreadCount = notificationProvider.unreadCount;
+    return Consumer<NotificationsViewModel>(
+      builder: (context, notificationsViewModel, child) {
+        final unreadCount = notificationsViewModel.unreadCount;
 
         return InkWell(
           borderRadius: BorderRadius.circular(100),
