@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../models/SalonMain.dart';
-import '../providers/SearchProvider.dart';
+import '../screens/search_final/search_provider_new.dart';
 import 'services/services_header.dart';
 
 
@@ -33,7 +33,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
 
   @override
   Widget build(BuildContext context) {
-    final searchProvider = Provider.of<SearchProvider>(context);
+    final searchProvider = Provider.of<SearchProviderNew>(context);
 
     return Scaffold(
       body: SafeArea(
@@ -69,18 +69,19 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
                         if (searchProvider.services.isEmpty) {
                           return const Center(child: Text("No services found"));
                         }
+                        final service = searchProvider.services[index];
                         return Container(
                           padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
                           child: ServicesCard(
-                            title: searchProvider.services[index].name,
-                            price: searchProvider.services[index].price,
-                            discountAmount: searchProvider.services[index].discountAmount ?? 0.0,
-                            discountType: searchProvider.services[index].discountType ?? "",
-                            oldPrice: searchProvider.services[index].oldPrice,
-                            gender: searchProvider.services[index].gender,
-                            duration: searchProvider.services[index].duration,
-                            salon: searchProvider.services[index].salon,
-                            desc: searchProvider.services[index].description,
+                            title: service.name ?? '',
+                            price: (service.price ?? 0).toDouble(),
+                            discountAmount: (service.discountAmount ?? 0).toDouble(),
+                            discountType: service.discountType ?? "",
+                            oldPrice: (service.oldPrice ?? 0).toDouble(),
+                            gender: service.gender ?? '',
+                            duration: service.duration ?? '',
+                            salon: null, // Service model doesn't have SalonMain, it has Salon
+                            desc: service.description ?? '',
                             press: () {
                               ///Navigator.pushNamed(context, ServicesScreen.routeName);
                             },
@@ -103,16 +104,17 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
                         if (searchProvider.salons.isEmpty) {
                           return const Center(child: Text("No salons found"));
                         }
+                        final salon = searchProvider.salons[index];
                         return Container(
                           padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
                           child: SalonCard(
-                            name: searchProvider.salons[index].name,
+                            name: salon.name ?? '',
                             image: logo,
-                            address: searchProvider.salons[index].address,
-                            about: searchProvider.salons[index].about,
-                            average_rating: searchProvider.salons[index].averageRating,
-                            review_count: searchProvider.salons[index].reviewCount,
-                            is_favourite: searchProvider.salons[index].isFavourite,
+                            address: salon.address ?? '',
+                            about: salon.about ?? '',
+                            average_rating: (salon.averageRating ?? 0).toDouble(),
+                            review_count: salon.reviewCount ?? 0,
+                            is_favourite: salon.isFavourite ?? false,
                             press: () {
                               ///Navigator.pushNamed(context, ServicesScreen.routeName);
                             },
