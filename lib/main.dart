@@ -11,6 +11,7 @@ import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dar
 import 'package:app/presentation/viewmodels/profile/profile_view_model.dart';
 import 'package:app/presentation/viewmodels/notifications/notifications_view_model.dart';
 import 'package:app/presentation/viewmodels/salon/salon_view_model.dart';
+import 'package:app/presentation/viewmodels/salon_detail/salon_detail_view_model.dart';
 import 'package:app/presentation/viewmodels/bookings/bookings_view_model.dart';
 import 'package:app/presentation/viewmodels/category/category_view_model.dart';
 import 'package:app/presentation/viewmodels/salon_services/salon_services_view_model.dart';
@@ -43,6 +44,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => ProfileViewModel()),
         ChangeNotifierProvider(create: (context) => NotificationsViewModel()),
         ChangeNotifierProvider(create: (context) => SalonViewModel()),
+        ChangeNotifierProvider(create: (context) => SalonDetailViewModel()),
         ChangeNotifierProvider(create: (context) => BookingsViewModel()),
         ChangeNotifierProvider(create: (context) => CategoryViewModel()),
         ChangeNotifierProvider(create: (context) => SalonServicesViewModel()),
