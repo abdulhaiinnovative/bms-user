@@ -67,12 +67,6 @@ class SalonDashboard extends StatelessWidget {
                         // Navigator.pushNamed(context, SalonDetailsScrollingTabsEffect.routeName);
 
                         //may be category
-                        // Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName);
-
-
-                        // SalonDetailAPI salonDetailAPI = SalonDetailAPI();
-                        // //late SalonData? salonDetailsss =
-                        // salonDetailAPI.fetchSalonDetailData("1");
                         log('Tapped salon: ${item.name}');
 
                       },
