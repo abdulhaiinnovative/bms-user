@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../constants.dart';
+import '../../../../constants.dart';
 
 class SalonCard extends StatelessWidget {
   const SalonCard({

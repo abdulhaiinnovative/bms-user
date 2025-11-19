@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:app/screens/search_final/search_service_screen_new.dart';
+import 'package:app/features/search/presentation/screens/search_service_screen_new.dart';
 import 'search_field.dart';
 import 'notification_bell_button.dart';
 

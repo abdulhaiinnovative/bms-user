@@ -1,12 +1,12 @@
 import 'dart:developer';
-import 'package:app/screens/search_final/price_range_new.dart';
-import 'package:app/screens/search_final/sorting_new.dart';
+import 'price_range_new.dart';
+import 'sorting_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../constants.dart';
+import '../../../../constants.dart';
 import 'package:app/features/home/presentation/widgets/search_field.dart';
-import 'filter_categories_new.dart';
-import 'search_provider_new.dart';
+import '../../data/api/filter_categories_new.dart';
+import '../providers/search_provider_new.dart';
 
 class ServicesHeaderNew extends StatefulWidget {
   final TabController tabController;

@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
-import '../../models/MyBookingResponse.dart';
-import '../../presentation/viewmodels/bookings/bookings_view_model.dart';
+import '../../../../models/MyBookingResponse.dart';
+import '../../../../presentation/viewmodels/bookings/bookings_view_model.dart';
 import 'booking_details_screen.dart';
 
 class MyBookings extends StatefulWidget {

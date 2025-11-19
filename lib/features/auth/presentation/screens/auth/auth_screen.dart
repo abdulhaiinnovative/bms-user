@@ -7,7 +7,7 @@ import '../../../../../constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../../../../services/fcm_token_service.dart';
 import '../complete_profile/complete_profile_screen.dart';
-import '../../../../../screens/init_screen.dart';
+import '../../../../home/presentation/screens/init_screen.dart';
 import '../forgot_password/forgot_password_screen.dart';
 
 enum AuthMode { signIn, signUp }

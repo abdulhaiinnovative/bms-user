@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../constants.dart';
-import '../../models/HomePageResponse.dart';
-
+import '../../../../constants.dart';
+import '../../../../models/HomePageResponse.dart';
 
 class ServicesCard extends StatelessWidget {
   final String title;
@@ -34,7 +33,7 @@ class ServicesCard extends StatelessWidget {
     return GestureDetector(
       onTap: press,
       child: Container(
-        margin:  const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.all(8.0),
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -56,7 +55,8 @@ class ServicesCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -77,7 +77,10 @@ class ServicesCard extends StatelessWidget {
                     children: [
                       Text(
                         'Rs $price',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: kPrice),
                       ),
                       if (oldPrice != null && oldPrice! > price)
                         Padding(

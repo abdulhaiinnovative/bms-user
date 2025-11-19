@@ -1,10 +1,7 @@
-
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../constants.dart';
-// import '../../models/HomePageResponse.dart';
-import '../../models/HomePageResponse.dart';
-
+import '../../../../constants.dart';
+import '../../../../models/HomePageResponse.dart';
 
 class DealCard extends StatelessWidget {
   final String title;
@@ -39,7 +36,7 @@ class DealCard extends StatelessWidget {
     return GestureDetector(
       onTap: press,
       child: Container(
-        margin:  const EdgeInsets.all(8.0),
+        margin: const EdgeInsets.all(8.0),
         padding: const EdgeInsets.all(8.0),
         decoration: BoxDecoration(
           color: Colors.white,
@@ -66,12 +63,13 @@ class DealCard extends StatelessWidget {
                     margin: const EdgeInsets.all(10),
                     child: const CircularProgressIndicator(),
                   ),
-                  errorWidget: (context, url, error) => Image.asset('assets/images/default_logo.png'),
+                  errorWidget: (context, url, error) =>
+                      Image.asset('assets/images/default_logo.png'),
                 ),
               )
-
             else
-              Image.asset('assets/images/default_logo.png', width: 80, height: 80),
+              Image.asset('assets/images/default_logo.png',
+                  width: 80, height: 80),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -79,7 +77,8 @@ class DealCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -92,11 +91,10 @@ class DealCard extends StatelessWidget {
                   ),
                   if (salon != null)
                     Text(
-                      salon?.name ?? "" ,
+                      salon?.name ?? "",
                       style: const TextStyle(fontSize: 14, color: Colors.grey),
                     ),
                   const SizedBox(height: 5),
-
                   if (validUntil != null)
                     Text(
                       'Valid until: $validUntil',
@@ -107,12 +105,14 @@ class DealCard extends StatelessWidget {
                       'Duration: $duration',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
-
                   Row(
                     children: [
                       Text(
                         'Rs $price',
-                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: kPrice),
+                        style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: kPrice),
                       ),
                       if (oldPrice != null && oldPrice! > price)
                         Padding(

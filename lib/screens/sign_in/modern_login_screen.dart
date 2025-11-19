@@ -1,8 +1,8 @@
+import 'package:app/features/home/presentation/screens/init_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import '../forgot_password/forgot_password_screen.dart';
-import '../init_screen.dart';
 import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 
 class ModernLoginScreen extends StatefulWidget {

@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/constants.dart';
 import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
-import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
+import '../../../../screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:app/models/FavouritesListResponse.dart';
 

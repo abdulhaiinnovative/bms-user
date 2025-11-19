@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:app/features/search/presentation/providers/search_provider_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/components/filter_categories.dart';
@@ -8,7 +9,6 @@ import 'package:app/components/price_range.dart';
 import 'package:app/components/sorting.dart';
 import 'package:app/constants.dart';
 
-import '../search_final/search_provider_new.dart';
 import 'package:app/features/home/presentation/widgets/search_field.dart';
 
 class ServicesHeader extends StatefulWidget {

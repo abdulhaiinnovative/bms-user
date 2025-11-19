@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
 import 'package:app/models/HomePageResponse.dart';
-import 'package:app/screens/search_final/search_service_screen_new.dart';
+import 'package:app/features/search/presentation/screens/search_service_screen_new.dart';
 import 'section_title.dart';
 
 class CategoriesDashboard extends StatelessWidget {

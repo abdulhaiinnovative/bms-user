@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../constants.dart';
 import '../../../utils/auth_manager.dart';
-import '../../../../../screens/init_screen.dart';
+import '../../../../home/presentation/screens/init_screen.dart';
 import '../auth/auth_screen.dart';
 import 'onboarding_screen.dart';
 
@@ -27,7 +27,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -47,24 +46,19 @@ class _SplashScreenState extends State<SplashScreen>
       ),
     );
 
-    // Start animation
     _animationController.forward();
 
-    // Navigate after delay
     _navigateToNextScreen();
   }
 
   Future<void> _navigateToNextScreen() async {
-    // Wait for animation to complete
     await Future.delayed(const Duration(milliseconds: 2500));
 
     if (!mounted) return;
 
-    // Check if user has seen onboarding
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
-    // Check if user is logged in using the new AuthManager
     final isLoggedIn = await AuthManager.isLoggedIn();
 
     log('🚀 SplashScreen: hasSeenOnboarding = $hasSeenOnboarding');
@@ -72,10 +66,6 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
-    // Navigation logic:
-    // 1. If user hasn't seen onboarding -> show onboarding
-    // 2. If user is logged in -> go to home
-    // 3. If user has seen onboarding but not logged in -> go to sign in
     if (!hasSeenOnboarding) {
       log('🚀 SplashScreen: Navigating to Onboarding');
       Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
@@ -113,7 +103,6 @@ class _SplashScreenState extends State<SplashScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // App Logo
               Container(
                 width: 200,
                 height: 200,
@@ -145,7 +134,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               const SizedBox(height: 30),
-              // App Name
               const Text(
                 'BookMySpot',
                 style: TextStyle(
@@ -156,7 +144,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               const SizedBox(height: 10),
-              // Tagline
               Text(
                 'Your Beauty Destination',
                 style: TextStyle(
@@ -166,7 +153,6 @@ class _SplashScreenState extends State<SplashScreen>
                 ),
               ),
               const SizedBox(height: 50),
-              // Loading Indicator
               SizedBox(
                 width: 40,
                 height: 40,

@@ -1,16 +1,16 @@
 import 'dart:developer';
 
 import 'package:app/constants.dart';
-import 'package:app/screens/search_final/salon_card_new.dart';
-import 'package:app/screens/search_final/search_provider_new.dart';
-import 'package:app/screens/search_final/services_header_new.dart';
+import '../widgets/salon_card_new.dart';
+import '../providers/search_provider_new.dart';
+import '../widgets/services_header_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:app/features/home/presentation/widgets/deals_dashboard.dart';
 import 'package:app/features/home/presentation/widgets/services_dashboard.dart';
-import '../test/salon_details_scrolling_tabs_effect_b.dart';
-import '../test_scroll/salon_category_and_services_list.dart';
+import '../../../../screens/test/salon_details_scrolling_tabs_effect_b.dart';
+import '../../../../screens/test_scroll/salon_category_and_services_list.dart';
 
 class SearchServiceScreenNew extends StatefulWidget {
   const SearchServiceScreenNew({super.key});

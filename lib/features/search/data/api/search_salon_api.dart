@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
 
-import '../../models/HomePageResponse.dart';
-import '../../constants.dart';
+import '../../../../models/HomePageResponse.dart';
+import '../../../../constants.dart';
 
 class SearchSalonApi {
   static const String baseUrl = '$BASE_URL/search';

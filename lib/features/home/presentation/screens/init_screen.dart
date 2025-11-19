@@ -1,11 +1,11 @@
-import 'package:app/screens/search_final/search_service_screen_new.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:app/constants.dart';
-import 'package:app/features/home/presentation/screens/home_screen.dart';
-import 'package:app/features/profile/presentation/screens/profile_screen.dart';
-import 'package:app/screens/favourites/favourites_screen.dart';
-import 'history_bookings/my_bookings.dart';
+import '../../../../constants.dart';
+import 'home_screen.dart';
+import '../../../profile/presentation/screens/profile_screen.dart';
+import '../../../search/presentation/screens/search_service_screen_new.dart';
+import '../../../favourites/presentation/screens/favourites_screen.dart';
+import '../../../bookings/presentation/screens/my_bookings.dart';
 
 const Color inActiveIconColor = Color(0xFFB6B6B6);
 

@@ -1,11 +1,11 @@
 import 'package:app/components/book_now.dart';
+import 'package:app/features/search/presentation/providers/search_provider_new.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
 import '../constants.dart';
 import '../models/SalonMain.dart';
-import '../screens/search_final/search_provider_new.dart';
 import 'services/services_header.dart';
 
 class SearchServiceScreen extends StatefulWidget {

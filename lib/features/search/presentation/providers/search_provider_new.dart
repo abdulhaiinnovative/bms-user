@@ -1,7 +1,6 @@
-import 'package:app/screens/search_final/search_salon_api.dart';
+import '../../data/api/search_salon_api.dart';
 import 'package:flutter/material.dart';
-import '../../models/HomePageResponse.dart';
-
+import '../../../../models/HomePageResponse.dart';
 
 class SearchProviderNew with ChangeNotifier {
   List<Service> _services = [];
@@ -19,7 +18,14 @@ class SearchProviderNew with ChangeNotifier {
   String? get error => _error;
   String? get currentType => _currentType;
 
-  Future<void> searchServices(String query, {int? categoryId, double? minPrice, double? maxPrice, String? gender, String? sortBy, String? sortOrder, String? pageUrl}) async {
+  Future<void> searchServices(String query,
+      {int? categoryId,
+      double? minPrice,
+      double? maxPrice,
+      String? gender,
+      String? sortBy,
+      String? sortOrder,
+      String? pageUrl}) async {
     _isLoading = true;
     _error = null;
     _currentType = 'service';
@@ -37,7 +43,8 @@ class SearchProviderNew with ChangeNotifier {
         gender: gender,
         pageUrl: pageUrl,
       );
-      _services = pageUrl == null ? response['data'] : _services + response['data'];
+      _services =
+          pageUrl == null ? response['data'] : _services + response['data'];
       _nextPageUrl = response['nextPageUrl'];
       _isLoading = false;
       notifyListeners();
@@ -48,7 +55,12 @@ class SearchProviderNew with ChangeNotifier {
     }
   }
 
-  Future<void> searchSalons(String query, {String? location, double? minRating, String? sortBy, String? sortOrder, String? pageUrl}) async {
+  Future<void> searchSalons(String query,
+      {String? location,
+      double? minRating,
+      String? sortBy,
+      String? sortOrder,
+      String? pageUrl}) async {
     _isLoading = true;
     _error = null;
     _currentType = 'salon';
@@ -75,7 +87,13 @@ class SearchProviderNew with ChangeNotifier {
     }
   }
 
-  Future<void> searchDeals(String query, {int? categoryId, double? minPrice, double? maxPrice, String? sortBy, String? sortOrder, String? pageUrl}) async {
+  Future<void> searchDeals(String query,
+      {int? categoryId,
+      double? minPrice,
+      double? maxPrice,
+      String? sortBy,
+      String? sortOrder,
+      String? pageUrl}) async {
     _isLoading = true;
     _error = null;
     _currentType = 'deal';

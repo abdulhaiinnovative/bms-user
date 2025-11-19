@@ -12,7 +12,7 @@ import '../../../../../../constants.dart';
 import '../../../../data/models/social_auth_response.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../../../../services/fcm_token_service.dart';
-import '../../../../../../screens/init_screen.dart';
+import '../../../../../home/presentation/screens/init_screen.dart';
 
 class CompleteProfileForm extends StatefulWidget {
   final UserIsAlreadyRegisteredModel? user;

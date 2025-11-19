@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:app/features/home/presentation/screens/init_screen.dart';
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -12,8 +13,6 @@ import '../../../constants.dart';
 import 'package:app/features/auth/data/models/social_auth_response.dart';
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import '../../../services/fcm_token_service.dart';
-import '../../init_screen.dart';
-
 class CompleteProfileForm extends StatefulWidget {
   final UserIsAlreadyRegisteredModel? user;
   final bool isSocialAuth;

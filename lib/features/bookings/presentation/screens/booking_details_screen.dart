@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-// Adjust path based on your project structure
-import '../../models/MyBookingResponse.dart'; // Adjust path based on your project structure
-import '../../constants.dart'; // Adjust path for your constants file
+import '../../../../models/MyBookingResponse.dart';
+import '../../../../constants.dart';
 
 class BookingDetailsScreen extends StatelessWidget {
   final Booking booking;
@@ -38,9 +37,11 @@ class BookingDetailsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final date = DateTime.tryParse(booking.date ?? '');
-    final formattedDate = date != null ? DateFormat('MMM dd, yyyy').format(date) : 'N/A';
+    final formattedDate =
+        date != null ? DateFormat('MMM dd, yyyy').format(date) : 'N/A';
     final formattedTime = booking.time != null
-        ? DateFormat('hh:mm a').format(DateFormat('HH:mm:ss').parse(booking.time!))
+        ? DateFormat('hh:mm a')
+            .format(DateFormat('HH:mm:ss').parse(booking.time!))
         : 'N/A';
 
     return Scaffold(
@@ -77,7 +78,7 @@ class BookingDetailsScreen extends StatelessWidget {
                     const Center(
                       child: Text(
                         // booking.salon?.name ??
-                            'Unknown Salon',
+                        'Unknown Salon',
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -93,10 +94,12 @@ class BookingDetailsScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.grey.withOpacity(0.2), // Softer shadow color
+                            color: Colors.grey
+                                .withOpacity(0.2), // Softer shadow color
                             spreadRadius: 1, // Low spread for softness
                             blurRadius: 8, // Higher blur for soft effect
-                            offset: const Offset(0, 4), // Vertical offset for elevation
+                            offset: const Offset(
+                                0, 4), // Vertical offset for elevation
                           ),
                         ],
                       ),
@@ -107,19 +110,26 @@ class BookingDetailsScreen extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildDetailRow(Icons.calendar_today, 'Date', formattedDate),
+                              _buildDetailRow(
+                                  Icons.calendar_today, 'Date', formattedDate),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.access_time, 'Time', formattedTime),
+                              _buildDetailRow(
+                                  Icons.access_time, 'Time', formattedTime),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.check_circle, 'Status', booking.status ?? 'N/A'),
+                              _buildDetailRow(Icons.check_circle, 'Status',
+                                  booking.status ?? 'N/A'),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.category, 'Type', booking.bookingType ?? 'N/A'),
+                              _buildDetailRow(Icons.category, 'Type',
+                                  booking.bookingType ?? 'N/A'),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.payment, 'Payment', booking.paymentStatus ?? 'N/A'),
+                              _buildDetailRow(Icons.payment, 'Payment',
+                                  booking.paymentStatus ?? 'N/A'),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.group, 'Team ID', booking.teamId.toString() ?? 'N/A'),
+                              _buildDetailRow(Icons.group, 'Team ID',
+                                  booking.teamId.toString() ?? 'N/A'),
                               const SizedBox(height: 12),
-                              _buildDetailRow(Icons.monetization_on, 'Amount', 'PKR ${booking.payment ?? 0}'),
+                              _buildDetailRow(Icons.monetization_on, 'Amount',
+                                  'PKR ${booking.payment ?? 0}'),
                             ],
                           ),
                         ),
@@ -130,10 +140,11 @@ class BookingDetailsScreen extends StatelessWidget {
               ),
             ),
           ),
-            
-            if (!(booking.status?.toLowerCase().contains('cancelled') == true || booking.status?.toLowerCase().contains('completed') == true))
+          if (!(booking.status?.toLowerCase().contains('cancelled') == true ||
+              booking.status?.toLowerCase().contains('completed') == true))
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
               child: SizedBox(
                 width: double.infinity,
                 child: SafeArea(
@@ -150,7 +161,8 @@ class BookingDetailsScreen extends StatelessWidget {
                     ),
                     child: const Text(
                       'Cancel Booking',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),

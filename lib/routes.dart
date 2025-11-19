@@ -1,9 +1,9 @@
 //import 'dart:js';
 import 'package:app/screens/SalonFetchAPIData.dart';
-import 'package:app/screens/history_bookings/my_bookings.dart';
+import 'package:app/features/bookings/presentation/screens/my_bookings.dart';
 import 'package:app/screens/products/products_screen.dart';
 import 'package:app/screens/profile/my_account_screen.dart';
-import 'package:app/screens/search_final/search_service_screen_new.dart';
+import 'package:app/features/search/presentation/screens/search_service_screen_new.dart';
 import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 import 'package:app/screens/test_scroll/SelectDateScreen.dart';
 import 'package:app/screens/test_scroll/confirm_booking_screen.dart';
@@ -26,11 +26,11 @@ import 'features/auth/presentation/screens/forgot_password/forgot_password_scree
 import 'features/auth/presentation/screens/verification/verification_screen.dart';
 import 'features/auth/presentation/screens/reset_password/reset_password_screen.dart';
 import 'features/notifications/presentation/screens/notifications_screen.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
+import 'features/home/presentation/screens/init_screen.dart';
 import 'features/home/presentation/screens/home_screen.dart';
-import 'screens/init_screen.dart';
 import 'features/auth/presentation/screens/login_success/login_success_screen.dart';
 import 'features/auth/presentation/screens/otp/otp_screen.dart';
-import 'features/profile/presentation/screens/profile_screen.dart';
 import 'features/auth/presentation/screens/splash/splash_screen.dart';
 import 'features/auth/presentation/screens/splash/onboarding_screen.dart';
 

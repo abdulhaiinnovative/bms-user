@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:app/screens/init_screen.dart';
+import 'package:app/features/home/presentation/screens/init_screen.dart';
 
 class LoginSuccessScreen extends StatelessWidget {
   static String routeName = "/login_success";

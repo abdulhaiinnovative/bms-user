@@ -1,4 +1,4 @@
-import 'package:app/screens/search_final/search_provider_new.dart';
+import 'package:app/features/search/presentation/providers/search_provider_new.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';

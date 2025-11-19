@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../constants.dart';
 import '../../../utils/auth_manager.dart';
-import '../../../../../screens/init_screen.dart';
+import '../../../../home/presentation/screens/init_screen.dart';
 import '../auth/auth_screen.dart';
 import '../../widgets/splash_content.dart';
 
@@ -68,77 +68,90 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: SafeArea(
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                flex: 3,
-                child: PageView.builder(
-                  onPageChanged: (value) {
-                    setState(() {
-                      currentPage = value;
-                    });
-                  },
-                  itemCount: splashData.length,
-                  itemBuilder: (context, index) => SplashContent(
-                    image: splashData[index]["image"],
-                    text: splashData[index]['text'],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+
+        log('🔙 OnboardingScreen: Back button pressed, navigating to Auth screen');
+
+        // Navigate to auth screen when user tries to go back
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, AuthScreen.routeName);
+        }
+      },
+      child: Scaffold(
+        body: SafeArea(
+          child: SizedBox(
+            width: double.infinity,
+            child: Column(
+              children: <Widget>[
+                Expanded(
+                  flex: 3,
+                  child: PageView.builder(
+                    onPageChanged: (value) {
+                      setState(() {
+                        currentPage = value;
+                      });
+                    },
+                    itemCount: splashData.length,
+                    itemBuilder: (context, index) => SplashContent(
+                      image: splashData[index]["image"],
+                      text: splashData[index]['text'],
+                    ),
                   ),
                 ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Column(
-                    children: <Widget>[
-                      const Spacer(),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: List.generate(
-                          splashData.length,
-                          (index) => AnimatedContainer(
-                            duration: const Duration(milliseconds: 300),
-                            margin: const EdgeInsets.only(right: 5),
-                            height: 6,
-                            width: currentPage == index ? 20 : 6,
-                            decoration: BoxDecoration(
-                              color: currentPage == index
-                                  ? kPrimaryColor
-                                  : const Color(0xFFD8D8D8),
-                              borderRadius: BorderRadius.circular(3),
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: <Widget>[
+                        const Spacer(),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: List.generate(
+                            splashData.length,
+                            (index) => AnimatedContainer(
+                              duration: const Duration(milliseconds: 300),
+                              margin: const EdgeInsets.only(right: 5),
+                              height: 6,
+                              width: currentPage == index ? 20 : 6,
+                              decoration: BoxDecoration(
+                                color: currentPage == index
+                                    ? kPrimaryColor
+                                    : const Color(0xFFD8D8D8),
+                                borderRadius: BorderRadius.circular(3),
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const Spacer(flex: 3),
-                      ElevatedButton(
-                        onPressed: _completeOnboarding,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          minimumSize: const Size(double.infinity, 56),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+                        const Spacer(flex: 3),
+                        ElevatedButton(
+                          onPressed: _completeOnboarding,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kPrimaryColor,
+                            minimumSize: const Size(double.infinity, 56),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                          child: const Text(
+                            "Continue",
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
-                        child: const Text(
-                          "Continue",
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                    ],
+                        const Spacer(),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
