@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:app/constants.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/components/book_now.dart';
 import 'package:cached_network_image/cached_network_image.dart';

@@ -1,10 +1,8 @@
-import 'dart:developer';
 import '../widgets/account_boxes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:app/constants.dart';
-import 'package:app/models/my_account_response.dart';
 import '../viewmodels/profile_view_model.dart';
 
 class MyAccountScreen extends StatefulWidget {
