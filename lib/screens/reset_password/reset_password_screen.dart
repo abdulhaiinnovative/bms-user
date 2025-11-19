@@ -4,8 +4,8 @@ import 'package:provider/provider.dart';
 import '../../components/custom_surfix_icon.dart';
 import '../../components/form_error.dart';
 import '../../constants.dart';
-import '../../providers/auth/auth_provider.dart';
-import '../auth/auth_screen.dart';
+import 'package:app/features/auth/presentation/providers/auth_provider.dart';
+import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   static String routeName = "/reset_password";

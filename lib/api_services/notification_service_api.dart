@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:dio/dio.dart';
 import '../../constants.dart';
 import '../../models/notification/notification_model.dart';
-import '../../utlis/authutils/auth_interceptor.dart';
+import '../../features/auth/utils/auth_interceptor.dart';
 
 class NotificationServiceAPI {
   static const String baseURL = BASE_URL;

@@ -3,20 +3,19 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
 import 'package:scroll_to_index/scroll_to_index.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
 import 'package:app/models/SalonDetailApiResponse.dart';
 import 'package:visibility_detector/visibility_detector.dart';
-import '../../presentation/viewmodels/salon_detail/salon_detail_view_model.dart';
-import '../../presentation/viewmodels/favourites/favourites_view_model.dart';
+import '../../api_services/salon_detail_api.dart';
+import '../../api_services/favourite_api.dart';
 import '../../components/ratings.dart';
 import '../../constants.dart';
 import '../../helper/CircularNetworkImage.dart';
 import '../../helper/ReviewCount.dart';
 import '../../models/HomePageResponse.dart';
-import '../home/components/deals_dashboard.dart';
-import '../home/components/services_dashboard.dart';
+import 'package:app/features/home/presentation/widgets/deals_dashboard.dart';
+import 'package:app/features/home/presentation/widgets/services_dashboard.dart';
 import '../test_scroll/salon_category_and_services_list.dart';
 import 'package:shimmer/shimmer.dart';
 
@@ -51,15 +50,13 @@ class _SalonDetailsScrollingTabsEffectB
   // and then maintained separately to allow immediate UI updates without refetching
   bool isFavourite = false;
   bool isTogglingFavourite = false;
+  final FavouriteAPI _favouriteAPI = FavouriteAPI();
 
   Future<void> loadJson(id) async {
     try {
       log("=== loadJson called with id: $id ===");
-
-      final salonDetailViewModel = context.read<SalonDetailViewModel>();
-      await salonDetailViewModel.loadSalonDetail(id);
-
-      final fetchedData = salonDetailViewModel.salonDetail;
+      SalonDetailAPI salonDetailAPI = SalonDetailAPI();
+      final fetchedData = await salonDetailAPI.fetchSalonDetailData(id);
 
       // Print complete salon data
       print("\n════════════════════════════════════════════════════════");
@@ -204,52 +201,62 @@ class _SalonDetailsScrollingTabsEffectB
     });
 
     try {
-      final favouritesViewModel = context.read<FavouritesViewModel>();
-      final newStatus = await favouritesViewModel.toggleFavourite(
-        salonId: salonDetailsss!.id.toString(),
-        index: 0, // Index not needed for detail screen
+      final result = await _favouriteAPI.toggleFavourite(
+        shareId: salonDetailsss!.id.toString(),
+        shareType: 'salon',
       );
 
       if (mounted) {
-        setState(() {
-          isFavourite = newStatus;
-          isTogglingFavourite = false;
-        });
+        if (result['success'] == true) {
+          setState(() {
+            isFavourite = result['isFavourite'] ?? false;
+            isTogglingFavourite = false;
+          });
 
-        // Update the SalonDetailViewModel's favourite status
-        final salonDetailViewModel = context.read<SalonDetailViewModel>();
-        salonDetailViewModel.updateFavouriteStatus(newStatus);
+          // Show success message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Success'),
+              backgroundColor: kPrimaryColor,
+              duration: const Duration(seconds: 2),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
 
-        // Show success message
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-                newStatus ? 'Added to favourites' : 'Removed from favourites'),
-            backgroundColor: kPrimaryColor,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+          log('✅ Favourite toggled successfully: $isFavourite');
+        } else {
+          setState(() {
+            isTogglingFavourite = false;
+          });
 
-        log('✅ Favourite toggled successfully: $isFavourite');
+          // Show error message
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['message'] ?? 'Failed to update favourite'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+          log('❌ Failed to toggle favourite: ${result['message']}');
+        }
       }
-    } catch (error) {
+    } catch (e) {
+      log('❌ Error toggling favourite: $e');
       if (mounted) {
         setState(() {
           isTogglingFavourite = false;
         });
 
-        // Show error message
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to update favourite: $error'),
+          const SnackBar(
+            content: Text('An error occurred. Please try again.'),
             backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+            duration: Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
           ),
         );
-
-        log('❌ Failed to toggle favourite: $error');
       }
     }
   }

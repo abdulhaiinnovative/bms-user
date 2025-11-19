@@ -1,11 +1,10 @@
 //import 'dart:js';
-import 'package:app/screens/HomeFetchAPIData.dart';
 import 'package:app/screens/SalonFetchAPIData.dart';
 import 'package:app/screens/history_bookings/my_bookings.dart';
 import 'package:app/screens/products/products_screen.dart';
 import 'package:app/screens/profile/my_account_screen.dart';
 import 'package:app/screens/search_final/search_service_screen_new.dart';
-import 'package:app/screens/auth/auth_screen.dart';
+import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 import 'package:app/screens/test_scroll/SelectDateScreen.dart';
 import 'package:app/screens/test_scroll/confirm_booking_screen.dart';
 import 'package:app/screens/test_scroll/salon_category_and_services_list_by_service.dart';
@@ -21,19 +20,19 @@ import 'package:app/screens/test_scroll/salon_category_and_services_list.dart';
 
 import 'screens/CategoryDetailsFetchAPIData.dart';
 import 'screens/cart/cart_screen.dart';
-import 'screens/complete_profile/complete_profile_screen.dart';
+import 'features/auth/presentation/screens/complete_profile/complete_profile_screen.dart';
 import 'screens/details/details_screen.dart';
-import 'screens/forgot_password/forgot_password_screen.dart';
-import 'screens/verification/verification_screen.dart';
-import 'screens/reset_password/reset_password_screen.dart';
-import 'screens/notifications/notifications_screen.dart';
-import 'screens/home/home_screen.dart';
+import 'features/auth/presentation/screens/forgot_password/forgot_password_screen.dart';
+import 'features/auth/presentation/screens/verification/verification_screen.dart';
+import 'features/auth/presentation/screens/reset_password/reset_password_screen.dart';
+import 'features/notifications/presentation/screens/notifications_screen.dart';
+import 'features/home/presentation/screens/home_screen.dart';
 import 'screens/init_screen.dart';
-import 'screens/login_success/login_success_screen.dart';
-import 'screens/otp/otp_screen.dart';
-import 'screens/profile/profile_screen.dart';
-import 'screens/splash/splash_screen.dart';
-import 'screens/splash/onboarding_screen.dart';
+import 'features/auth/presentation/screens/login_success/login_success_screen.dart';
+import 'features/auth/presentation/screens/otp/otp_screen.dart';
+import 'features/profile/presentation/screens/profile_screen.dart';
+import 'features/auth/presentation/screens/splash/splash_screen.dart';
+import 'features/auth/presentation/screens/splash/onboarding_screen.dart';
 
 // We use name route
 // All our routes will be available here
@@ -70,7 +69,6 @@ final Map<String, WidgetBuilder> routes = {
 
   ServiceDetailsScreen.routeName: (context) => ServiceDetailsScreen(),
 
-  HomeFetchAPIData.routeName: (context) => const HomeFetchAPIData(),
   SalonFetchAPIData.routeName: (context) => const SalonFetchAPIData(),
 
   CategoryDetailsFetchAPIData.routeName: (context) =>

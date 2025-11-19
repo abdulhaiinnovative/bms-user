@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:flutter/material.dart';
 import '../../constants.dart';
-import '../home/components/deals_dashboard.dart';
+import 'package:app/features/home/presentation/widgets/deals_dashboard.dart';
 import '../products/products_screen.dart';
 
 class SalonScreen extends StatelessWidget {

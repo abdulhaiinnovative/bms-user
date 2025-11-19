@@ -8,18 +8,14 @@ import 'package:app/components/price_range.dart';
 import 'package:app/components/sorting.dart';
 import 'package:app/constants.dart';
 
-import '../../screens/search_final/search_provider_new.dart';
-import '../home/components/search_field.dart';
-
-
-
-
-
+import '../search_final/search_provider_new.dart';
+import 'package:app/features/home/presentation/widgets/search_field.dart';
 
 class ServicesHeader extends StatefulWidget {
   final TabController tabController; // Accept tabController from parent
 
-  const ServicesHeader({Key? key, required this.tabController}) : super(key: key);
+  const ServicesHeader({Key? key, required this.tabController})
+      : super(key: key);
 
   @override
   _ServicesHeaderState createState() => _ServicesHeaderState();
@@ -47,7 +43,6 @@ class _ServicesHeaderState extends State<ServicesHeader> {
               const SizedBox(width: 60),
               Expanded(child: SearchField(controller: searchController)),
               const SizedBox(width: 8),
-
               CircleIconButton(
                 onPressed: () async {
                   log('IconButton pressed: ${searchController.text}');
@@ -55,21 +50,21 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                   if (widget.tabController.index == 0) {
                     log('Service.');
                     if (searchController.text.isNotEmpty) {
-                      context.read<SearchProviderNew>()
+                      Provider.of<SearchProviderNew>(context, listen: false)
                           .searchServices(searchController.text);
                     }
                   } else if (widget.tabController.index == 1) {
                     log('Deals');
                     if (searchController.text.isNotEmpty) {
-                      context.read<SearchProviderNew>()
-                          .searchDeals(searchController.text);
+                      Provider.of<SearchProviderNew>(context, listen: false)
+                          .searchSalons(searchController.text);
                     }
                   } else {
-                  log('Salon');
-                  if (searchController.text.isNotEmpty) {
-                  context.read<SearchProviderNew>()
-                      .searchSalons(searchController.text);
-                  }
+                    log('Salon');
+                    if (searchController.text.isNotEmpty) {
+                      Provider.of<SearchProviderNew>(context, listen: false)
+                          .searchSalons(searchController.text);
+                    }
                   }
                 },
                 icon: Icons.circle,
@@ -83,14 +78,11 @@ class _ServicesHeaderState extends State<ServicesHeader> {
               const SizedBox(width: 8),
             ],
           ),
-
           const SizedBox(height: 5),
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const SizedBox(width: 8),
-
               InkWell(
                 child: Container(
                   padding: const EdgeInsets.all(8.0),
@@ -107,9 +99,7 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                   _showBottomSheet(const Sorting());
                 },
               ),
-
               const SizedBox(width: 4),
-
               InkWell(
                 child: Container(
                   padding: const EdgeInsets.all(8.0),
@@ -126,9 +116,7 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                   // Handle filter action here
                 },
               ),
-
               const SizedBox(width: 8),
-
               Expanded(
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
@@ -164,17 +152,14 @@ class _ServicesHeaderState extends State<ServicesHeader> {
               ),
             ],
           ),
-
           const SizedBox(height: 5),
-
-      Container(
-        padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
-
-        child: Container(
-            decoration: BoxDecoration(
-              color: kSecondaryColor.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 5),
+            child: Container(
+              decoration: BoxDecoration(
+                color: kSecondaryColor.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
               child: TabBar(
                 controller: widget.tabController, // Use widget.tabController
                 labelColor: Colors.white,
@@ -191,14 +176,12 @@ class _ServicesHeaderState extends State<ServicesHeader> {
                 ],
               ),
             ),
-      ),
+          ),
         ],
       ),
     );
   }
 }
-
-
 
 class FilterItem extends StatelessWidget {
   final String label;
@@ -218,26 +201,28 @@ class FilterItem extends StatelessWidget {
             //color: kPrimaryDarkColor.withOpacity(0.85),
             borderRadius: BorderRadius.circular(30.0),
             border: Border.all(width: 1.5, color: kPrimaryDarkColor),
-
           ),
           child: Row(
             children: <Widget>[
               Text(
                 label,
-                style: const TextStyle(color: kPrimaryDarkColor,
+                style: const TextStyle(
+                  color: kPrimaryDarkColor,
                   fontSize: 18,
-                  fontWeight:  FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(width: 2),
-
-              IconButton(onPressed: (){
-                log('=--=-------');
-
-              },
-                icon: const Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
+              IconButton(
+                onPressed: () {
+                  log('=--=-------');
+                },
+                icon: const Icon(
+                  Icons.cancel,
+                  color: kPrimaryDarkColor,
+                  size: 22,
+                ),
               ),
-
             ],
           ),
         ),
@@ -256,7 +241,8 @@ class CircleIconButton extends StatelessWidget {
   final double iconSize;
   final double circleSize;
 
-  const CircleIconButton({super.key, 
+  const CircleIconButton({
+    super.key,
     required this.onPressed,
     required this.icon,
     required this.iconColor,

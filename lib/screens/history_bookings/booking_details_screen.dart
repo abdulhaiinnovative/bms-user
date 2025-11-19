@@ -11,7 +11,8 @@ class BookingDetailsScreen extends StatelessWidget {
 
   Future<void> _cancelBooking(BuildContext context) async {
     try {
-      // TODO: Implement with BookingsViewModel.cancelBooking()
+      // Uncomment when API is implemented
+      // await MyBookingsAPI().cancelBooking(booking.id);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Booking cancelled successfully'),

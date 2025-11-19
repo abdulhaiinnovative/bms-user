@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:app/screens/complete_profile/complete_profile_screen.dart';
+import 'package:app/features/auth/presentation/screens/complete_profile/complete_profile_screen.dart';
 import 'package:app/services/protected_http_client.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:http/http.dart' as http;
-import '../utlis/authutils/auth_manager.dart';
+import '../features/auth/utils/auth_manager.dart';
 import '../constants.dart';
 
 /// Protected HTTP Client - Automatically adds authentication token to all requests

@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
-import 'package:app/services/protected_http_client.dart';
+import 'package:http/http.dart' as http;
+import 'package:app/constants.dart';
 
 class FilterCategoriesNew extends StatefulWidget {
   final int? selectedCategoryId;
@@ -28,7 +29,10 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
     try {
       log('FilterCategoriesNew: Fetching categories');
 
-      final response = await ProtectedHttpClient.get('/get-categories');
+      final response = await http.get(
+        Uri.parse('$BASE_URL/get-categories'),
+        headers: {'Content-Type': 'application/json'},
+      );
 
       // Check if widget is still mounted before calling setState
       if (!mounted) return;
@@ -56,20 +60,6 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
         });
         log('❌ FilterCategoriesNew: Status code ${response.statusCode}');
       }
-    } on UnauthorizedException catch (e) {
-      log('❌ FilterCategoriesNew: Unauthorized - $e');
-      if (!mounted) return;
-      setState(() {
-        error = 'Session expired. Please login again.';
-        isLoading = false;
-      });
-    } on ApiException catch (e) {
-      log('❌ FilterCategoriesNew: API Error - $e');
-      if (!mounted) return;
-      setState(() {
-        error = 'Error fetching categories: $e';
-        isLoading = false;
-      });
     } catch (e) {
       // Check if widget is still mounted before calling setState
       if (!mounted) return;

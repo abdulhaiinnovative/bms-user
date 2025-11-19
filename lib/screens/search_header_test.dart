@@ -7,232 +7,194 @@ import 'package:app/components/price_range.dart';
 import 'package:app/components/sorting.dart';
 import 'package:app/constants.dart';
 
-import 'home/components/search_field.dart';
-
-
+import 'package:app/features/home/presentation/widgets/search_field.dart';
 
 class ServicesHeaderTest extends StatelessWidget {
-
   TextEditingController searchController = TextEditingController();
 
-
-   ServicesHeaderTest({
+  ServicesHeaderTest({
     Key? key,
   }) : super(key: key);
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
     return Container(
       child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 5),
-          child:
-          Column(
+          child: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 60),
-                    Expanded(child: SearchField(controller: searchController,)),
-                    const SizedBox(width: 8),
+                const SizedBox(width: 60),
+                Expanded(
+                    child: SearchField(
+                  controller: searchController,
+                )),
+                const SizedBox(width: 8),
+                CircleIconButton(
+                  onPressed: () {
+                    log('IconButton pressed');
+                  },
+                  icon: Icons.favorite,
+                  iconColor: kPrimaryDarkColor,
+                  backgroundColor: kPrimaryDarkColor.withOpacity(0.15),
+                  borderColor: kPrimaryDarkColor.withOpacity(0.01),
+                  borderWidth: 2.0,
+                  iconSize: 25,
+                  circleSize: 37,
+                ),
+                const SizedBox(width: 8),
+              ],
+            ),
 
-                    CircleIconButton(
-                      onPressed: () {
-                        log('IconButton pressed');
-                      },
-                      icon: Icons.favorite,
-                      iconColor: kPrimaryDarkColor,
-                      backgroundColor: kPrimaryDarkColor.withOpacity(0.15),
-                      borderColor: kPrimaryDarkColor.withOpacity(0.01),
-                      borderWidth: 2.0,
-                      iconSize: 25,
-                      circleSize: 37,
+            const SizedBox(height: 5),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const SizedBox(width: 8),
+
+                InkWell(
+                  child: Container(
+                    padding: const EdgeInsets.all(8.0),
+                    child: const Row(
+                      children: <Widget>[
+                        Icon(Icons.sort),
+                        SizedBox(width: 4),
+                        Text('..Sort'),
+                      ],
                     ),
-
-                    const SizedBox(width: 8),
-                  ],
+                  ),
+                  onTap: () {
+                    log("Click event on Container");
+                    showModalBottomSheet<void>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const Sorting();
+                        });
+                  },
                 ),
 
+                const SizedBox(width: 4),
 
-                const SizedBox(height: 5),
-
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const SizedBox(width: 8),
-
-                    InkWell(
-                      child: Container(
-                        padding: const EdgeInsets.all(8.0),
-                        child: const Row(
-                          children: <Widget>[
-                            Icon(Icons.sort),
-                            SizedBox(width: 4),
-                            Text('..Sort'),
-                          ],
-                        ),
-                      ),
-
-                      onTap: () {
-                        log("Click event on Container");
-                        showModalBottomSheet<void>(
-                            context: context,
-                            builder: (BuildContext context)
-                            {
-                              return const Sorting();
-
-                            }
-                        );
-
-                      },
-                    ),
-
-                    const SizedBox(width: 4),
-
-                    // InkWell(
-                    //
-                    //   child: Container(
-                    //     padding: EdgeInsets.all(8.0),
-                    //     child: const Row(
-                    //       children: <Widget>[
-                    //         Icon(Icons.filter_alt),
-                    //         SizedBox(width: 4),
-                    //         Text('Filter'),
-                    //       ],
-                    //     ),
-                    //   ),
-                    //
-                    //   onTap: () {
-                    //     log("Click event on Container");
-                    //
-                    //   },
-                    // ),
-
-
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Row(
-                          children: <Widget>[
-
-                            FilterItem(
-                              label: 'Category',
-                              onTap: () => {
-                                log('Filter tapped: Location'),
-                                showModalBottomSheet<void>(
-                                    context: context,
-                                    builder: (BuildContext context)
-                                    {
-                                      return const FilterCategories();
-                                    }
-                                )
-                              },
-                            ),
-
-                            FilterItem(
-                              label: 'Location',
-                              onTap: () => {
-                                log('Filter tapped: Location'),
-                                showModalBottomSheet<void>(
-                                    context: context,
-                                    builder: (BuildContext context)
-                                    {
-                                      return const FilterLocation();
-                                    }
-                                )
-                              },
-                            ),
-
-
-                            FilterItem(
-                              label: 'PECHS',
-                              onTap: () => {
-                                log('Filter tapped: Location'),
-                                showModalBottomSheet<void>(
-                                    context: context,
-                                    builder: (BuildContext context)
-                                    {
-                                      return const FilterLocation();
-                                      //LocationPage(),
-                                    }
-                                )
-                              },
-                            ),
-                            FilterItem(
-                              label: 'Rs: 500 - Rs:3000',
-                              onTap: () => {
-                                log('Filter tapped: Location'),
-                                showModalBottomSheet<void>(
-                                    context: context,
-                                    builder: (BuildContext context)
-                                    {
-                                      return const PriceRange();
-                                    }
-                                )
-                              },
-                            ),
-
-                            FilterItem(
-                              label: 'Category 2',
-                              onTap: () => log('Filter tapped: Category 2'),
-                            ),
-                            FilterItem(
-                              label: 'Category 3',
-                              onTap: () => log('Filter tapped: Category 3'),
-                            ),
-                            // Add more FilterItem widgets as needed
-                          ],
-                        ),
-                      ),
-                    ),
-
-
-
-                  ],
-                ),
-
-                const SizedBox(height: 5),
-
-                // Container(
-                //   padding: EdgeInsets.fromLTRB(20, 10, 20, 5),
+                // InkWell(
                 //
                 //   child: Container(
-                //     //padding: EdgeInsets.fromLTRB(0, 10, 20, 5),
-                //     decoration: BoxDecoration(
-                //       color: kSecondaryColor.withOpacity(0.2),
-                //       borderRadius: BorderRadius.circular(12),
-                //     ),
-                //
-                //
-                //     child: TabBar(
-                //       labelColor: Colors.white,
-                //       unselectedLabelColor: Colors.black,
-                //       indicator: BoxDecoration(
-                //         borderRadius: BorderRadius.circular(10),
-                //         color: Colors.pink,
-                //       ),
-                //       indicatorSize: TabBarIndicatorSize.tab,
-                //       tabs: const [
-                //         Tab(text: 'List'),
-                //         Tab(text: 'Map2'),
+                //     padding: EdgeInsets.all(8.0),
+                //     child: const Row(
+                //       children: <Widget>[
+                //         Icon(Icons.filter_alt),
+                //         SizedBox(width: 4),
+                //         Text('Filter'),
                 //       ],
                 //     ),
                 //   ),
+                //
+                //   onTap: () {
+                //     log("Click event on Container");
+                //
+                //   },
                 // ),
 
+                const SizedBox(width: 8),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: <Widget>[
+                        FilterItem(
+                          label: 'Category',
+                          onTap: () => {
+                            log('Filter tapped: Location'),
+                            showModalBottomSheet<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const FilterCategories();
+                                })
+                          },
+                        ),
 
+                        FilterItem(
+                          label: 'Location',
+                          onTap: () => {
+                            log('Filter tapped: Location'),
+                            showModalBottomSheet<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const FilterLocation();
+                                })
+                          },
+                        ),
 
+                        FilterItem(
+                          label: 'PECHS',
+                          onTap: () => {
+                            log('Filter tapped: Location'),
+                            showModalBottomSheet<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const FilterLocation();
+                                  //LocationPage(),
+                                })
+                          },
+                        ),
+                        FilterItem(
+                          label: 'Rs: 500 - Rs:3000',
+                          onTap: () => {
+                            log('Filter tapped: Location'),
+                            showModalBottomSheet<void>(
+                                context: context,
+                                builder: (BuildContext context) {
+                                  return const PriceRange();
+                                })
+                          },
+                        ),
 
-              ]
+                        FilterItem(
+                          label: 'Category 2',
+                          onTap: () => log('Filter tapped: Category 2'),
+                        ),
+                        FilterItem(
+                          label: 'Category 3',
+                          onTap: () => log('Filter tapped: Category 3'),
+                        ),
+                        // Add more FilterItem widgets as needed
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
 
-          )
+            const SizedBox(height: 5),
 
-      ),
+            // Container(
+            //   padding: EdgeInsets.fromLTRB(20, 10, 20, 5),
+            //
+            //   child: Container(
+            //     //padding: EdgeInsets.fromLTRB(0, 10, 20, 5),
+            //     decoration: BoxDecoration(
+            //       color: kSecondaryColor.withOpacity(0.2),
+            //       borderRadius: BorderRadius.circular(12),
+            //     ),
+            //
+            //
+            //     child: TabBar(
+            //       labelColor: Colors.white,
+            //       unselectedLabelColor: Colors.black,
+            //       indicator: BoxDecoration(
+            //         borderRadius: BorderRadius.circular(10),
+            //         color: Colors.pink,
+            //       ),
+            //       indicatorSize: TabBarIndicatorSize.tab,
+            //       tabs: const [
+            //         Tab(text: 'List'),
+            //         Tab(text: 'Map2'),
+            //       ],
+            //     ),
+            //   ),
+            // ),
+          ])),
     );
   }
 }
@@ -255,26 +217,28 @@ class FilterItem extends StatelessWidget {
             //color: kPrimaryDarkColor.withOpacity(0.85),
             borderRadius: BorderRadius.circular(30.0),
             border: Border.all(width: 1.5, color: kPrimaryDarkColor),
-
           ),
           child: Row(
             children: <Widget>[
               Text(
                 label,
-                style: const TextStyle(color: kPrimaryDarkColor,
+                style: const TextStyle(
+                  color: kPrimaryDarkColor,
                   fontSize: 18,
-                  fontWeight:  FontWeight.w800,
+                  fontWeight: FontWeight.w800,
                 ),
               ),
               const SizedBox(width: 2),
-
-              IconButton(onPressed: (){
-                log('=--=-=');
-
-              },
-                icon: const Icon(Icons.cancel, color: kPrimaryDarkColor, size: 22,),
+              IconButton(
+                onPressed: () {
+                  log('=--=-=');
+                },
+                icon: const Icon(
+                  Icons.cancel,
+                  color: kPrimaryDarkColor,
+                  size: 22,
+                ),
               ),
-
             ],
           ),
         ),
@@ -282,7 +246,6 @@ class FilterItem extends StatelessWidget {
     );
   }
 }
-
 
 class CircleIconButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -294,7 +257,8 @@ class CircleIconButton extends StatelessWidget {
   final double iconSize;
   final double circleSize;
 
-  const CircleIconButton({super.key, 
+  const CircleIconButton({
+    super.key,
     required this.onPressed,
     required this.icon,
     required this.iconColor,

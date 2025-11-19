@@ -4,7 +4,7 @@ import 'package:app/screens/search_final/sorting_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
-import '../home/components/search_field.dart';
+import 'package:app/features/home/presentation/widgets/search_field.dart';
 import 'filter_categories_new.dart';
 import 'search_provider_new.dart';
 

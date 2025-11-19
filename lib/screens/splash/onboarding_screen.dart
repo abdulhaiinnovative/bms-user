@@ -1,12 +1,11 @@
 import 'dart:developer';
+import 'package:app/features/auth/presentation/widgets/splash_content.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants.dart';
-import '../../utlis/authutils/auth_manager.dart';
+import '../../features/auth/utils/auth_manager.dart';
 import '../init_screen.dart';
-import '../auth/auth_screen.dart';
-import 'components/splash_content.dart';
-
+import '../../features/auth/presentation/screens/auth/auth_screen.dart';
 class OnboardingScreen extends StatefulWidget {
   static String routeName = "/onboarding";
 

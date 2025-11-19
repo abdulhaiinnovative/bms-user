@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
-import '../../providers/auth/auth_provider.dart';
+import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import '../reset_password/reset_password_screen.dart';
 
 class VerificationScreen extends StatefulWidget {

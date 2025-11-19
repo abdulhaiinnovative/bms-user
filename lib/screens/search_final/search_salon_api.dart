@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:http/http.dart' as http;
 
 import '../../models/HomePageResponse.dart';
-import '../../services/protected_http_client.dart';
+import '../../constants.dart';
 
 class SearchSalonApi {
-  static const String baseUrl = '/search';
+  static const String baseUrl = '$BASE_URL/search';
 
   static Future<Map<String, dynamic>> search({
     required String type,
@@ -41,13 +42,12 @@ class SearchSalonApi {
       };
 
       // Use pageUrl if provided (for pagination), otherwise use base endpoint
-      final endpoint = pageUrl != null
-          ? pageUrl.replaceFirst('https://bms.innovativewidget.com/api', '')
-          : baseUrl;
+      final endpoint = pageUrl ?? baseUrl;
 
-      final response = await ProtectedHttpClient.post(
-        endpoint,
-        body: body,
+      final response = await http.post(
+        Uri.parse(endpoint),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
       );
 
       log('🔍 SearchSalonApi: Response status: ${response.statusCode}');
@@ -94,12 +94,6 @@ class SearchSalonApi {
         log('❌ SearchSalonApi: Failed with status: ${response.statusCode}');
         throw Exception('Failed to fetch data: ${response.statusCode}');
       }
-    } on UnauthorizedException catch (e) {
-      log('❌ SearchSalonApi: UnauthorizedException - ${e.message}');
-      throw Exception('Authentication required. Please login again.');
-    } on ApiException catch (e) {
-      log('❌ SearchSalonApi: ApiException - ${e.message}');
-      throw Exception(e.message);
     } catch (e) {
       log('❌ SearchSalonApi: Unexpected error - $e');
       throw Exception('An error occurred while searching: $e');

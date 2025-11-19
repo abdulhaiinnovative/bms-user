@@ -5,7 +5,7 @@ import '../../../components/custom_surfix_icon.dart';
 import '../../../components/form_error.dart';
 import '../../../components/no_account_text.dart';
 import '../../../constants.dart';
-import '../../../providers/auth/auth_provider.dart';
+import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import '../../verification/verification_screen.dart';
 
 class ForgotPassForm extends StatefulWidget {

@@ -8,7 +8,6 @@ import '../models/SalonMain.dart';
 import '../screens/search_final/search_provider_new.dart';
 import 'services/services_header.dart';
 
-
 class SearchServiceScreen extends StatefulWidget {
   const SearchServiceScreen({super.key});
 
@@ -16,7 +15,8 @@ class SearchServiceScreen extends StatefulWidget {
   _SearchServiceScreenState createState() => _SearchServiceScreenState();
 }
 
-class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTickerProviderStateMixin {
+class _SearchServiceScreenState extends State<SearchServiceScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -62,26 +62,38 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
                 slivers: [
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
+                      (BuildContext context, int index) {
                         if (searchProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         if (searchProvider.services.isEmpty) {
                           return const Center(child: Text("No services found"));
                         }
-                        final service = searchProvider.services[index];
                         return Container(
                           padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
                           child: ServicesCard(
-                            title: service.name ?? '',
-                            price: (service.price ?? 0).toDouble(),
-                            discountAmount: (service.discountAmount ?? 0).toDouble(),
-                            discountType: service.discountType ?? "",
-                            oldPrice: (service.oldPrice ?? 0).toDouble(),
-                            gender: service.gender ?? '',
-                            duration: service.duration ?? '',
-                            salon: null, // Service model doesn't have SalonMain, it has Salon
-                            desc: service.description ?? '',
+                            title: searchProvider.services[index].name ?? '',
+                            price: searchProvider.services[index].price
+                                    ?.toDouble() ??
+                                0.0,
+                            discountAmount: searchProvider
+                                    .services[index].discountAmount
+                                    ?.toDouble() ??
+                                0.0,
+                            discountType:
+                                searchProvider.services[index].discountType ??
+                                    "",
+                            oldPrice: searchProvider.services[index].oldPrice
+                                    ?.toDouble() ??
+                                0.0,
+                            gender: searchProvider.services[index].gender ?? '',
+                            duration:
+                                searchProvider.services[index].duration ?? '',
+                            salon: searchProvider.services[index].salon
+                                as SalonMain?,
+                            desc: searchProvider.services[index].description ??
+                                '',
                             press: () {
                               ///Navigator.pushNamed(context, ServicesScreen.routeName);
                             },
@@ -97,24 +109,30 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
                 slivers: [
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
-                          (BuildContext context, int index) {
+                      (BuildContext context, int index) {
                         if (searchProvider.isLoading) {
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                              child: CircularProgressIndicator());
                         }
                         if (searchProvider.salons.isEmpty) {
                           return const Center(child: Text("No salons found"));
                         }
-                        final salon = searchProvider.salons[index];
                         return Container(
                           padding: const EdgeInsets.fromLTRB(2, 2, 1, 1),
                           child: SalonCard(
-                            name: salon.name ?? '',
+                            name: searchProvider.salons[index].name ?? '',
                             image: logo,
-                            address: salon.address ?? '',
-                            about: salon.about ?? '',
-                            average_rating: (salon.averageRating ?? 0).toDouble(),
-                            review_count: salon.reviewCount ?? 0,
-                            is_favourite: salon.isFavourite ?? false,
+                            address: searchProvider.salons[index].address ?? '',
+                            about: searchProvider.salons[index].about ?? '',
+                            average_rating: searchProvider
+                                    .salons[index].averageRating
+                                    ?.toDouble() ??
+                                0.0,
+                            review_count:
+                                searchProvider.salons[index].reviewCount ?? 0,
+                            is_favourite:
+                                searchProvider.salons[index].isFavourite ??
+                                    false,
                             press: () {
                               ///Navigator.pushNamed(context, ServicesScreen.routeName);
                             },
@@ -134,22 +152,21 @@ class _SearchServiceScreenState extends State<SearchServiceScreen> with SingleTi
   }
 }
 
-
 class SalonCard extends StatelessWidget {
-  const SalonCard({
-    Key? key,
-    required this.name,
-    required this.image,
-    required this.address,
-  required this.about,
-  required this.average_rating,
-  required this.review_count,
-    required this.is_favourite,
-    required this.press
-  }) : super(key: key);
+  const SalonCard(
+      {Key? key,
+      required this.name,
+      required this.image,
+      required this.address,
+      required this.about,
+      required this.average_rating,
+      required this.review_count,
+      required this.is_favourite,
+      required this.press})
+      : super(key: key);
 
   final String name, image, address, about;
-  final int  review_count;
+  final int review_count;
   final double average_rating;
   final bool is_favourite;
 
@@ -234,14 +251,15 @@ class SalonCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 10),
-
             const Spacer(),
             Row(
               children: [
                 Row(
                   children: List.generate(5, (index) {
                     return Icon(
-                      index < average_rating ? Icons.star_rounded : Icons.star_border_rounded, // Filled or empty star
+                      index < average_rating
+                          ? Icons.star_rounded
+                          : Icons.star_border_rounded, // Filled or empty star
                       color: Colors.amber,
                       size: 20,
                     );
@@ -251,7 +269,8 @@ class SalonCard extends StatelessWidget {
                 const Spacer(),
                 Row(
                   children: [
-                    const Icon(Icons.reviews, color: kPrice, size: 20), // Review Icon
+                    const Icon(Icons.reviews,
+                        color: kPrice, size: 20), // Review Icon
                     const SizedBox(width: 5), // Spacing
                     Text(
                       '$review_count Reviews', // Better formatting
@@ -264,7 +283,6 @@ class SalonCard extends StatelessWidget {
                     ),
                   ],
                 ),
-
               ],
             ),
           ],
@@ -410,6 +428,7 @@ class ServicesCard extends StatelessWidget {
                 ),
                 const Spacer(),
                 const BookNow()
+
                 ///SalePercentage(off: 18, type: '',),
               ],
             ),

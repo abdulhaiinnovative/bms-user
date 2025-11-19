@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:app/services/protected_http_client.dart';
+import 'package:http/http.dart' as http;
+import 'package:app/constants.dart';
 import '../models/SalonDetailApiResponse.dart';
 
 class SalonDetailAPI {
@@ -8,10 +9,13 @@ class SalonDetailAPI {
 
   Future<SalonData?> fetchSalonDetailData(String salonId) async {
     try {
-      // Using ProtectedHttpClient with authentication required
+      // Using regular HTTP without authentication (public data)
       log('SalonDetailAPI: Fetching salon details for ID: $salonId');
 
-      final response = await ProtectedHttpClient.get('/salons/$salonId');
+      final response = await http.get(
+        Uri.parse('$BASE_URL/salons/$salonId'),
+        headers: {'Content-Type': 'application/json'},
+      );
 
       if (response.statusCode == 200) {
         final apiResponse =
@@ -29,12 +33,6 @@ class SalonDetailAPI {
         log('❌ SalonDetailAPI: Unexpected status code ${response.statusCode}');
         return null;
       }
-    } on UnauthorizedException catch (e) {
-      log('❌ SalonDetailAPI: Unauthorized - $e');
-      throw Exception('Session expired. Please login again.');
-    } on ApiException catch (e) {
-      log('❌ SalonDetailAPI: API Error - $e');
-      throw Exception('Failed to load salon details: $e');
     } catch (error) {
       log('❌ SalonDetailAPI: Unexpected error - $error');
       throw Exception('Failed to load salon details: $error');

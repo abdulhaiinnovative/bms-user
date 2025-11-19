@@ -3,7 +3,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../../constants.dart';
 import '../../models/HomePageResponse.dart';
-import '../home/components/deals_dashboard.dart';
+import 'package:app/features/home/presentation/widgets/deals_dashboard.dart';
 import '../products/products_screen.dart';
 import '../salon/salon_screen.dart';
 

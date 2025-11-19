@@ -2,9 +2,7 @@ import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import 'package:app/data/repositories/bookings_repository.dart';
 import 'package:app/models/MyBookingResponse.dart';
-import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../models/home/Professional.dart';
 
 /// ViewModel for Bookings Screen
 /// Manages state for user bookings with pagination and filtering
@@ -185,30 +183,5 @@ class BookingsViewModel extends BaseViewModel {
   /// Refresh bookings list
   Future<void> refresh() async {
     await loadBookings(refresh: true);
-  }
-
-  /// Create a new booking
-  Future<void> createBooking({
-    required BuildContext context,
-    required Map<dynamic, int>? cartItems,
-    required DateTime? selectedDay,
-    required String? selectedTime,
-    required List<Professional> selectedProfessionals,
-    required String? paymentMethod,
-    required String bookingType,
-  }) async {
-    log('BookingsViewModel: Creating booking');
-
-    await _repository.createBooking(
-      context: context,
-      cartItems: cartItems,
-      selectedDay: selectedDay,
-      selectedTime: selectedTime,
-      selectedProfessionals: selectedProfessionals,
-      paymentMethod: paymentMethod,
-      bookingType: bookingType,
-    );
-
-    log('BookingsViewModel: Booking creation completed');
   }
 }

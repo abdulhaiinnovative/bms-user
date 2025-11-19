@@ -3,8 +3,8 @@ import 'package:app/constants.dart';
 import 'package:provider/provider.dart';
 import 'dart:developer' as developer;
 
-import '../../providers/auth/auth_provider.dart';
-import '../../screens/auth/auth_screen.dart';
+import '../../features/auth/presentation/providers/auth_provider.dart';
+import '../../features/auth/presentation/screens/auth/auth_screen.dart';
 import '../../services/fcm_token_service.dart';
 import '../../utlis/UtilsExtra.dart';
 import 'components/profile_menu.dart';

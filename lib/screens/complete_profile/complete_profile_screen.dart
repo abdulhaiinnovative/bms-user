@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../../constants.dart';
 import 'components/complete_profile_form.dart';
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
-import '../../models/auth/social_auth_response.dart';
+import 'package:app/features/auth/data/models/social_auth_response.dart';
 
 class CompleteProfileScreen extends StatelessWidget {
   static String routeName = "/complete_profile";

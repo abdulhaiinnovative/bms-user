@@ -105,38 +105,4 @@ class ProfileViewModel extends BaseViewModel {
   /// Check if user has location coordinates
   bool get hasLocation =>
       _userData?.latitude != null && _userData?.longitude != null;
-
-  /// Update user profile
-  Future<bool> updateProfile(Map<String, dynamic> profileData) async {
-    log('ProfileViewModel: Updating profile');
-    log('ProfileViewModel: Profile data - $profileData');
-
-    bool success = false;
-
-    await executeAsync(
-      operation: () async {
-        final response = await _repository.updateProfile(profileData);
-
-        log('ProfileViewModel: Update response received - Status: ${response?.status}');
-
-        if (response != null && response.status == true) {
-          // Update local user data after successful update
-          if (response.response?.data != null) {
-            _userData = response.response!.data;
-          }
-
-          log('ProfileViewModel: Profile updated successfully');
-          success = true;
-        } else {
-          final errorMsg = response?.message ?? 'Failed to update profile';
-          log('ProfileViewModel: Profile update failed - $errorMsg');
-          throw Exception(errorMsg);
-        }
-
-        notifyListeners();
-      },
-    );
-
-    return success;
-  }
 }

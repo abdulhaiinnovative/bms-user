@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'dart:developer';
-import '../utlis/authutils/auth_interceptor.dart';
+import '../features/auth/utils/auth_interceptor.dart';
 
 /// Base API service class that all other API services can extend
 /// Provides common functionality for API calls using Dio

@@ -1,4 +1,5 @@
 # BMS Flutter - Beauty Management System
+
 ## Complete Project Documentation
 
 ---
@@ -8,6 +9,7 @@
 **BMS (Beauty Management System)** is a comprehensive Flutter mobile application for booking salon services. The app connects customers with salons, allowing them to browse services, book appointments, manage their profiles, and track their bookings.
 
 ### **Technology Stack**
+
 - **Framework**: Flutter (Dart)
 - **Architecture**: MVVM (Model-View-ViewModel)
 - **State Management**: Provider
@@ -45,6 +47,7 @@
 ```
 
 ### **Project Structure**
+
 ```
 lib/
 ├── core/                    # Core utilities and base classes
@@ -131,6 +134,7 @@ lib/
 ### **1. Authentication & Authorization**
 
 #### **Features**
+
 - Email/Password Login & Registration
 - Google Sign-In
 - Facebook Sign-In (Social Auth)
@@ -141,6 +145,7 @@ lib/
 - Profile Completion
 
 #### **Screens**
+
 - `AuthScreen` - Main authentication screen
 - `ModernLoginScreen` - Login interface
 - `OtpScreen` - OTP verification
@@ -150,6 +155,7 @@ lib/
 - `CompleteProfileScreen` - Profile completion
 
 #### **Implementation**
+
 - **ViewModel**: `AuthProvider` (authentication infrastructure)
 - **APIs**: `auth_service_api.dart`, `social_auth_api.dart`
 - **Firebase Integration**: Firebase Auth, Google Sign-In
@@ -159,6 +165,7 @@ lib/
 ### **2. Home Dashboard**
 
 #### **Features**
+
 - Welcome banner with user info
 - Search bar for quick service/salon search
 - Notification bell with unread count
@@ -169,10 +176,12 @@ lib/
 - All content loaded dynamically from API
 
 #### **Screens**
+
 - `HomeScreen` - Main dashboard
 - `HomeFetchAPIData` - API data wrapper
 
 #### **Components**
+
 - `HomeHeader` - Top bar with search and notifications
 - `NotificationBellButton` - Bell icon with badge
 - `CategoriesDashboard` - Category carousel
@@ -182,12 +191,14 @@ lib/
 - `DiscountBanner` - Promotional banners
 
 #### **Implementation**
+
 - **ViewModel**: `HomeViewModel`
 - **Repository**: `HomeRepository`
 - **API**: `home_screen_api.dart`
 - **Models**: `HomePageResponse` (Salon, Service, Deal, Category)
 
 #### **Data Flow**
+
 ```dart
 HomeScreen → HomeViewModel.loadHomeData()
   → HomeRepository.getHomeData()
@@ -202,6 +213,7 @@ HomeScreen → HomeViewModel.loadHomeData()
 #### **A. Salon Listing**
 
 **Features**
+
 - Browse all available salons
 - View salon cards with:
   - Salon name and image
@@ -213,10 +225,12 @@ HomeScreen → HomeViewModel.loadHomeData()
 - Navigate to salon details
 
 **Screens**
+
 - `SalonScreen` - Salon listing grid
 - `SalonFetchAPIData` - API wrapper
 
 **Implementation**
+
 - **ViewModel**: `SalonViewModel`
 - **Repository**: `SalonRepository`
 - **API**: `home_screen_api.dart` (reused)
@@ -226,6 +240,7 @@ HomeScreen → HomeViewModel.loadHomeData()
 #### **B. Salon Details**
 
 **Features**
+
 - **Overview Tab**:
   - Salon banner image
   - Name, rating, reviews
@@ -233,37 +248,37 @@ HomeScreen → HomeViewModel.loadHomeData()
   - Address and location
   - Contact information
   - Opening hours
-  
 - **Services Tab**:
   - Categorized services list
   - Service name, price, duration
   - Gender specification
   - Discount information
   - Add to cart functionality
-  
 - **Team Tab**:
   - Staff/professionals list
   - Staff photos and names
   - Specializations
-  
 - **Reviews Tab**:
   - Customer reviews and ratings
   - Review comments
   - Rating distribution
 
 **Screens**
+
 - `SalonDetailsScrollingTabsEffect` - Main salon detail screen
 - `SalonDetailsScrollingTabsEffectB` - Alternative detail view
 - `SalonCategoryAndServicesList` - Service list by category
 - `SalonCategoryAndServicesListByService` - Service list by service
 
 **Components**
+
 - Custom scrolling tabs with synced content
 - Service cards
 - Review cards
 - Staff profile cards
 
 **Implementation**
+
 - **ViewModel**: `SalonDetailViewModel`
 - **Repository**: `SalonDetailRepository`
 - **API**: `salon_detail_api.dart`
@@ -274,6 +289,7 @@ HomeScreen → HomeViewModel.loadHomeData()
 ### **4. Services**
 
 #### **Features**
+
 - Browse all services across all salons
 - View categorized services
 - Filter by category
@@ -286,15 +302,18 @@ HomeScreen → HomeViewModel.loadHomeData()
   - Discount type and amount
 
 **Screens**
+
 - `ServicesScreen` - All services view
 - `ServiceDetailsScreen` - Individual service details
 - `CategoryDetailsFetchAPIData` - Category-wise services
 
 **Components**
+
 - `ServicesHeader` - Service list header with tabs
 - Service cards with pricing and details
 
 **Implementation**
+
 - **ViewModel**: `SalonServicesViewModel`
 - **Repository**: `SalonServicesRepository`
 - **API**: `salon_services_categorized_api.dart`
@@ -305,18 +324,20 @@ HomeScreen → HomeViewModel.loadHomeData()
 ### **5. Search & Filter**
 
 #### **Features**
+
 - **Multi-tab Search**:
   - Services tab
   - Salons tab
   - Deals tab
-  
 - **Search Capabilities**:
+
   - Real-time search
   - Search by service name
   - Search by salon name
   - Search deals
 
 - **Filtering**:
+
   - Filter by category
   - Price range filter (min/max)
   - Gender filter (Male/Female/Unisex)
@@ -330,10 +351,12 @@ HomeScreen → HomeViewModel.loadHomeData()
   - Sort by newest/oldest
 
 **Screens**
+
 - `SearchServiceScreenNew` - Main search screen
 - `SearchServiceScreen` - Legacy search (migrated)
 
 **Components**
+
 - `ServicesHeaderNew` - Search header with tabs
 - `FilterCategoriesNew` - Category filter chips
 - `PriceRangeNew` - Price slider filter
@@ -343,12 +366,14 @@ HomeScreen → HomeViewModel.loadHomeData()
 - `DealCardNew` - Deal result card
 
 **Implementation**
+
 - **ViewModel**: `SearchProviderNew` (extends BaseViewModel)
 - **Repository**: `SearchRepository`
 - **API**: `search_salon_api.dart` (in search_final directory)
 - **Models**: `HomePageResponse` (Service, Salon, Deal)
 
 **Search Flow**
+
 ```dart
 User types in search → SearchProviderNew.searchServices(query)
   → SearchRepository.search(type, title, filters)
@@ -364,27 +389,32 @@ User types in search → SearchProviderNew.searchServices(query)
 #### **A. Booking Flow**
 
 **Step 1: Select Services**
+
 - Choose services from salon details
 - Add multiple services to cart
 - View selected services summary
 
 **Step 2: Select Date**
+
 - Calendar view
 - See available dates
 - Select appointment date
 
 **Step 3: Select Time**
+
 - View available time slots
 - Select appointment time
 - See salon working hours
 
 **Step 4: Select Professional** (Optional)
+
 - Browse salon staff
 - View staff specializations
 - Choose preferred professional
 - Skip to auto-assign
 
 **Step 5: Confirm Booking**
+
 - Review all booking details
 - See cart summary
 - View total cost
@@ -393,6 +423,7 @@ User types in search → SearchProviderNew.searchServices(query)
 - Confirm and book
 
 **Screens**
+
 - `SalonCategoryAndServicesList` - Service selection
 - `SelectDateScreen` - Date selection
 - `SelectTimeScreen` - Time slot selection
@@ -400,6 +431,7 @@ User types in search → SearchProviderNew.searchServices(query)
 - `ConfirmBookingScreen` - Final confirmation
 
 **Components**
+
 - `CartSummarySection` - Booking summary widget
 - Service selection cards
 - Date picker calendar
@@ -407,6 +439,7 @@ User types in search → SearchProviderNew.searchServices(query)
 - Professional cards
 
 **Implementation**
+
 - **ViewModel**: `BookingsViewModel`
 - **Repository**: `BookingsRepository`
 - **API**: `BookingService.dart`
@@ -417,6 +450,7 @@ User types in search → SearchProviderNew.searchServices(query)
 #### **B. Booking History**
 
 **Features**
+
 - View all past and upcoming bookings
 - Booking status:
   - Pending
@@ -435,16 +469,19 @@ User types in search → SearchProviderNew.searchServices(query)
 - View booking details
 
 **Screens**
+
 - `MyBookings` - Booking list screen
 - `BookingDetailsScreen` - Individual booking details
 
 **Implementation**
+
 - **ViewModel**: `BookingsViewModel`
 - **Repository**: `BookingsRepository`
 - **API**: `MyBookingsAPI.dart`
 - **Models**: `MyBookingResponse`
 
 **Booking States**
+
 ```dart
 enum BookingStatus {
   pending,
@@ -461,6 +498,7 @@ enum BookingStatus {
 #### **A. Profile Management**
 
 **Features**
+
 - View profile information
 - Edit profile details:
   - Full name
@@ -473,22 +511,25 @@ enum BookingStatus {
 - Profile completion status
 
 **Screens**
+
 - `ProfileScreen` - Profile overview
 - `MyAccountScreen` - Detailed account view
 - `CompleteProfileScreen` - Profile completion form
 
 **Components**
+
 - `ProfilePic` - Profile picture with camera
 - `ProfileMenu` - Menu items
 - `AccountBoxes` - Quick action boxes
 
 **Implementation**
+
 - **ViewModel**: `ProfileViewModel`
 - **Repository**: `ProfileRepository`
-- **APIs**: 
+- **APIs**:
   - `my_account_api.dart` (fetch profile)
   - `ProfileUpdateAPI.dart` (update profile)
-- **Models**: 
+- **Models**:
   - `my_account_response.dart`
   - `update_profile_response.dart`
 
@@ -497,6 +538,7 @@ enum BookingStatus {
 #### **B. Account Features**
 
 **Quick Actions**
+
 - My Bookings
 - Favourites
 - Notifications
@@ -509,6 +551,7 @@ enum BookingStatus {
 ### **8. Notifications**
 
 #### **Features**
+
 - Real-time notifications
 - Notification types:
   - Booking confirmations
@@ -523,19 +566,23 @@ enum BookingStatus {
 - Pull to refresh
 
 **Screens**
+
 - `NotificationsScreen` - Notification list
 
 **Components**
+
 - `NotificationCard` - Individual notification
 - `NotificationBellButton` - Bell icon with badge (in home header)
 
 **Implementation**
+
 - **ViewModel**: `NotificationsViewModel`
 - **Repository**: `NotificationsRepository`
 - **API**: `notification_service_api.dart`
 - **Models**: `notification/` models
 
 **Notification Flow**
+
 ```dart
 App Launch → NotificationsViewModel.loadUnreadCount()
   → Shows badge on notification bell
@@ -555,6 +602,7 @@ User taps notification → NotificationsViewModel.markAsRead(id)
 ### **9. Favourites**
 
 #### **Features**
+
 - Add/remove salons to favourites
 - View all favourite salons
 - Quick access to favourite salons
@@ -562,15 +610,18 @@ User taps notification → NotificationsViewModel.markAsRead(id)
 - Favourite status indicator
 
 **Screens**
+
 - `FavouritesScreen` - Favourites list
 
 **Implementation**
+
 - **ViewModel**: `FavouritesViewModel`
 - **Repository**: `FavouritesRepository`
 - **API**: `favourite_api.dart`
 - **Models**: `FavouritesListResponse`
 
 **Favourite Actions**
+
 ```dart
 // Add to favourites
 FavouritesViewModel.toggleFavourite(salonId)
@@ -590,6 +641,7 @@ FavouritesViewModel.toggleFavourite(salonId)
 ### **10. Categories**
 
 #### **Features**
+
 - Browse service categories
 - View category icons/images
 - Category-wise service filtering
@@ -597,6 +649,7 @@ FavouritesViewModel.toggleFavourite(salonId)
 - All categories view
 
 **Implementation**
+
 - **ViewModel**: `CategoryViewModel`
 - **Repository**: `CategoryRepository`
 - **API**: `CategoryDetailsAPI.dart`
@@ -615,7 +668,7 @@ MultiProvider(
   providers: [
     // Authentication
     ChangeNotifierProvider(create: (context) => AuthProvider()),
-    
+
     // MVVM ViewModels
     ChangeNotifierProvider(create: (context) => SearchProviderNew()),
     ChangeNotifierProvider(create: (context) => HomeViewModel()),
@@ -694,7 +747,7 @@ abstract class BaseRepository {
 ```dart
 class BaseApiService {
   static const String baseUrl = 'YOUR_API_BASE_URL';
-  
+
   Future<http.Response> get(String endpoint);
   Future<http.Response> post(String endpoint, Map<String, dynamic> body);
   Future<http.Response> put(String endpoint, Map<String, dynamic> body);
@@ -704,21 +757,21 @@ class BaseApiService {
 
 ### **API Endpoints**
 
-| Feature | API Service | Endpoints |
-|---------|------------|-----------|
-| Authentication | `auth_service_api.dart` | `/login`, `/register`, `/verify` |
-| Social Auth | `social_auth_api.dart` | `/google-auth`, `/facebook-auth` |
-| Home Data | `home_screen_api.dart` | `/home` |
-| Salon Details | `salon_detail_api.dart` | `/salon/{id}` |
-| Services | `salon_services_categorized_api.dart` | `/services/categorized` |
-| Categories | `CategoryDetailsAPI.dart` | `/categories`, `/category/{id}` |
-| Bookings | `BookingService.dart` | `/bookings`, `/bookings/create` |
-| Booking History | `MyBookingsAPI.dart` | `/my-bookings`, `/cancel/{id}` |
-| Profile | `my_account_api.dart` | `/profile` |
-| Profile Update | `ProfileUpdateAPI.dart` | `/profile/update` |
-| Notifications | `notification_service_api.dart` | `/notifications`, `/mark-read` |
-| Favourites | `favourite_api.dart` | `/favourites`, `/toggle` |
-| Search | `search_salon_api.dart` | `/search` |
+| Feature         | API Service                           | Endpoints                        |
+| --------------- | ------------------------------------- | -------------------------------- |
+| Authentication  | `auth_service_api.dart`               | `/login`, `/register`, `/verify` |
+| Social Auth     | `social_auth_api.dart`                | `/google-auth`, `/facebook-auth` |
+| Home Data       | `home_screen_api.dart`                | `/home`                          |
+| Salon Details   | `salon_detail_api.dart`               | `/salon/{id}`                    |
+| Services        | `salon_services_categorized_api.dart` | `/services/categorized`          |
+| Categories      | `CategoryDetailsAPI.dart`             | `/categories`, `/category/{id}`  |
+| Bookings        | `BookingService.dart`                 | `/bookings`, `/bookings/create`  |
+| Booking History | `MyBookingsAPI.dart`                  | `/my-bookings`, `/cancel/{id}`   |
+| Profile         | `my_account_api.dart`                 | `/profile`                       |
+| Profile Update  | `ProfileUpdateAPI.dart`               | `/profile/update`                |
+| Notifications   | `notification_service_api.dart`       | `/notifications`, `/mark-read`   |
+| Favourites      | `favourite_api.dart`                  | `/favourites`, `/toggle`         |
+| Search          | `search_salon_api.dart`               | `/search`                        |
 
 ---
 
@@ -727,6 +780,7 @@ class BaseApiService {
 ### **Design System**
 
 #### **Color Palette**
+
 - Primary Color: `kPrimaryColor`
 - Secondary Color: `kSecondaryColor`
 - Text Color: `kTextColor`
@@ -734,12 +788,14 @@ class BaseApiService {
 - Error: `kErrorColor`
 
 #### **Typography**
+
 - Heading style
 - Body text style
 - Button text style
 - Caption style
 
 #### **Components**
+
 - Custom buttons
 - Input fields
 - Cards
@@ -754,11 +810,13 @@ class BaseApiService {
 ## 🔐 **Security Features**
 
 1. **Authentication**
+
    - Secure token-based authentication
    - Firebase Auth integration
    - Social authentication (Google, Facebook)
 
 2. **Data Protection**
+
    - Encrypted API communication
    - Secure storage for tokens
    - Password hashing
@@ -775,6 +833,7 @@ class BaseApiService {
 ### **Core Models**
 
 #### **1. Salon**
+
 ```dart
 class Salon {
   int? id;
@@ -790,6 +849,7 @@ class Salon {
 ```
 
 #### **2. Service**
+
 ```dart
 class Service {
   int? id;
@@ -806,6 +866,7 @@ class Service {
 ```
 
 #### **3. Deal**
+
 ```dart
 class Deal {
   int? id;
@@ -818,6 +879,7 @@ class Deal {
 ```
 
 #### **4. Category**
+
 ```dart
 class Category {
   int? id;
@@ -828,6 +890,7 @@ class Category {
 ```
 
 #### **5. Booking**
+
 ```dart
 class Booking {
   int id;
@@ -844,6 +907,7 @@ class Booking {
 ```
 
 #### **6. Notification**
+
 ```dart
 class NotificationModel {
   int? id;
@@ -917,47 +981,51 @@ class NotificationModel {
 ## 📱 **Screen Reference**
 
 ### **Authentication Screens**
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Splash | `/` | App initialization |
-| Onboarding | `/onboarding` | First-time user guide |
-| Auth | `/auth` | Login/Register selector |
-| Modern Login | N/A | Login form |
-| OTP | `/otp` | OTP verification |
-| Forgot Password | `/forgot-password` | Password recovery |
-| Verification | `/verification` | Email verification |
-| Reset Password | `/reset-password` | Password reset |
-| Complete Profile | `/complete-profile` | Profile completion |
+
+| Screen           | Route               | Purpose                 |
+| ---------------- | ------------------- | ----------------------- |
+| Splash           | `/`                 | App initialization      |
+| Onboarding       | `/onboarding`       | First-time user guide   |
+| Auth             | `/auth`             | Login/Register selector |
+| Modern Login     | N/A                 | Login form              |
+| OTP              | `/otp`              | OTP verification        |
+| Forgot Password  | `/forgot-password`  | Password recovery       |
+| Verification     | `/verification`     | Email verification      |
+| Reset Password   | `/reset-password`   | Password reset          |
+| Complete Profile | `/complete-profile` | Profile completion      |
 
 ### **Main Screens**
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Init | `/init` | Navigation controller |
-| Home | `/home` | Main dashboard |
-| Salon List | `/salons` | Browse salons |
-| Salon Details | Multiple routes | Salon information |
-| Services | N/A | Browse all services |
-| Service Details | `/service-details` | Service information |
-| Search | `/search-new` | Search & filter |
+
+| Screen          | Route              | Purpose               |
+| --------------- | ------------------ | --------------------- |
+| Init            | `/init`            | Navigation controller |
+| Home            | `/home`            | Main dashboard        |
+| Salon List      | `/salons`          | Browse salons         |
+| Salon Details   | Multiple routes    | Salon information     |
+| Services        | N/A                | Browse all services   |
+| Service Details | `/service-details` | Service information   |
+| Search          | `/search-new`      | Search & filter       |
 
 ### **Booking Screens**
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Service Selection | `/salon-services` | Choose services |
-| Date Selection | `/select-date` | Pick appointment date |
-| Time Selection | `/select-time` | Choose time slot |
-| Professional Selection | `/select-professionals` | Choose stylist |
-| Confirm Booking | `/confirm-booking` | Finalize booking |
-| My Bookings | `/my-bookings` | Booking history |
-| Booking Details | N/A | Individual booking info |
+
+| Screen                 | Route                   | Purpose                 |
+| ---------------------- | ----------------------- | ----------------------- |
+| Service Selection      | `/salon-services`       | Choose services         |
+| Date Selection         | `/select-date`          | Pick appointment date   |
+| Time Selection         | `/select-time`          | Choose time slot        |
+| Professional Selection | `/select-professionals` | Choose stylist          |
+| Confirm Booking        | `/confirm-booking`      | Finalize booking        |
+| My Bookings            | `/my-bookings`          | Booking history         |
+| Booking Details        | N/A                     | Individual booking info |
 
 ### **User Screens**
-| Screen | Route | Purpose |
-|--------|-------|---------|
-| Profile | `/profile` | Profile overview |
-| My Account | `/my-account` | Detailed account |
+
+| Screen        | Route            | Purpose             |
+| ------------- | ---------------- | ------------------- |
+| Profile       | `/profile`       | Profile overview    |
+| My Account    | `/my-account`    | Detailed account    |
 | Notifications | `/notifications` | Notification center |
-| Favourites | N/A | Saved salons |
+| Favourites    | N/A              | Saved salons        |
 
 ---
 
@@ -966,10 +1034,12 @@ class NotificationModel {
 ### **Environment Setup**
 
 1. **Firebase Configuration**
+
    - Android: `android/app/google-services.json`
    - iOS: `ios/Runner/GoogleService-Info.plist`
 
 2. **API Configuration**
+
    - Base URL in `base_api_service.dart`
    - Endpoint configurations
 
@@ -981,20 +1051,24 @@ class NotificationModel {
 ## 📦 **Dependencies**
 
 ### **Core**
+
 - `flutter` - Framework
 - `provider` - State management
 - `http` - HTTP client
 
 ### **Firebase & Auth**
+
 - `firebase_core` - Firebase initialization
 - `firebase_auth` - Authentication
 - `google_sign_in` - Google authentication
 
 ### **UI**
+
 - `flutter_svg` - SVG support
 - `intl` - Internationalization
 
 ### **Utilities**
+
 - `logger` - Logging
 - `shared_preferences` - Local storage
 
@@ -1003,14 +1077,17 @@ class NotificationModel {
 ## 📈 **Performance Optimizations**
 
 1. **Lazy Loading**
+
    - Paginated lists for bookings, notifications
    - On-demand data fetching
 
 2. **Caching**
+
    - Image caching
    - API response caching
 
 3. **State Management**
+
    - Efficient Provider usage
    - Selective widget rebuilds
 
@@ -1023,15 +1100,18 @@ class NotificationModel {
 ## 🧪 **Testing Strategy**
 
 ### **Unit Tests**
+
 - ViewModel logic testing
 - Repository testing
 - API service testing
 
 ### **Widget Tests**
+
 - Component testing
 - Screen testing
 
 ### **Integration Tests**
+
 - User flow testing
 - End-to-end scenarios
 
@@ -1040,6 +1120,7 @@ class NotificationModel {
 ## 🚧 **Future Enhancements**
 
 1. **Features**
+
    - Rating & Review system
    - In-app chat with salons
    - Multiple language support
@@ -1061,18 +1142,21 @@ class NotificationModel {
 ## 📝 **Development Guidelines**
 
 ### **Code Standards**
+
 - Follow Dart style guide
 - Use meaningful variable names
 - Comment complex logic
 - Keep functions small and focused
 
 ### **MVVM Pattern**
+
 - All data operations in Repositories
 - Business logic in ViewModels
 - UI logic only in Screens/Widgets
 - Use BaseViewModel for consistency
 
 ### **Git Workflow**
+
 - Feature branches
 - Pull requests for review
 - Commit message conventions
@@ -1082,11 +1166,13 @@ class NotificationModel {
 ## 📞 **Support & Maintenance**
 
 ### **Code Quality**
+
 - **Flutter Analyze**: 605 issues (0 errors)
 - **Architecture**: 100% MVVM compliance
 - **Code Coverage**: ViewModels and Repositories
 
 ### **Monitoring**
+
 - Error tracking
 - Performance metrics
 - User analytics
