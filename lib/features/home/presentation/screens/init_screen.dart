@@ -42,12 +42,39 @@ class _InitScreenState extends State<InitScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: pages[currentSelectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        onTap: updateCurrentIndex,
-        currentIndex: currentSelectedIndex,
-        showSelectedLabels: false,
-        showUnselectedLabels: false,
-        type: BottomNavigationBarType.fixed,
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, -2),
+            ),
+          ],
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+            child: BottomNavigationBar(
+              onTap: updateCurrentIndex,
+              currentIndex: currentSelectedIndex,
+              showSelectedLabels: true,
+              showUnselectedLabels: true,
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              selectedFontSize: 11,
+              unselectedFontSize: 10,
+              selectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+              ),
+              unselectedLabelStyle: const TextStyle(
+                fontWeight: FontWeight.w400,
+              ),
+              selectedItemColor: kPrimaryColor,
+              unselectedItemColor: inActiveIconColor,
         items: [
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -84,7 +111,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Home",
+            label: "Search",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -101,7 +128,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Fav",
+            label: "Favourites",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -120,7 +147,7 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Chat",
+            label: "Bookings",
           ),
           BottomNavigationBarItem(
             icon: SvgPicture.asset(
@@ -137,9 +164,12 @@ class _InitScreenState extends State<InitScreen> {
                 BlendMode.srcIn,
               ),
             ),
-            label: "Fav",
+            label: "Profile",
           ),
         ],
+            ),
+          ),
+        ),
       ),
     );
   }
