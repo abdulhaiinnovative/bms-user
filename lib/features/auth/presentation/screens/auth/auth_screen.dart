@@ -46,15 +46,47 @@ class _AuthScreenState extends State<AuthScreen>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+        // Do nothing - prevent back navigation
+        // User must use "Continue without account" button to go to InitScreen
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             child: Column(
               children: [
-                const SizedBox(height: 30),
+                const SizedBox(height: 16),
+
+                // Skip for now button at top right
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacementNamed(context, InitScreen.routeName);
+                      },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                      ),
+                      child: Text(
+                        'Skip for now',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: 16),
 
                 // Logo
                 Container(
@@ -149,11 +181,12 @@ class _AuthScreenState extends State<AuthScreen>
 
                 const SizedBox(height: 20),
               ],
-            ),
-          ),
-        ),
-      ),
-    );
+            ), // Column
+          ), // Padding
+        ), // SingleChildScrollView
+      ), // SafeArea (body)
+    ), // Scaffold (child of PopScope)
+    ); // PopScope
   }
 }
 

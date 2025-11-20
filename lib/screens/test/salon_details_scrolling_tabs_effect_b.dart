@@ -18,6 +18,7 @@ import 'package:app/features/home/presentation/widgets/deals_dashboard.dart';
 import 'package:app/features/home/presentation/widgets/services_dashboard.dart';
 import '../test_scroll/salon_category_and_services_list.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:app/helper/auth_dialog_helper.dart';
 
 class SalonDetailsScrollingTabsEffectB extends StatefulWidget {
   const SalonDetailsScrollingTabsEffectB({super.key});
@@ -229,14 +230,13 @@ class _SalonDetailsScrollingTabsEffectB
             isTogglingFavourite = false;
           });
 
-          // Show error message
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result['message'] ?? 'Failed to update favourite'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 3),
-              behavior: SnackBarBehavior.floating,
-            ),
+          // Handle error - show dialog for auth errors, snackbar for others
+          AuthDialogHelper.handleError(
+            context,
+            result['message'] ?? 'Failed to update favourite',
+            authDialogTitle: 'Login Required',
+            authDialogMessage: 'To save your favorite salons and services, please login or create an account.',
+            authDialogIcon: Icons.favorite_border,
           );
 
           log('❌ Failed to toggle favourite: ${result['message']}');
