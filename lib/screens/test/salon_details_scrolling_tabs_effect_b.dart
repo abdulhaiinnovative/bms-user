@@ -235,7 +235,8 @@ class _SalonDetailsScrollingTabsEffectB
             context,
             result['message'] ?? 'Failed to update favourite',
             authDialogTitle: 'Login Required',
-            authDialogMessage: 'To save your favorite salons and services, please login or create an account.',
+            authDialogMessage:
+                'To save your favorite salons and services, please login or create an account.',
             authDialogIcon: Icons.favorite_border,
           );
 

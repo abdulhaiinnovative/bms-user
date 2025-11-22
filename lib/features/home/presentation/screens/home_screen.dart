@@ -2,8 +2,8 @@ import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import '../viewmodels/home_view_model.dart';
 import 'package:provider/provider.dart';
-import '../widgets/categories_dashboard.dart';
 import '../widgets/home_header.dart';
+import '../widgets/categories_dashboard.dart';
 import '../widgets/salon_dashboard.dart';
 import '../widgets/deals_dashboard.dart';
 import '../widgets/services_dashboard.dart';
@@ -196,14 +196,16 @@ class HomeScreenState extends State<HomeScreen> {
                             ? _buildShimmer()
                             : Column(
                                 children: [
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 16),
                                   CategoriesDashboard(
                                       type2: viewModel.categories!),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 8),
                                   SalonDashboard(type3: viewModel.salons!),
+                                  const SizedBox(height: 8),
                                   DealsDashboard(type4: viewModel.deals!),
+                                  const SizedBox(height: 8),
                                   ServicesDashboard(type4: viewModel.services!),
-                                  const SizedBox(height: 10),
+                                  const SizedBox(height: 16),
                                 ],
                               ),
                       ],

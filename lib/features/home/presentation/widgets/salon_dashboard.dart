@@ -2,11 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
-import 'package:app/components/ratings.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
 
-import 'package:app/helper/ReviewCount.dart';
 import 'section_title.dart';
 
 class SalonDashboard extends StatelessWidget {
@@ -30,7 +28,12 @@ class SalonDashboard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                 child: SectionTitle(
                   title: section.heading,
-                  press: () {},
+                  press: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/top-salons',
+                    );
+                  },
                 ),
               ),
               const SizedBox(height: 10),
@@ -110,131 +113,213 @@ class SalonCard extends StatelessWidget {
       padding: const EdgeInsets.only(left: 10),
       child: GestureDetector(
         onTap: press,
-        child: SizedBox(
+        child: Container(
           width: 320,
-          //height: 280,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(kRadius),
-            child: Container(
-              color: kCardBG,
-              child: Column(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: kPrimaryColor.withOpacity(0.1),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimaryColor.withOpacity(0.08),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+                spreadRadius: 0,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.05),
+                blurRadius: 10,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
                 children: [
-                  Stack(
-                    children: [
-                      SizedBox(
-                        width: 320,
-                        height: 175,
-                        child: FadeInImage.assetNetwork(
-                          placeholder:
-                              'assets/images/place_holder.png', // Path to your placeholder image
-                          image: image, // URL to the main image
-                          fit: BoxFit.cover,
-                        ),
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: SizedBox(
+                      width: 320,
+                      height: 175,
+                      child: FadeInImage.assetNetwork(
+                        placeholder:
+                            'assets/images/place_holder.png', // Path to your placeholder image
+                        image: image, // URL to the main image
+                        fit: BoxFit.cover,
                       ),
-                      // Positioned(
-                      //   bottom: 10,
-                      //   left: 10,
-                      //   child: Ratings(rating: 4.3),
-                      // ),
-                      //
-                      //   Positioned(
-                      //     bottom: 10,
-                      //     right: 10,
-                      //     child: ReviewCount(reviews: 4),
-                      //   ),
-                    ],
+                    ),
                   ),
-
-                  //SizedBox(height: 5),
-                  Row(
-                    children: [
-                      // CircularNetworkImage(
-                      //   imageUrl: logo,
-                      //   height: 60,
-                      //   width: 60,
-                      //   border: 3,
-                      // ),
-                      // SizedBox(width: 5),
-
-                      Flexible(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 5,
-                            vertical: 10,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                title,
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.black,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              // Text(
-                              //   desc,
-                              //   style: const TextStyle(
-                              //     color: Colors.black,
-                              //   ),
-                              //   overflow: TextOverflow.ellipsis,
-                              // ),
-
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(
-                                    Icons.location_pin,
-                                    color: Colors.amber,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 5),
-                                  Expanded(
-                                    child: Text(
-                                      address,
-                                      style: const TextStyle(
-                                        color: Colors.black,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-
-                              const SizedBox(
-                                height: 10,
-                              ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Ratings(
-                                    rating: rating,
-                                    compact: true,
-                                  ),
-                                  ReviewCount(reviews: reviews),
-                                ],
-                              )
-                            ],
-                          ),
+                  // Positioned(
+                  //   bottom: 10,
+                  //   left: 10,
+                  //   child: Ratings(rating: 4.3),
+                  // ),
+                  //
+                  // Gradient Overlay at Bottom
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: 80,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          colors: [
+                            Colors.transparent,
+                            Colors.black.withOpacity(0.7),
+                          ],
                         ),
                       ),
-
-                      // Lottie.asset(
-                      //   'assets/images/sale_2.json',
-                      //   width: 70,
-                      //   height: 70,
-                      // ),
-                    ],
+                    ),
+                  ),
+                  // Rating Badge Overlay
+                  Positioned(
+                    bottom: 12,
+                    left: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.star_rounded,
+                            color: Color(0xFFFFB800),
+                            size: 18,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            rating.toString(),
+                            style: const TextStyle(
+                              color: Colors.black87,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '($reviews)',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ),
-        ),
-      ),
-    );
+
+              // Content Section
+              Padding(
+                padding: const EdgeInsets.all(10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Salon Name with Icon
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                kPrimaryColor.withOpacity(0.15),
+                                kPrimaryColor.withOpacity(0.05),
+                              ],
+                            ),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Icon(
+                            Icons.store_rounded,
+                            color: kPrimaryColor,
+                            size: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 7),
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: Color(0xFF1A1A1A),
+                              letterSpacing: 0.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 7),
+
+                    // Address with Location Icon
+                    Container(
+                      padding: const EdgeInsets.all(7),
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor.withOpacity(0.04),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: kPrimaryColor.withOpacity(0.08),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            color: kPrimaryColor.withOpacity(0.7),
+                            size: 14,
+                          ),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              address,
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                height: 1.3,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ), // End Content Section
+            ], // End outer Column's children (Stack and Row)
+          ), // End outer Column
+        ), // End Container
+      ), // End GestureDetector
+    ); // End Padding and return
   }
 }

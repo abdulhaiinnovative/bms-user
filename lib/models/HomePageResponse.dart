@@ -33,15 +33,12 @@ class HomeContentData {
   final List<DealSection> type4;
   final List<ServiceSection> type5;
 
-
-  HomeContentData({
-    required this.type1,
-    required this.type2,
-    required this.type3,
-    required this.type4,
-     required this.type5
-  });
-
+  HomeContentData(
+      {required this.type1,
+      required this.type2,
+      required this.type3,
+      required this.type4,
+      required this.type5});
 
   factory HomeContentData.fromJson(Map<String, dynamic> json) {
     return HomeContentData(
@@ -57,12 +54,10 @@ class HomeContentData {
           .toList(),
       type4: (json['type_4'] as List)
           .map((item) => DealSection.fromJson(item))
-          .toList(),  // Parsing DealSection
-      type5: (json['type_5'] as List)  // Parsing type_5
+          .toList(), // Parsing DealSection
+      type5: (json['type_5'] as List) // Parsing type_5
           .map((item) => ServiceSection.fromJson(item))
           .toList(),
-
-
     );
   }
 }
@@ -76,9 +71,7 @@ class DealSection5 {
   factory DealSection5.fromJson(Map<String, dynamic> json) {
     return DealSection5(
       heading: json['heading'],
-      data: (json['data'] as List)
-          .map((item) => Deal.fromJson(item))
-          .toList(),
+      data: (json['data'] as List).map((item) => Deal.fromJson(item)).toList(),
     );
   }
 }
@@ -92,13 +85,10 @@ class DealSection {
   factory DealSection.fromJson(Map<String, dynamic> json) {
     return DealSection(
       heading: json['heading'],
-      data: (json['data'] as List)
-          .map((item) => Deal.fromJson(item))
-          .toList(),
+      data: (json['data'] as List).map((item) => Deal.fromJson(item)).toList(),
     );
   }
 }
-
 
 class Deal {
   final int? id;
@@ -139,24 +129,33 @@ class Deal {
 
   factory Deal.fromJson(Map<String, dynamic> json) {
     return Deal(
-
-
-      id: json['id'],
-      salonId: json['salon_id'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
+      salonId: json['salon_id'] is int
+          ? json['salon_id']
+          : (json['salon_id'] as num?)?.toInt(),
       name: json['name'],
       image: json['image'],
-      price: json['price'],
+      price: json['price'] is int
+          ? json['price']
+          : (json['price'] as num?)?.toInt(),
       discountType: json['discount_type'],
-      discountValue: json['discount_value'],
-      totalPrice: json['total_price'],
+      discountValue: json['discount_value'] is int
+          ? json['discount_value']
+          : (json['discount_value'] as num?)?.toInt(),
+      totalPrice: json['total_price'] is int
+          ? json['total_price']
+          : (json['total_price'] as num?)?.toInt(),
       startDate: json['start_date'],
       endDate: json['end_date'],
-      status: json['status'],
+      status: json['status'] is int
+          ? json['status']
+          : (json['status'] as num?)?.toInt(),
       deletedAt: json['deleted_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       salon: json['salon'] != null ? Salon.fromJson(json['salon']) : null,
-      services: (json['services'] as List?)?.map((e) => Service.fromJson(e)).toList(),
+      services:
+          (json['services'] as List?)?.map((e) => Service.fromJson(e)).toList(),
     );
   }
 }
@@ -170,14 +169,11 @@ class ServiceSection {
   factory ServiceSection.fromJson(Map<String, dynamic> json) {
     return ServiceSection(
       heading: json['heading'],
-      data: (json['data'] as List)
-          .map((item) => Service.fromJson(item))
-          .toList(),
+      data:
+          (json['data'] as List).map((item) => Service.fromJson(item)).toList(),
     );
   }
 }
-
-
 
 class Service {
   final int? id;
@@ -187,11 +183,11 @@ class Service {
   final String? duration;
   final String? description;
   final int? price; //
-  final int? percentageDiscount;    //
-  final int? discountAmount;   //
-  final String? discountType;   //string
-  final int? priceDiscount;   //
-  final int? oldPrice;  // initial price
+  final int? percentageDiscount; //
+  final int? discountAmount; //
+  final String? discountType; //string
+  final int? priceDiscount; //
+  final int? oldPrice; // initial price
   final int? categoryId;
   final int? subcategoryId;
   final int? isFeature;
@@ -203,7 +199,6 @@ class Service {
   final String? updatedAt;
   final Salon? salon;
   List<Professional>? professionals;
-
 
   Service({
     this.id,
@@ -233,23 +228,45 @@ class Service {
 
   factory Service.fromJson(Map<String, dynamic> json) {
     return Service(
-      id: json['id'],
-      salonId: json['salon_id'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
+      salonId: json['salon_id'] is int
+          ? json['salon_id']
+          : (json['salon_id'] as num?)?.toInt(),
       name: json['name'],
       shortDescription: json['short_description'],
       duration: json['duration'],
       description: json['description'],
-      price: json['price'],
-      percentageDiscount: json['percentage_discount'],
-      discountAmount: json['discount_amount'],
+      price: json['price'] is int
+          ? json['price']
+          : (json['price'] as num?)?.toInt(),
+      percentageDiscount: json['percentage_discount'] is int
+          ? json['percentage_discount']
+          : (json['percentage_discount'] as num?)?.toInt(),
+      discountAmount: json['discount_amount'] is int
+          ? json['discount_amount']
+          : (json['discount_amount'] as num?)?.toInt(),
       discountType: json['discount_type'],
-      priceDiscount: json['price_discount'],
-      oldPrice: json['old_price'],
-      categoryId: json['category_id'],
-      subcategoryId: json['subcategory_id'],
-      isFeature: json['is_feature'],
-      status: json['status'],
-      extraTime: json['extra_time'],
+      priceDiscount: json['price_discount'] is int
+          ? json['price_discount']
+          : (json['price_discount'] as num?)?.toInt(),
+      oldPrice: json['old_price'] is int
+          ? json['old_price']
+          : (json['old_price'] as num?)?.toInt(),
+      categoryId: json['category_id'] is int
+          ? json['category_id']
+          : (json['category_id'] as num?)?.toInt(),
+      subcategoryId: json['subcategory_id'] is int
+          ? json['subcategory_id']
+          : (json['subcategory_id'] as num?)?.toInt(),
+      isFeature: json['is_feature'] is int
+          ? json['is_feature']
+          : (json['is_feature'] as num?)?.toInt(),
+      status: json['status'] is int
+          ? json['status']
+          : (json['status'] as num?)?.toInt(),
+      extraTime: json['extra_time'] is int
+          ? json['extra_time']
+          : (json['extra_time'] as num?)?.toInt(),
       gender: json['gender'],
       deletedAt: json['deleted_at'],
       createdAt: json['created_at'],
@@ -257,16 +274,12 @@ class Service {
       salon: json['salon'] != null ? Salon.fromJson(json['salon']) : null,
       professionals: json['professionals'] != null
           ? (json['professionals'] as List<dynamic>)
-          .map((e) => Professional.fromJson(e as Map<String, dynamic>))
-          .toList()
+              .map((e) => Professional.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
     );
   }
 }
-
-
-
-
 
 class CategorySection {
   final String heading;
@@ -321,20 +334,18 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: json['id'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
       name: json['name'],
       description: json['description'],
-      status: json['status'],
+      status: json['status'] is int
+          ? json['status']
+          : (json['status'] as num?)?.toInt(),
       deletedAt: json['deleted_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
     );
   }
 }
-
-
-
-
 
 class SliderData {
   final String content;
@@ -360,10 +371,7 @@ class SliderData {
       url: json['url'],
     );
   }
-
-
 }
-
 
 class TopSalonSection {
   final String heading;
@@ -374,13 +382,10 @@ class TopSalonSection {
   factory TopSalonSection.fromJson(Map<String, dynamic> json) {
     return TopSalonSection(
       heading: json['heading'],
-      data: (json['data'] as List)
-          .map((item) => Salon.fromJson(item))
-          .toList(),
+      data: (json['data'] as List).map((item) => Salon.fromJson(item)).toList(),
     );
   }
 }
-
 
 class Salon {
   final int? id;
@@ -455,8 +460,10 @@ class Salon {
 
   factory Salon.fromJson(Map<String, dynamic> json) {
     return Salon(
-      id: json['id'],
-      vendorId: json['vendor_id'],
+      id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
+      vendorId: json['vendor_id'] is int
+          ? json['vendor_id']
+          : (json['vendor_id'] as num?)?.toInt(),
       name: json['name'],
       image: json['image'],
       logo: json['logo'],
@@ -480,13 +487,21 @@ class Salon {
       salonPolicy: json['salon_policy'],
       additionalInformation: json['additional_information'],
       about: json['about'],
-      status: json['status'],
-      suspended: json['suspended'],
+      status: json['status'] is int
+          ? json['status']
+          : (json['status'] as num?)?.toInt(),
+      suspended: json['suspended'] is int
+          ? json['suspended']
+          : (json['suspended'] as num?)?.toInt(),
       deletedAt: json['deleted_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
-      averageRating: json['average_rating'],
-      reviewCount: json['review_count'],
+      averageRating: json['average_rating'] is int
+          ? json['average_rating']
+          : (json['average_rating'] as num?)?.toInt(),
+      reviewCount: json['review_count'] is int
+          ? json['review_count']
+          : (json['review_count'] as num?)?.toInt(),
       isFavourite: json['is_favourite'],
     );
   }
@@ -508,12 +523,12 @@ class SalonImage {
   });
 
   factory SalonImage.fromJson(Map<String, dynamic> json) => SalonImage(
-    id: json['id'],
-    salonId: json['salon_id'],
-    image: json['image'],
-    createdAt: json['created_at'],
-    updatedAt: json['updated_at'],
-  );
+        id: json['id'],
+        salonId: json['salon_id'],
+        image: json['image'],
+        createdAt: json['created_at'],
+        updatedAt: json['updated_at'],
+      );
 }
 
 class Type5 {
@@ -523,11 +538,11 @@ class Type5 {
   Type5({required this.heading, required this.services});
 
   factory Type5.fromJson(Map<String, dynamic> json) => Type5(
-    heading: json['heading'],
-    services: (json['data'] as List<dynamic>? ?? [])
-        .map((x) => ServiceData.fromJson(x))
-        .toList(),
-  );
+        heading: json['heading'],
+        services: (json['data'] as List<dynamic>? ?? [])
+            .map((x) => ServiceData.fromJson(x))
+            .toList(),
+      );
 }
 
 // Model for the heading section in type_5
@@ -538,11 +553,11 @@ class HeadingSection {
   HeadingSection({this.heading, this.data = const []});
 
   factory HeadingSection.fromJson(Map<String, dynamic> json) => HeadingSection(
-    heading: json['heading'],
-    data: (json['data'] as List<dynamic>? ?? [])
-        .map((e) => ServiceData.fromJson(e))
-        .toList(),
-  );
+        heading: json['heading'],
+        data: (json['data'] as List<dynamic>? ?? [])
+            .map((e) => ServiceData.fromJson(e))
+            .toList(),
+      );
 }
 
 // Model for the service data
@@ -599,7 +614,6 @@ class ServiceData {
   }
 }
 
-
 class Type1 {
   final String heading;
   final List<SliderItem> data;
@@ -618,7 +632,6 @@ class Type1 {
     );
   }
 }
-
 
 class SliderItem {
   final String content;

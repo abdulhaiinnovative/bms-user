@@ -275,41 +275,33 @@ class CategoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: press,
-      child: Column(
-        children: [
-          // Container(
-          //     padding: const EdgeInsets.all(8),
-          //     height: 90,
-          //     width: 90,
-          //     decoration: BoxDecoration(
-          //       color: kShadowWithPrimary,
-          //       borderRadius: BorderRadius.circular(10),
-          //     ),
-          //     child: FadeInImage.assetNetwork(
-          //       placeholder: placeHolder,
-          //       image: image,
-          //       fit: BoxFit.cover,
-          //     )
-          // ),
-          // const SizedBox(height: 3),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-            margin: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-            decoration: BoxDecoration(
-              color: kCardBG,
-              borderRadius: BorderRadius.circular(20),
-              //border: Border.all(color: kPrimaryColor),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: kPrimaryColor.withOpacity(0.08),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
             ),
-            child: Text(
-              title,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: kPrimaryColor,
-              ),
-            ),
-          )
-        ],
+          ],
+          border: Border.all(
+            color: kPrimaryColor.withOpacity(0.15),
+            width: 1,
+          ),
+        ),
+        child: Text(
+          title,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: kPrimaryColor,
+            letterSpacing: 0.2,
+          ),
+        ),
       ),
     );
   }

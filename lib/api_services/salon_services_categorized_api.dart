@@ -1,8 +1,6 @@
-import 'dart:convert';
 import 'dart:developer';
-import 'package:http/http.dart' as http;
-import 'package:app/constants.dart';
 import '../models/SalonServicesCategorizedResponse.dart';
+import 'base_api_service.dart';
 
 class SalonServicesCategorizedAPI {
   SalonServicesCategorizedAPI();
@@ -12,16 +10,16 @@ class SalonServicesCategorizedAPI {
     try {
       log('SalonServicesCategorizedAPI: Fetching categorized services for salon $salonId');
 
-      final response = await http.post(
-        Uri.parse('$BASE_URL/categorized_services'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({"salon_id": salonId}),
+      final response = await BaseApiService.post(
+        '/categorized_services',
+        data: {"salon_id": salonId},
+        requiresAuth: true,
+        logTag: 'SalonServicesCategorized',
       );
 
       if (response.statusCode == 200) {
         log('✅ SalonServicesCategorizedAPI: Data loaded successfully');
-        return SalonServicesCategorizedResponse.fromJson(
-            json.decode(response.body));
+        return SalonServicesCategorizedResponse.fromJson(response.data);
       } else {
         log('❌ SalonServicesCategorizedAPI: Failed with status ${response.statusCode}');
         throw Exception('Failed to load data: ${response.statusCode}');

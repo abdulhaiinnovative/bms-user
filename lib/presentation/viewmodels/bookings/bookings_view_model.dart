@@ -82,6 +82,22 @@ class BookingsViewModel extends BaseViewModel {
 
         notifyListeners();
       },
+      onError: (error) {
+        // Handle 404 error as empty bookings instead of showing error
+        if (error.contains('404')) {
+          log('404 error detected - treating as no bookings found');
+          _allBookings = [];
+          _upcomingBookings.clear();
+          _pastBookings.clear();
+          _totalBookings = 0;
+          _currentPage = 1;
+          _lastPage = 1;
+          _nextPageUrl = null;
+          // Clear the error and set to success state so empty state shows
+          setSuccess();
+          notifyListeners();
+        }
+      },
     );
 
     _isRefreshing = false;

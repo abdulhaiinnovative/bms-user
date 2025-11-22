@@ -27,15 +27,15 @@ class _InitScreenState extends State<InitScreen> {
     });
   }
 
-  final pages = [
-    const HomeScreen(),
+  final List<Widget> pages = const [
+    HomeScreen(),
     // const FavoriteScreen(),
     // const SearchServiceScreen(),
-    const SearchServiceScreenNew(),
+    SearchServiceScreenNew(),
     // TODO: FAVOURITES NAVIGATION - Favourites screen in bottom navigation
-    const FavouritesScreen(),
-    const MyBookings(),
-    const ProfileScreen()
+    FavouritesScreen(),
+    MyBookings(),
+    ProfileScreen(),
   ];
 
   @override
@@ -75,98 +75,98 @@ class _InitScreenState extends State<InitScreen> {
               ),
               selectedItemColor: kPrimaryColor,
               unselectedItemColor: inActiveIconColor,
-        items: [
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              "assets/icons/Shop Icon.svg",
-              // "assets/icons/home_icon_3.svg",
-              colorFilter: const ColorFilter.mode(
-                inActiveIconColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              // "assets/icons/icons8_home.svg",
-              "assets/icons/Shop Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                kPrimaryColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Home",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              "assets/icons/search_icon.svg",
-              // "assets/icons/home_icon_3.svg",
-              colorFilter: const ColorFilter.mode(
-                inActiveIconColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              "assets/icons/search_icon.svg",
-              colorFilter: const ColorFilter.mode(
-                kPrimaryColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Search",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              "assets/icons/Heart Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                inActiveIconColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              "assets/icons/Heart Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                kPrimaryColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Favourites",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              //calendar-svg
-              "assets/icons/calendar-svg.svg",
-              // "assets/icons/Chat bubble Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                inActiveIconColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              "assets/icons/calendar-svg.svg",
-              colorFilter: const ColorFilter.mode(
-                kPrimaryColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Bookings",
-          ),
-          BottomNavigationBarItem(
-            icon: SvgPicture.asset(
-              "assets/icons/User Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                inActiveIconColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            activeIcon: SvgPicture.asset(
-              "assets/icons/User Icon.svg",
-              colorFilter: const ColorFilter.mode(
-                kPrimaryColor,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: "Profile",
-          ),
-        ],
+              items: [
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    "assets/icons/Shop Icon.svg",
+                    // "assets/icons/home_icon_3.svg",
+                    colorFilter: const ColorFilter.mode(
+                      inActiveIconColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    // "assets/icons/icons8_home.svg",
+                    "assets/icons/Shop Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      kPrimaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Home",
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    "assets/icons/search_icon.svg",
+                    // "assets/icons/home_icon_3.svg",
+                    colorFilter: const ColorFilter.mode(
+                      inActiveIconColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    "assets/icons/search_icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      kPrimaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Search",
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    "assets/icons/Heart Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      inActiveIconColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    "assets/icons/Heart Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      kPrimaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Favourites",
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    //calendar-svg
+                    "assets/icons/calendar-svg.svg",
+                    // "assets/icons/Chat bubble Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      inActiveIconColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    "assets/icons/calendar-svg.svg",
+                    colorFilter: const ColorFilter.mode(
+                      kPrimaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Bookings",
+                ),
+                BottomNavigationBarItem(
+                  icon: SvgPicture.asset(
+                    "assets/icons/User Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      inActiveIconColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  activeIcon: SvgPicture.asset(
+                    "assets/icons/User Icon.svg",
+                    colorFilter: const ColorFilter.mode(
+                      kPrimaryColor,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: "Profile",
+                ),
+              ],
             ),
           ),
         ),

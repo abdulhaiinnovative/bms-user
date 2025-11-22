@@ -101,14 +101,9 @@ class NotificationsViewModel extends BaseViewModel {
 
     try {
       final response = await _repository.getUnreadCount();
-
-      if (response.success == true) {
-        _unreadCount = response.unreadCount ?? 0;
-        log('NotificationsViewModel: Unread count: $_unreadCount');
-        notifyListeners();
-      } else {
-        log('NotificationsViewModel: Failed to load unread count');
-      }
+      _unreadCount = response.unreadCount;
+      log('NotificationsViewModel: Unread count: $_unreadCount');
+      notifyListeners();
     } catch (e) {
       log('NotificationsViewModel: Unread count error - $e');
       // Don't throw, just log - unread count is not critical

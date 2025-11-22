@@ -6,7 +6,7 @@ import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 /// Use this when a feature requires the user to be logged in
 class AuthDialogHelper {
   /// Show a dialog asking the user to login or signup
-  /// 
+  ///
   /// Parameters:
   /// - context: BuildContext for showing the dialog
   /// - title: Optional custom title (default: "Login Required")

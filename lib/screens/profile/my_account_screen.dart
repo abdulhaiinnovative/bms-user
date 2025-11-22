@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 
 import '../../constants.dart';
 import '../../models/my_account_response.dart';
-import '../../presentation/viewmodels/profile/profile_view_model.dart';
+import '../../features/profile/presentation/viewmodels/profile_view_model.dart';
 
 class MyAccountScreen extends StatefulWidget {
   static String routeName = "/my_account";
@@ -84,24 +84,25 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
-                      ],
-                    ),
-                    child: const CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
-                    ),
+                          ],
+                        ),
+                        child: const CircularProgressIndicator(
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      const Text(
+                        'Loading profile...',
+                        style: TextStyle(
+                          color: kSecondaryColor,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 20),
-                  const Text(
-                    'Loading profile...',
-                    style: TextStyle(
-                      color: kSecondaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            )
+                )
               : viewModel.hasProfileData
                   ? RefreshIndicator(
                       color: kPrimaryColor,
@@ -149,7 +150,8 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                           ),
                                           boxShadow: [
                                             BoxShadow(
-                                              color: kPrimaryColor.withOpacity(0.3),
+                                              color: kPrimaryColor
+                                                  .withOpacity(0.3),
                                               blurRadius: 20,
                                               offset: const Offset(0, 8),
                                             ),
@@ -192,8 +194,8 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                             ),
                                             boxShadow: [
                                               BoxShadow(
-                                                color:
-                                                    kPrimaryColor.withOpacity(0.4),
+                                                color: kPrimaryColor
+                                                    .withOpacity(0.4),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -234,195 +236,204 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         const Icon(
-                                      Icons.email_outlined,
-                                      size: 14,
-                                      color: kPrimaryColor,
-                                    ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      viewModel.userEmail,
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: kPrimaryColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              // Stats Cards
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 20),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: _buildStatCard(
-                                        viewModel,
-                                        icon: Icons.event_available_rounded,
-                                        label: 'Appointments',
-                                        value: '${viewModel.appointmentCount}',
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFF667eea),
-                                            Color(0xFF764ba2)
-                                          ],
+                                          Icons.email_outlined,
+                                          size: 14,
+                                          color: kPrimaryColor,
                                         ),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: _buildStatCard(
-                                        viewModel,
-                                        icon: Icons.cancel_outlined,
-                                        label: 'Cancelled',
-                                        value: '${viewModel.userData?.cancelCount ?? 0}',
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFFf093fb),
-                                            Color(0xFFf5576c)
-                                          ],
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          viewModel.userEmail,
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: kPrimaryColor,
+                                          ),
                                         ),
-                                      ),
+                                      ],
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                  const SizedBox(height: 20),
+                                  // Stats Cards
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 20),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: _buildStatCard(
+                                            viewModel,
+                                            icon: Icons.event_available_rounded,
+                                            label: 'Appointments',
+                                            value:
+                                                '${viewModel.appointmentCount}',
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFF667eea),
+                                                Color(0xFF764ba2)
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: _buildStatCard(
+                                            viewModel,
+                                            icon: Icons.cancel_outlined,
+                                            label: 'Cancelled',
+                                            value:
+                                                '${viewModel.userData?.cancelCount ?? 0}',
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFFf093fb),
+                                                Color(0xFFf5576c)
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(height: 24),
+                                ],
                               ),
-                              const SizedBox(height: 24),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        // Personal Information Section
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Personal Information',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: kTextColor,
-                                ),
+                            ),
+                            const SizedBox(height: 16),
+                            // Personal Information Section
+                            Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 20),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Personal Information',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: kTextColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  AccountBoxes(
+                                    icon: Icons.phone_rounded,
+                                    title: "Phone Number",
+                                    value: viewModel.userPhone.isNotEmpty
+                                        ? viewModel.userPhone
+                                        : 'Not provided',
+                                    press: null,
+                                  ),
+                                  AccountBoxes(
+                                    icon: Icons.wc_rounded,
+                                    title: "Gender",
+                                    value: viewModel.userData?.gender ??
+                                        'Not specified',
+                                    press: null,
+                                  ),
+                                  AccountBoxes(
+                                    icon: Icons.cake_rounded,
+                                    title: "Date of Birth",
+                                    value: viewModel.userData?.dob ??
+                                        'Not provided',
+                                    press: null,
+                                  ),
+                                  AccountBoxes(
+                                    icon: Icons.location_on_rounded,
+                                    title: "Address",
+                                    value: viewModel.hasAddress
+                                        ? viewModel.fullAddress
+                                        : 'Not provided',
+                                    press: null,
+                                  ),
+                                  const SizedBox(height: 16),
+                                  const Text(
+                                    'Account Status',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: kTextColor,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  AccountBoxes(
+                                    icon: Icons.check_circle_outline_rounded,
+                                    title: "Profile Completion",
+                                    value: viewModel.isProfileComplete
+                                        ? 'Complete'
+                                        : 'Incomplete',
+                                    press: null,
+                                    statusColor: viewModel.isProfileComplete
+                                        ? Colors.green
+                                        : Colors.orange,
+                                  ),
+                                  const SizedBox(height: 32),
+                                ],
                               ),
-                              const SizedBox(height: 12),
-                              AccountBoxes(
-                                icon: Icons.phone_rounded,
-                                title: "Phone Number",
-                                value: viewModel.userPhone.isNotEmpty ? viewModel.userPhone : 'Not provided',
-                                press: null,
-                              ),
-                              AccountBoxes(
-                                icon: Icons.wc_rounded,
-                                title: "Gender",
-                                value: viewModel.userData?.gender ?? 'Not specified',
-                                press: null,
-                              ),
-                              AccountBoxes(
-                                icon: Icons.cake_rounded,
-                                title: "Date of Birth",
-                                value: viewModel.userData?.dob ?? 'Not provided',
-                                press: null,
-                              ),
-                              AccountBoxes(
-                                icon: Icons.location_on_rounded,
-                                title: "Address",
-                                value: viewModel.hasAddress ? viewModel.fullAddress : 'Not provided',
-                                press: null,
-                              ),
-                              const SizedBox(height: 16),
-                              const Text(
-                                'Account Status',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                  color: kTextColor,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              AccountBoxes(
-                                icon: Icons.check_circle_outline_rounded,
-                                title: "Profile Completion",
-                                value: viewModel.isProfileComplete
-                                    ? 'Complete'
-                                    : 'Incomplete',
-                                press: null,
-                                statusColor: viewModel.isProfileComplete
-                                    ? Colors.green
-                                    : Colors.orange,
-                              ),
-                              const SizedBox(height: 32),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                )
-              : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: const Icon(
-                          Icons.error_outline_rounded,
-                          size: 60,
-                          color: kSecondaryColor,
-                        ),
                       ),
-                      const SizedBox(height: 20),
-                      const Text(
-                        "Failed to load profile",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color: kTextColor,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "Please try again later",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: kSecondaryColor,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      ElevatedButton.icon(
-                        onPressed: () => viewModel.refreshProfile(),
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('Retry'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: kPrimaryColor,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 32,
-                            vertical: 16,
+                    )
+                  : Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.05),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: const Icon(
+                              Icons.error_outline_rounded,
+                              size: 60,
+                              color: kSecondaryColor,
+                            ),
                           ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                          const SizedBox(height: 20),
+                          const Text(
+                            "Failed to load profile",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: kTextColor,
+                            ),
                           ),
-                          elevation: 4,
-                        ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            "Please try again later",
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: kSecondaryColor,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: () => viewModel.refreshProfile(),
+                            icon: const Icon(Icons.refresh_rounded),
+                            label: const Text('Retry'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kPrimaryColor,
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 32,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              elevation: 4,
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
+                    ),
         );
       },
     );

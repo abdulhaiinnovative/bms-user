@@ -5,6 +5,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:app/features/home/presentation/viewmodels/home_view_model.dart';
+import 'package:app/features/home/presentation/viewmodels/top_salons_view_model.dart';
 import 'package:app/presentation/viewmodels/favourites/favourites_view_model.dart';
 import 'package:app/features/profile/presentation/viewmodels/profile_view_model.dart';
 import 'package:app/features/notifications/presentation/viewmodels/notifications_view_model.dart';
@@ -36,6 +37,7 @@ Future<void> main() async {
         // MVVM ViewModels
         ChangeNotifierProvider(create: (context) => SearchProviderNew()),
         ChangeNotifierProvider(create: (context) => HomeViewModel()),
+        ChangeNotifierProvider(create: (context) => TopSalonsViewModel()),
         ChangeNotifierProvider(create: (context) => FavouritesViewModel()),
         ChangeNotifierProvider(create: (context) => ProfileViewModel()),
         ChangeNotifierProvider(create: (context) => NotificationsViewModel()),

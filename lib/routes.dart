@@ -17,6 +17,10 @@ import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import 'package:app/screens/test/scroll_sync_tabs.dart';
 import 'package:app/screens/test/salon_details_scrolling_tabs_effect.dart';
 import 'package:app/screens/test_scroll/salon_category_and_services_list.dart';
+import 'package:app/features/home/presentation/screens/top_salons_screen.dart';
+import 'package:app/features/home/presentation/screens/deals_list_screen.dart';
+import 'package:app/features/home/presentation/screens/services_list_screen.dart';
+import 'package:app/features/home/presentation/viewmodels/services_view_model.dart';
 
 import 'screens/CategoryDetailsFetchAPIData.dart';
 import 'screens/cart/cart_screen.dart';
@@ -90,4 +94,13 @@ final Map<String, WidgetBuilder> routes = {
 
   SalonCategoryAndServicesListByService.routeName: (context) =>
       const SalonCategoryAndServicesListByService(),
+
+  TopSalonsScreen.routeName: (context) => const TopSalonsScreen(),
+
+  DealsListScreen.routeName: (context) => const DealsListScreen(),
+
+  '/services-list-men': (context) =>
+      const ServicesListScreen(gender: ServiceGender.men),
+  '/services-list-women': (context) =>
+      const ServicesListScreen(gender: ServiceGender.women),
 };

@@ -58,134 +58,136 @@ class _AuthScreenState extends State<AuthScreen>
         body: SafeArea(
           child: SingleChildScrollView(
             child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
 
-                // Skip for now button at top right
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pushReplacementNamed(context, InitScreen.routeName);
-                      },
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      ),
-                      child: Text(
-                        'Skip for now',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[700],
+                  // Skip for now button at top right
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pushReplacementNamed(
+                              context, InitScreen.routeName);
+                        },
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                        ),
+                        child: Text(
+                          'Skip for now',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: 16),
-
-                // Logo
-                Container(
-                  padding: const EdgeInsets.all(20),
-                  decoration: const BoxDecoration(
-                    color: Colors.white,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Image.asset(
-                    'assets/images/bms_logo.jpg',
-                    height: 60,
-                    width: 60,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(
-                        Icons.spa,
-                        size: 60,
-                        color: kPrimaryColor,
-                      );
-                    },
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // Header Text
-                Text(
-                  _authMode == AuthMode.signIn
-                      ? "Welcome Back!"
-                      : "Join Us Today",
-                  style: const TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                Text(
-                  _authMode == AuthMode.signIn
-                      ? "Sign in to continue your beauty journey"
-                      : "Create your account and get started",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey[600],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
-
-                // Tab Bar
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 20),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(30),
-                  ),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicator: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [kPrimaryColor, Color(0xFFFF6B9D)],
-                      ),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[600],
-                    labelStyle: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
-                    tabs: const [
-                      Tab(text: "Sign In"),
-                      Tab(text: "Sign Up"),
                     ],
                   ),
-                ),
 
-                const SizedBox(height: 24),
+                  const SizedBox(height: 16),
 
-                // Form Section
-                _authMode == AuthMode.signIn
-                    ? SignInForm(
-                        onSwitchToSignUp: () {
-                          _tabController.animateTo(1);
-                        },
-                      )
-                    : const SignUpForm(),
+                  // Logo
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Image.asset(
+                      'assets/images/bms_logo.jpg',
+                      height: 60,
+                      width: 60,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Icon(
+                          Icons.spa,
+                          size: 60,
+                          color: kPrimaryColor,
+                        );
+                      },
+                    ),
+                  ),
 
-                const SizedBox(height: 20),
-              ],
-            ), // Column
-          ), // Padding
-        ), // SingleChildScrollView
-      ), // SafeArea (body)
-    ), // Scaffold (child of PopScope)
+                  const SizedBox(height: 16),
+
+                  // Header Text
+                  Text(
+                    _authMode == AuthMode.signIn
+                        ? "Welcome Back!"
+                        : "Join Us Today",
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+
+                  const SizedBox(height: 8),
+
+                  Text(
+                    _authMode == AuthMode.signIn
+                        ? "Sign in to continue your beauty journey"
+                        : "Create your account and get started",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+
+                  const SizedBox(height: 30),
+
+                  // Tab Bar
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    child: TabBar(
+                      controller: _tabController,
+                      indicator: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [kPrimaryColor, Color(0xFFFF6B9D)],
+                        ),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.grey[600],
+                      labelStyle: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                      ),
+                      tabs: const [
+                        Tab(text: "Sign In"),
+                        Tab(text: "Sign Up"),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // Form Section
+                  _authMode == AuthMode.signIn
+                      ? SignInForm(
+                          onSwitchToSignUp: () {
+                            _tabController.animateTo(1);
+                          },
+                        )
+                      : const SignUpForm(),
+
+                  const SizedBox(height: 20),
+                ],
+              ), // Column
+            ), // Padding
+          ), // SingleChildScrollView
+        ), // SafeArea (body)
+      ), // Scaffold (child of PopScope)
     ); // PopScope
   }
 }
