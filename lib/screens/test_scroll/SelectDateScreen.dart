@@ -1,3 +1,4 @@
+import 'dart:developer';
 
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
@@ -39,12 +40,23 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
         _salonAddress = arguments['salonAddress'] as String?;
         _salonImage = arguments['salonImage'] as String?;
 
+        log('════════════════════════════════════════');
+        log('📅 SELECT DATE SCREEN - INIT');
+        log('════════════════════════════════════════');
+        log('Cart Items Count: ${_cartItems?.length ?? 0}');
+        log('Salon: $_salonName');
+        log('Salon Address: $_salonAddress');
+        log('Salon Image: $_salonImage');
+
         final selectedProfessionals = arguments['selectedProfessionals'] as Map<dynamic, String?>?;
         if (selectedProfessionals != null) {
+          log('Selected Professionals:');
           for (var entry in selectedProfessionals.entries) {
             if (entry.key is Service) {
               final service = entry.key as Service;
               final professionalName = entry.value;
+              log('  - Service: ${service.name} → ${professionalName ?? "Any"}');
+              
               if (professionalName != null && professionalName != 'Any' && service.professionals != null) {
                 final professional = service.professionals!.firstWhere(
                       (p) => p.name == professionalName,
@@ -52,12 +64,16 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                 );
                 if (professional.name != 'Unknown') {
                   _selectedProfessionals.add(professional);
+                  log('    Added Professional: ${professional.name} (ID: ${professional.id})');
                 }
               }
             }
           }
         }
+        log('Total Professionals Selected: ${_selectedProfessionals.length}');
+        log('════════════════════════════════════════');
       } else {
+        log('⚠️ No valid arguments passed to SelectDateScreen');
         _selectedProfessionals = [];
         _salonName = null;
         _salonAddress = null;
@@ -232,6 +248,18 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                 ),
                 onPressed: _selectedDay != null
                     ? () {
+                  log('════════════════════════════════════════');
+                  log('📍 NAVIGATING TO SELECT TIME SCREEN');
+                  log('════════════════════════════════════════');
+                  log('Selected Date: ${_selectedDay.toString().split(' ')[0]}');
+                  log('Selected Professionals Count: ${_selectedProfessionals.length}');
+                  _selectedProfessionals.forEach((prof) {
+                    log('  - ${prof.name} (ID: ${prof.id})');
+                  });
+                  log('Cart Items Count: ${_cartItems?.length ?? 0}');
+                  log('Salon: $_salonName');
+                  log('════════════════════════════════════════');
+                  
                   Navigator.pushNamed(
                     context,
                     SelectTimeScreen.routeName,

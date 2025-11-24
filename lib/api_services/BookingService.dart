@@ -16,22 +16,54 @@ class BookingService {
     required String? paymentMethod,
     required String bookingType, // "deal" or "appointment"
   }) async {
-    // Log all relevant values
-    log('BookingService - createBooking values:');
-    log('  salon_id: 1');
-    log('  profession_id: ${selectedProfessionals.isNotEmpty ? selectedProfessionals.map((p) => p.id ?? 0).toList() : [
-        0
-      ]}');
-    log('  time: ${selectedTime != null && selectedDay != null ? "$selectedTime, ${DateFormat('yyyy-MM-dd').format(selectedDay)}" : "Not selected"}');
-    log('  payment_status: ${paymentMethod == 'Cash' ? true : false}');
-    log('  total_price: ${cartItems?.entries.fold<double>(0, (sum, entry) => sum + (entry.key.price ?? 0) * entry.value) ?? 0}');
-    log('  booking_type: $bookingType');
+    log('════════════════════════════════════════════════════════');
+    log('🔄 BOOKING SERVICE - CREATE BOOKING API CALL');
+    log('════════════════════════════════════════════════════════');
+    log('📤 Preparing API payload...');
+    log('');
+    log('🏢 Basic Details:');
+    log('   salon_id: 1');
+    log('   booking_type: $bookingType');
+    log('   payment_status: ${paymentMethod == 'Cash'}');
+    log('   payment_method: $paymentMethod');
+    log('');
+    log('👨‍⚕️ Professionals:');
+    log('   profession_id: ${selectedProfessionals.isNotEmpty ? selectedProfessionals.map((p) => p.id ?? 0).toList() : [0]}');
+    selectedProfessionals.forEach((prof) {
+      log('   - ${prof.name} (ID: ${prof.id})');
+    });
+    log('');
+    log('📅 Booking Time:');
+    final formattedTime = selectedTime != null && selectedDay != null 
+        ? "$selectedTime, ${DateFormat('yyyy-MM-dd').format(selectedDay)}" 
+        : "Not selected";
+    log('   time: $formattedTime');
+    log('   date: ${selectedDay != null ? DateFormat('yyyy-MM-dd').format(selectedDay) : "Not selected"}');
+    log('   time_slot: ${selectedTime ?? "Not selected"}');
+    log('');
+    
+    final totalPrice = cartItems?.entries.fold<double>(
+      0, 
+      (sum, entry) => sum + (entry.key.price ?? 0) * entry.value
+    ) ?? 0;
+    log('💰 Pricing:');
+    log('   total_price: PKR $totalPrice');
+    log('');
+    
     if (bookingType == 'appointment' && cartItems != null) {
-      log('  service_id: ${cartItems.keys.map((s) => s.id ?? 0).toList()}');
-      log('  qty: ${cartItems.map((s, q) => MapEntry(s.id.toString(), q))}');
+      log('📦 Services (Appointment):');
+      final serviceIds = cartItems.keys.map((s) => s.id ?? 0).toList();
+      final quantities = cartItems.map((s, q) => MapEntry(s.id.toString(), q));
+      log('   service_id: $serviceIds');
+      log('   qty: $quantities');
+      cartItems.forEach((key, value) {
+        log('   - Service ID: ${key.id}, Name: ${key.name}, Qty: $value, Price: PKR ${key.price}');
+      });
     } else if (bookingType == 'deal') {
-      log('  deal_id: 1');
+      log('🎁 Deal:');
+      log('   deal_id: 1');
     }
+    log('════════════════════════════════════════════════════════');
 
     // Show loading dialog
     showDialog(
@@ -88,8 +120,18 @@ class BookingService {
         print('Deal payload: $payload');
       }
 
-      log('payload:: $payload');
-      log('payload:jsonEncode: ${jsonEncode(payload)}');
+      log('');
+      log('📋 FINAL REQUEST PAYLOAD:');
+      log('────────────────────────────────────────────────────────');
+      
+      // Pretty print request JSON
+      final prettyRequestJson = JsonEncoder.withIndent('  ').convert(payload);
+      log(prettyRequestJson);
+      
+      log('────────────────────────────────────────────────────────');
+      log('════════════════════════════════════════════════════════');
+      log('');
+      log('🌐 Making POST request to /create-booking...');
 
       // Make the POST API call using ProtectedHttpClient
       final response = await ProtectedHttpClient.post(
@@ -97,12 +139,41 @@ class BookingService {
         body: payload,
       );
 
+      log('');
+      log('════════════════════════════════════════════════════════');
+      log('📥 CREATE BOOKING API - RAW RESPONSE');
+      log('════════════════════════════════════════════════════════');
+      log('Status Code: ${response.statusCode}');
+      log('');
+      log('📄 RAW JSON RESPONSE:');
+      log('────────────────────────────────────────────────────────');
+      
+      try {
+        // Pretty print response JSON
+        final responseJson = jsonDecode(response.body);
+        final prettyResponseJson = JsonEncoder.withIndent('  ').convert(responseJson);
+        log(prettyResponseJson);
+      } catch (e) {
+        // If JSON parsing fails, log raw body
+        log(response.body);
+      }
+      
+      log('────────────────────────────────────────────────────────');
+      log('════════════════════════════════════════════════════════');
+
       // Close loading dialog
       Navigator.pop(context);
 
       // Handle response
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
+        log('');
+        log('✅ SUCCESS - Booking Created (200)');
+        log('   Status: ${responseData['status']}');
+        log('   Message: ${responseData['message'] ?? 'Booking created successfully!'}');
+        log('   Data: ${responseData['data']}');
+        log('════════════════════════════════════════════════════════');
+        
         if (responseData['status'] == true) {
           // Show success dialog
           await showDialog(
@@ -124,6 +195,11 @@ class BookingService {
             ),
           );
         } else {
+          log('');
+          log('❌ ERROR - Booking Failed (status: false)');
+          log('   Message: ${responseData['message']}');
+          log('════════════════════════════════════════════════════════');
+          
           // Show error dialog for unsuccessful status
           await showDialog(
             context: context,
@@ -141,12 +217,20 @@ class BookingService {
           );
         }
       } else {
+        log('');
+        log('❌ ERROR - HTTP ${response.statusCode}');
+        log('   Response: ${response.body}');
+        log('════════════════════════════════════════════════════════');
+        
         // Show error dialog for non-200 status code
-
         if (response.statusCode == 422) {
-          print(response.body);
           final responseData = jsonDecode(response.body);
           final message = responseData['message'] ?? 'Something went wrong.';
+          
+          log('🔴 422 Unprocessable Entity - Validation Error');
+          log('   Message: $message');
+          log('   Errors: ${responseData['errors']}');
+          log('════════════════════════════════════════════════════════');
 
           await showDialog(
             context: context,
@@ -170,8 +254,12 @@ class BookingService {
             ),
           );
         } else {
-          print(response.body);
           final responseData = jsonDecode(response.body);
+          
+          log('🔴 HTTP Error ${response.statusCode}');
+          log('   Message: ${responseData['message']}');
+          log('════════════════════════════════════════════════════════');
+          
           await showDialog(
             context: context,
             builder: (context) => AlertDialog(
@@ -188,7 +276,13 @@ class BookingService {
           );
         }
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      log('');
+      log('💥 EXCEPTION OCCURRED');
+      log('   Error: $e');
+      log('   Stack Trace: $stackTrace');
+      log('════════════════════════════════════════════════════════');
+      
       // Close loading dialog
       Navigator.pop(context);
 

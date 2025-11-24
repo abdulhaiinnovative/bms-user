@@ -44,17 +44,63 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         _salonName = arguments['salonName'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
 
-        log('ConfirmBookingScreen received arguments:');
-        log('  cartItems: ${_cartItems?.keys.map((s) => s.toString()).toList()}');
-        log('  selectedDay: $_selectedDay');
-        log('  selectedTime: $_selectedTime');
-        log('  selectedProfessionals: ${_selectedProfessionals.map((p) => p.name).toList()}');
-        log('  salonName: $_salonName');
-        log('  salonAddress: $_salonAddress');
+        log('════════════════════════════════════════════════════════');
+        log('✅ CONFIRM BOOKING SCREEN - INITIALIZED');
+        log('════════════════════════════════════════════════════════');
+        log('📍 Salon Information:');
+        log('   Name: $_salonName');
+        log('   Address: $_salonAddress');
+        log('');
+        log('📅 Booking Details:');
+        log('   Date: ${_selectedDay?.toString().split(' ')[0] ?? "Not selected"}');
+        log('   Time: $_selectedTime');
+        log('');
+        log('🛒 Cart Items (${_cartItems?.length ?? 0} items):');
+        _cartItems?.forEach((key, value) {
+          if (key is Service) {
+            log('   📦 Service: ${key.name}');
+            log('      - ID: ${key.id}');
+            log('      - Price: PKR ${key.price}');
+            log('      - Old Price: PKR ${key.oldPrice ?? "N/A"}');
+            log('      - Discount: ${key.discountAmount ?? 0}');
+            log('      - Quantity: $value');
+            log('      - Duration: ${key.duration ?? "N/A"}');
+          } else if (key is Deal) {
+            log('   🎁 Deal: ${key.name}');
+            log('      - ID: ${key.id}');
+            log('      - Total Price: PKR ${key.totalPrice}');
+            log('      - Price: PKR ${key.price ?? "N/A"}');
+            log('      - Discount: PKR ${key.discountValue ?? 0}');
+            log('      - Quantity: $value');
+            log('      - Services: ${key.services?.map((s) => s.name).join(", ") ?? "N/A"}');
+          }
+        });
+        log('');
+        log('👨‍⚕️ Selected Professionals (${_selectedProfessionals.length}):');
+        _selectedProfessionals.forEach((prof) {
+          log('   - ${prof.name} (ID: ${prof.id})');
+          log('     Email: ${prof.email ?? "N/A"}');
+          log('     Phone: ${prof.phone ?? "N/A"}');
+        });
+        log('');
+        log('💰 Payment:');
+        log('   Method: Cash (default)');
+        final totalAmount = _cartItems?.entries.fold<double>(
+          0.0,
+          (sum, entry) {
+            final item = entry.key;
+            final qty = entry.value;
+            if (item is Service) return sum + ((item.price ?? 0) * qty);
+            if (item is Deal) return sum + ((item.totalPrice ?? 0) * qty);
+            return sum;
+          },
+        ) ?? 0.0;
+        log('   Total Amount: PKR $totalAmount');
+        log('════════════════════════════════════════════════════════');
 
         setState(() {});
       } else {
-        log('No arguments received in ConfirmBookingScreen');
+        log('⚠️ No arguments received in ConfirmBookingScreen');
       }
     });
   }
@@ -446,9 +492,35 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   }
 
   void _confirmBooking() {
-    log('Confirm booking tapped');
+    log('════════════════════════════════════════════════════════');
+    log('🚀 CONFIRM BOOKING BUTTON TAPPED');
+    log('════════════════════════════════════════════════════════');
+    log('📤 Preparing to submit booking with following details:');
+    log('');
+    log('📍 Salon: $_salonName');
+    log('📅 Date: ${_selectedDay?.toString().split(' ')[0]}');
+    log('⏰ Time: $_selectedTime');
+    log('💳 Payment Method: $_paymentMethod');
+    log('📝 Notes: ${_notesController.text.isEmpty ? "None" : _notesController.text}');
+    log('');
+    log('🛒 Cart Items:');
+    _cartItems?.forEach((key, value) {
+      if (key is Service) {
+        log('   - Service: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.price}');
+      } else if (key is Deal) {
+        log('   - Deal: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.totalPrice}');
+      }
+    });
+    log('');
+    log('👨‍⚕️ Professionals:');
+    _selectedProfessionals.forEach((prof) {
+      log('   - ${prof.name} (ID: ${prof.id})');
+    });
+    log('');
+    log('📞 Calling BookingService.createBooking()...');
+    log('════════════════════════════════════════════════════════');
+    
     // Call your API
-
     BookingService().createBooking(
       context: context,
       cartItems: _cartItems,
@@ -458,7 +530,5 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       paymentMethod: _paymentMethod,
       bookingType: 'appointment', // can adjust dynamically
     );
-
-
   }
 }

@@ -38,10 +38,23 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
           salonImage = arguments['salonImage'] as String?;
           salonAddress = arguments['salonAddress'] as String?;
 
-          log('cartItems length: ${cartItems?.length ?? 0}');
-          log('salonName: $salonName');
-          log('salonImage: $salonImage');
-          log('salonAddress: $salonAddress');
+          log('════════════════════════════════════════');
+          log('👨‍⚕️ SELECT PROFESSIONALS SCREEN - INIT');
+          log('════════════════════════════════════════');
+          log('Cart Items Count: ${cartItems?.length ?? 0}');
+          log('Salon Name: $salonName');
+          log('Salon Image: $salonImage');
+          log('Salon Address: $salonAddress');
+          log('Cart Items:');
+          cartItems?.forEach((key, value) {
+            if (key is Service) {
+              log('  - Service: ${key.name} (ID: ${key.id})');
+              log('    Professionals: ${key.professionals?.map((p) => p.name).toList() ?? ["None"]}');
+            } else if (key is Deal) {
+              log('  - Deal: ${key.name} (ID: ${key.id})');
+            }
+          });
+          log('════════════════════════════════════════');
 
           // Initialize selectedProfessionals with cartItems
           cartItems?.forEach((service, _) {
@@ -49,7 +62,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
           });
         });
       } else {
-        log('No valid arguments passed to SelectProfessionals');
+        log('⚠️ No valid arguments passed to SelectProfessionals');
         setState(() {
           cartItems = {};
         });
@@ -249,6 +262,19 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                   buttonColor: canProceed ? kPrimaryDarkColor : Colors.grey,
                   onContinue: () {
                     if (canProceed) {
+                      log('════════════════════════════════════════');
+                      log('📍 NAVIGATING TO SELECT DATE SCREEN');
+                      log('════════════════════════════════════════');
+                      log('Selected Professionals:');
+                      selectedProfessionals.forEach((key, value) {
+                        if (key is Service) {
+                          log('  - Service: ${key.name} → Professional: ${value ?? "Any"}');
+                        }
+                      });
+                      log('Cart Items Count: ${cartItems?.length ?? 0}');
+                      log('Salon: $salonName');
+                      log('════════════════════════════════════════');
+                      
                       Navigator.pushNamed(
                         context,
                         SelectDateScreen.routeName,

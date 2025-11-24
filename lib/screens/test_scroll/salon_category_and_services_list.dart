@@ -31,13 +31,30 @@ class _SalonCategoryAndServicesListState
     setState(() {
       if (_cartItems.containsKey(item)) {
         _cartItems.remove(item);
+        log('🛒 REMOVED FROM CART: ${item is Service ? item.name : item is Deal ? item.name : "Unknown"}');
       } else {
         _cartItems[item] = 1;
+        log('🛒 ADDED TO CART: ${item is Service ? item.name : item is Deal ? item.name : "Unknown"}');
       }
 
       _totalItems = _cartItems.length;
       _totalAmount = _cartItems.entries.fold(
           0.0, (sum, entry) => sum + (_getItemPrice(entry.key) * entry.value));
+      
+      log('════════════════════════════════════════');
+      log('🛒 CART UPDATE');
+      log('════════════════════════════════════════');
+      log('Total Items: $_totalItems');
+      log('Total Amount: PKR $_totalAmount');
+      log('Cart Items:');
+      _cartItems.forEach((key, value) {
+        if (key is Service) {
+          log('  - Service: ${key.name}, Price: PKR ${key.price}, Qty: $value');
+        } else if (key is Deal) {
+          log('  - Deal: ${key.name}, Price: PKR ${key.totalPrice}, Qty: $value');
+        }
+      });
+      log('════════════════════════════════════════');
     });
   }
 
@@ -71,6 +88,22 @@ class _SalonCategoryAndServicesListState
           buttonColor: kPrimaryDarkColor,
           onContinue: () {
             if (_cartItems.isNotEmpty) {
+              log('════════════════════════════════════════');
+              log('📍 NAVIGATING TO SELECT PROFESSIONALS');
+              log('════════════════════════════════════════');
+              log('Salon Name: $mSalonName');
+              log('Salon Image: $mSalonImage');
+              log('Salon Address: $mSalonAddess');
+              log('Cart Items Count: ${_cartItems.length}');
+              _cartItems.forEach((key, value) {
+                if (key is Service) {
+                  log('  - Service: ${key.name} (ID: ${key.id}), Price: PKR ${key.price}');
+                } else if (key is Deal) {
+                  log('  - Deal: ${key.name} (ID: ${key.id}), Price: PKR ${key.totalPrice}');
+                }
+              });
+              log('════════════════════════════════════════');
+              
               Navigator.pushNamed(
                 context,
                 SelectProfessionals.routeName,

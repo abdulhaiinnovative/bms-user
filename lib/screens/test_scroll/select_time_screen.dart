@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import '../../models/home/Professional.dart';
+import '../../models/HomePageResponse.dart';
 import 'CustomAppBar.dart';
 import 'confirm_booking_screen.dart';
 
@@ -35,8 +36,21 @@ class _SelectTimeScreenState extends State<SelectTimeScreen> {
         _selectedProfessionals = arguments['selectedProfessionals'] as List<Professional>? ?? [];
         _salonName = arguments['salonName'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
+        
+        log('════════════════════════════════════════');
+        log('⏰ SELECT TIME SCREEN - INIT');
+        log('════════════════════════════════════════');
+        log('Selected Date: ${_selectedDay?.toString().split(' ')[0] ?? "None"}');
+        log('Cart Items Count: ${_cartItems?.length ?? 0}');
+        log('Selected Professionals Count: ${_selectedProfessionals.length}');
+        _selectedProfessionals.forEach((prof) {
+          log('  - ${prof.name} (ID: ${prof.id})');
+        });
+        log('Salon: $_salonName');
+        log('Salon Address: $_salonAddress');
+        log('════════════════════════════════════════');
       } else {
-        log('No arguments received in SelectTimeScreen');
+        log('⚠️ No arguments received in SelectTimeScreen');
       }
 
       setState(() {
@@ -176,13 +190,26 @@ class _SelectTimeScreenState extends State<SelectTimeScreen> {
                 ),
                 onPressed: _selectedTime != null
                     ? () {
-                  log('Navigating to ConfirmBookingScreen with:');
-                  log('  cartItems: ${_cartItems?.keys.map((s) => s.name).toList()}');
-                  log('  selectedDay: $_selectedDay');
-                  log('  selectedTime: $_selectedTime');
-                  log('  selectedProfessionals: ${_selectedProfessionals.map((p) => p.name).toList()}');
-                  log('  salonName: $_salonName');
-                  log('  salonAddress: $_salonAddress');
+                  log('════════════════════════════════════════');
+                  log('📍 NAVIGATING TO CONFIRM BOOKING SCREEN');
+                  log('════════════════════════════════════════');
+                  log('Selected Date: ${_selectedDay?.toString().split(' ')[0] ?? "None"}');
+                  log('Selected Time: $_selectedTime');
+                  log('Cart Items Count: ${_cartItems?.length ?? 0}');
+                  _cartItems?.forEach((key, value) {
+                    if (key is Service) {
+                      log('  - Service: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.price}');
+                    } else if (key is Deal) {
+                      log('  - Deal: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.totalPrice}');
+                    }
+                  });
+                  log('Selected Professionals Count: ${_selectedProfessionals.length}');
+                  _selectedProfessionals.forEach((prof) {
+                    log('  - ${prof.name} (ID: ${prof.id})');
+                  });
+                  log('Salon: $_salonName');
+                  log('Salon Address: $_salonAddress');
+                  log('════════════════════════════════════════');
 
                   Navigator.pushNamed(
                     context,
