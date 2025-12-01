@@ -6,7 +6,7 @@ import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/salon_category_and_services_list.dart';
 import 'section_title.dart';
 
-class DealsDashboard extends StatelessWidget {
+class DealsDashboard extends StatefulWidget {
   final List<DealSection> type4;
 
   const DealsDashboard({
@@ -15,9 +15,29 @@ class DealsDashboard extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<DealsDashboard> createState() => _DealsDashboardState();
+}
+
+class _DealsDashboardState extends State<DealsDashboard> {
+  @override
+  void initState() {
+    super.initState();
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+    log('🔖 DealsDashboard: Initialized with ${widget.type4.length} sections');
+  }
+  @override
   Widget build(BuildContext context) {
     return Column(
-      children: type4.map((section) {
+      children: widget.type4.map((section) {
         return Container(
           height: 240,
           margin: const EdgeInsets.only(bottom: 15),
@@ -124,14 +144,7 @@ class DealsCard extends StatelessWidget {
             minHeight: 180,
           ),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                kPrimaryColor.withOpacity(0.02),
-              ],
-            ),
+            color: Colors.white,
             borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: kPrimaryColor.withOpacity(0.15),
@@ -151,244 +164,211 @@ class DealsCard extends StatelessWidget {
               ),
             ],
           ),
-          child: Stack(
-            children: [
-              // Decorative corner accent
-              Positioned(
-                top: -20,
-                right: -20,
-                child: Container(
-                  width: 80,
-                  height: 80,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        kPrimaryColor.withOpacity(0.08),
-                        kPrimaryColor.withOpacity(0.0),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Discount Badge
+                if (hasDiscount)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFF6B6B),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF6B6B).withOpacity(0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.flash_on,
+                            color: Colors.white, size: 13),
+                        const SizedBox(width: 4),
+                        Text(
+                          discountType == 'amount'
+                              ? 'Rs $discountValue OFF'
+                              : '$discountValue% OFF',
+                          style: const TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
                       ],
                     ),
                   ),
+
+                SizedBox(height: hasDiscount ? 8 : 0),
+
+                // Deal Title
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.black87,
+                    height: 1.2,
+                    letterSpacing: -0.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                 ),
-              ),
 
-              // Main Content
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
+                const SizedBox(height: 5),
+
+                // Services List
+                Text(
+                  services,
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: Colors.grey[600],
+                    height: 1.2,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+
+                const SizedBox(height: 7),
+
+                // Salon Name with Icon
+                Row(
                   children: [
-                    // Discount Badge
-                    if (hasDiscount)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 2),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-                          ),
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(Icons.flash_on,
-                                color: Colors.white, size: 13),
-                            const SizedBox(width: 4),
-                            Text(
-                              discountType == 'amount'
-                                  ? 'Rs $discountValue OFF'
-                                  : '$discountValue% OFF',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white,
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
-                        ),
+                    Container(
+                      padding: const EdgeInsets.all(5),
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-
-                    SizedBox(height: hasDiscount ? 8 : 0),
-
-                    // Deal Title
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black87,
-                        height: 1.2,
-                        letterSpacing: -0.3,
+                      child: const Icon(
+                        Icons.store_rounded,
+                        size: 13,
+                        color: kPrimaryColor,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-
-                    const SizedBox(height: 5),
-
-                    // Services List
-                    Text(
-                      services,
-                      style: TextStyle(
-                        fontSize: 10,
-                        color: Colors.grey[600],
-                        height: 1.2,
+                    const SizedBox(width: 7),
+                    Expanded(
+                      child: Text(
+                        salon.name ?? 'Unknown Salon',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[800],
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                    const SizedBox(height: 7),
-
-                    // Salon Name with Icon
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(5),
-                          decoration: BoxDecoration(
-                            color: kPrimaryColor.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: const Icon(
-                            Icons.store_rounded,
-                            size: 13,
-                            color: kPrimaryColor,
-                          ),
-                        ),
-                        const SizedBox(width: 7),
-                        Expanded(
-                          child: Text(
-                            salon.name ?? 'Unknown Salon',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[800],
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                      ],
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Price and Book Button
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        // Price Section
-                        Flexible(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                "PKR $price",
-                                style: const TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w900,
-                                  color: kPrimaryColor,
-                                  height: 1,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                              if (hasDiscount) ...[
-                                const SizedBox(height: 2),
-                                Text(
-                                  "PKR $oldPrice",
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[600],
-                                    decoration: TextDecoration.lineThrough,
-                                    decorationColor: Colors.red[400],
-                                    decorationThickness: 2,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(width: 8),
-
-                        // Book Button
-                        Container(
-                          height: 36,
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                kPrimaryColor,
-                                kPrimaryColor.withOpacity(0.85),
-                              ],
-                            ),
-                            borderRadius: BorderRadius.circular(18),
-                            boxShadow: [
-                              BoxShadow(
-                                color: kPrimaryColor.withOpacity(0.4),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              onTap: () {
-                                log('📅 Book Now tapped for deal: $title');
-                                Navigator.pushNamed(
-                                  context,
-                                  SalonCategoryAndServicesList.routeName,
-                                  arguments: deal,
-                                );
-                              },
-                              borderRadius: BorderRadius.circular(18),
-                              child: const Center(
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Text(
-                                      "Book Now",
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w700,
-                                        letterSpacing: 0.3,
-                                      ),
-                                    ),
-                                    SizedBox(width: 6),
-                                    Icon(
-                                      Icons.arrow_forward_rounded,
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
                     ),
                   ],
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 8),
+
+                // Price and Book Button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Price Section
+                    Flexible(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "PKR $price",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w900,
+                              color: kPrimaryColor,
+                              height: 1,
+                              letterSpacing: -0.5,
+                            ),
+                          ),
+                          if (hasDiscount) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              "PKR $oldPrice",
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                decoration: TextDecoration.lineThrough,
+                                decorationColor: Colors.red[400],
+                                decorationThickness: 2,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+
+                    const SizedBox(width: 8),
+
+                    // Book Button
+                    Container(
+                      height: 36,
+                      padding: const EdgeInsets.symmetric(horizontal: 14),
+                      decoration: BoxDecoration(
+                        color: kPrimaryColor,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: kPrimaryColor.withOpacity(0.4),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Material(
+                        color: Colors.transparent,
+                        child: InkWell(
+                          onTap: () {
+                            log('📅 Book Now tapped for deal: $title');
+                            Navigator.pushNamed(
+                              context,
+                              SalonCategoryAndServicesList.routeName,
+                              arguments: deal,
+                            );
+                          },
+                          borderRadius: BorderRadius.circular(18),
+                          child: const Center(
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  "Book Now",
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                                SizedBox(width: 6),
+                                Icon(
+                                  Icons.arrow_forward_rounded,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,6 +1,6 @@
 {
-     "name": "BookMySpot",
-     "short_name": "BookMySpot",
+     "name": "BMS",
+     "short_name": "BMS",
      "start_url": ".",
      "display": "standalone",
      "background_color": "#0175C2",

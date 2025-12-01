@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
-const logo = 'https://play-lh.googleusercontent.com/YkCoSKpuEeemtGep3Fey9FVKxb2xcwNEUkhQBaO1Zo-1Zicg-uT1-fHB4YxutMXi6_s=w480-h960-rw';
-const salonImage = 'https://i.pinimg.com/564x/8f/6b/92/8f6b921927eecbcdab4b886a0e345160.jpg';
+const logo =
+    'https://play-lh.googleusercontent.com/YkCoSKpuEeemtGep3Fey9FVKxb2xcwNEUkhQBaO1Zo-1Zicg-uT1-fHB4YxutMXi6_s=w480-h960-rw';
+const salonImage =
+    'https://i.pinimg.com/564x/8f/6b/92/8f6b921927eecbcdab4b886a0e345160.jpg';
 const placeHolder = 'assets/images/place_holder.png';
 
 const Color backgroundColor = Color.fromARGB(255, 255, 241, 159);
@@ -12,8 +14,8 @@ const Color greenColor = Colors.green;
 const Color redColor = Colors.red;
 const Color blueColor = Colors.blue;
 const Color greenAccent = Colors.greenAccent;
-final Color blackAndWhiteDimmedColor =  Colors.transparent.withOpacity(.3);
-const Color blackAndWhiteSuperDimmedColor =  Color(0xaaFFFFFF);
+final Color blackAndWhiteDimmedColor = Colors.transparent.withValues(alpha: .3);
+const Color blackAndWhiteSuperDimmedColor = Color(0xaaFFFFFF);
 const Color whiteColor = Colors.white;
 const Color amberColor = Colors.amber;
 const Color purpleColor = Colors.purple;
@@ -24,43 +26,30 @@ Color superDimmedWhiteColor = const Color(0x55FFFFFF);
 const BASE_URL = "https://bms.innovativewidget.com/api";
 
 const BASE_URL_IMAGE = "$BASE_URL/imageUpload/image";
-const NO_IMAGE_FOUND_URL = "https://i.pinimg.com/564x/00/e7/62/00e76210732e10be1a82ea509a3bbb4d.jpg";
+const NO_IMAGE_FOUND_URL =
+    "https://i.pinimg.com/564x/00/e7/62/00e76210732e10be1a82ea509a3bbb4d.jpg";
 
-
-
-
-const kPrimaryColor = Color(0xFFE21C6A);
-const kPrimaryDarkColor = Color(0xFF7F2884);
-const kPrimaryLightColor = Color(0xFFFFECDF);
+const kPrimaryColor = Color(0xFF73308B);
+const kPrimaryDarkColor = Color(0xFF551E66);
+const kPrimaryLightColor = Color(0xFFF3E8F7);
 const kWhiteTransparent = Color(0x55FFFFFF);
-const kPrimaryColor3 = Color(0x77DE2B72);
+const kPrimaryColor3 = Color(0x7773308B);
 
-const kPrimaryColor2 = Color(0xAADE2B72);
-const kPrimaryDarkColor2 = Color(0xAAE445EE);
-
-
-const kGradientColorRing = [kPrimaryColor, kPrimaryDarkColor];
-
+const kPrimaryColor2 = Color(0xAA73308B);
+const kPrimaryDarkColor2 = Color(0xAA8C3FA3);
 
 const kShadow = Color(0x55000000);
 const kShadow2 = Color(0x33000000);
 //const kScreenBg = Color(0xccF2F0F1);
 // const kShadow = Color(0xaaf1f1f1);
-const kShadowWithPrimary = Color(0x55E21C6A);
+const kShadowWithPrimary = Color(0x5573308B);
 //const kCardBG = Color(0xFFF5F5F7);
 const kCardBG = Color(0xFFFFFFFF);
 const kScreenBg = Color(0xFFeFeFeF);
 const double kRadius = 15;
 
-
 const kCardWhiteBG = Color(0xFFFFFFFF);
 
-
-const kPrimaryGradientColor = LinearGradient(
-  begin: Alignment.topLeft,
-  end: Alignment.bottomRight,
-  colors: [Color(0xFFE21C6A), Color(0xFF7F2884)],
-);
 const kSecondaryColor = Color(0xFF979797);
 const kGridUnselected = Color(0xFFf4f4f4);
 const kTextColor = Colors.black;
@@ -68,7 +57,6 @@ const kTextColor = Colors.black;
 const kPrice = kPrimaryColor;
 const kBeforeDiscount = kPrimaryDarkColor;
 const kDiscount = kPrimaryColor;
-
 
 const kAnimationDuration = Duration(milliseconds: 200);
 
@@ -94,15 +82,12 @@ const String kPhoneNumberNullError = "Please Enter your phone number";
 const String kAddressNullError = "Please Enter your address";
 const String kPasswordNullError = "Please Enter your password";
 
-
 const String kFNameNullError = "Please enter your first name";
 const String kLNameNullError = "Please enter your last name";
 const String kCountryNullError = "Please Enter Your Country";
 const String kStateNullError = "Please Enter Your State";
 const String kCityNullError = "Please Enter Your City";
 const String kGenderNullError = "Please Enter Your Gender";
-
-
 
 final otpInputDecoration = InputDecoration(
   contentPadding: const EdgeInsets.symmetric(vertical: 16),

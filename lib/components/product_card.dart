@@ -31,7 +31,7 @@ class ProductCard extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: kSecondaryColor.withOpacity(0.1),
+                  color: kSecondaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Image.asset(product.images[0]),
@@ -63,8 +63,8 @@ class ProductCard extends StatelessWidget {
                     width: 24,
                     decoration: BoxDecoration(
                       color: product.isFavourite
-                          ? kPrimaryColor.withOpacity(0.15)
-                          : kSecondaryColor.withOpacity(0.1),
+                          ? kPrimaryColor.withValues(alpha: 0.15)
+                          : kSecondaryColor.withValues(alpha: 0.1),
                       shape: BoxShape.circle,
                     ),
                     child: SvgPicture.asset(

@@ -6,26 +6,36 @@ import '../../models/MyBookingResponse.dart';
 class MyBookingsAPI {
   Future<MyBookingResponse?> getBooking({int page = 1, String? url}) async {
     try {
-      log('MyBookingsAPI: Fetching bookings for page $page');
+      log('📅 ========== BOOKINGS API REQUEST ==========');
+      log('📅 Page: $page');
+      log('📅 Custom URL: ${url ?? "None (using default)"}');
 
       final String endpoint = url != null
           ? url.replaceFirst('https://bms.innovativewidget.com/api', '')
           : '/appointments?page=$page';
 
-      log('MyBookingsAPI: Request endpoint: $endpoint');
+      log('📅 Final Endpoint: $endpoint');
+      log('📅 Making GET request...');
 
       final response = await ProtectedHttpClient.get(endpoint);
 
-      log('✅ MyBookingsAPI: Response status ${response.statusCode}');
+      log('📅 ========== BOOKINGS API RESPONSE ==========');
+      log('📅 Status Code: ${response.statusCode}');
+      log('📅 Response Headers: ${response.headers}');
+      log('📅 Response Body Length: ${response.body.length} characters');
 
       if (response.statusCode == 200 || response.statusCode == 404) {
+        log('📅 Raw Response Body: ${response.body}');
+
         final responseData = jsonDecode(response.body);
-        log('✅ MyBookingsAPI: Decoded JSON successfully');
+        log('📅 Decoded JSON Type: ${responseData.runtimeType}');
+        log('📅 Decoded JSON Keys: ${responseData is Map ? responseData.keys.toList() : "N/A (not a Map)"}');
 
         try {
           // Check if responseData is a Map
           if (responseData is! Map<String, dynamic>) {
-            log('⚠️ MyBookingsAPI: Response is ${responseData.runtimeType}, wrapping...');
+            log('⚠️ Response is ${responseData.runtimeType}, attempting to wrap...');
+            log('⚠️ Response content: $responseData');
             // If it's a List, wrap it in the expected structure
             if (responseData is List) {
               final wrappedResponse = {
@@ -59,18 +69,77 @@ class MyBookingsAPI {
 
           final bookingResponse = MyBookingResponse.fromJson(responseData);
 
+          log('📅 ========== PARSED RESPONSE ==========');
+          log('📅 Status: ${bookingResponse.status}');
+          log('📅 Message: ${bookingResponse.message}');
+          log('📅 Has Response Data: ${bookingResponse.response != null}');
+
+          if (bookingResponse.response?.data != null) {
+            final pData = bookingResponse.response!.data!;
+            log('📅 ========== PAGINATION INFO ==========');
+            log('📅 Current Page: ${pData.currentPage}');
+            log('📅 Last Page: ${pData.lastPage}');
+            log('📅 Per Page: ${pData.perPage}');
+            log('📅 Total: ${pData.total}');
+            log('📅 From: ${pData.from}');
+            log('📅 To: ${pData.to}');
+            log('📅 Next Page URL: ${pData.nextPageUrl}');
+            log('📅 Prev Page URL: ${pData.prevPageUrl}');
+            log('📅 First Page URL: ${pData.firstPageUrl}');
+            log('📅 Last Page URL: ${pData.lastPageUrl}');
+            log('📅 Path: ${pData.path}');
+            log('📅 Bookings Count: ${pData.data?.length ?? 0}');
+
+            if (pData.data != null && pData.data!.isNotEmpty) {
+              log('📅 ========== BOOKING DETAILS ==========');
+              for (var i = 0; i < pData.data!.length; i++) {
+                final booking = pData.data![i];
+                log('📅 Booking #${i + 1}:');
+                log('   ID: ${booking.id}');
+                log('   Title: ${booking.title}');
+                log('   Status: ${booking.status}');
+                log('   Date: ${booking.date}');
+                log('   Time: ${booking.time}');
+                log('   Payment: ${booking.payment}');
+                log('   Payment Status: ${booking.paymentStatus}');
+                log('   Payment Method: ${booking.paymentMethod}');
+                log('   Booking Type: ${booking.bookingType}');
+                log('   Commission: ${booking.commission}');
+                log('   Used Loyalty Points: ${booking.usedLoyaltyPoints}');
+                log('   Salon ID: ${booking.salonId}');
+                log('   User ID: ${booking.userId}');
+                log('   Team ID: ${booking.teamId}');
+                if (booking.salon != null) {
+                  log('   Salon Info:');
+                  log('     - ID: ${booking.salon!.id}');
+                  log('     - Name: ${booking.salon!.name}');
+                  log('     - Address: ${booking.salon!.address}');
+                  log('     - Logo: ${booking.salon!.logo}');
+                  log('     - Image: ${booking.salon!.image}');
+                  log('     - Average Rating: ${booking.salon!.averageRating}');
+                  log('     - Review Count: ${booking.salon!.reviewCount}');
+                  log('     - Active Days: ${booking.salon!.activeDays?.length ?? 0}');
+                }
+              }
+            } else {
+              log('📅 No bookings in response data');
+            }
+          } else {
+            log('📅 No response.data found in booking response');
+          }
+
           // Handle 404 - No bookings found is a valid empty state
           if (response.statusCode == 404) {
-            log('⚠️ MyBookingsAPI: No bookings found (404)');
+            log('⚠️ No bookings found (404)');
             return bookingResponse;
           }
 
           if (bookingResponse.status == true) {
-            log('✅ MyBookingsAPI: Success with ${bookingResponse.response?.data?.data?.length ?? 0} bookings');
+            log('✅ SUCCESS: Returning ${bookingResponse.response?.data?.data?.length ?? 0} bookings');
             return bookingResponse;
           } else {
             if (bookingResponse.response?.data?.data?.isEmpty ?? true) {
-              log('⚠️ MyBookingsAPI: Returning empty bookings');
+              log('⚠️ Returning empty bookings');
               return bookingResponse;
             }
             throw Exception(

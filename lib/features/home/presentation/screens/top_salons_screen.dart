@@ -154,14 +154,9 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
             // Gradient bar at top
             Container(
               height: 4,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    kPrimaryColor,
-                    kPrimaryColor.withOpacity(0.5),
-                  ],
-                ),
-                borderRadius: const BorderRadius.only(
+              decoration: const BoxDecoration(
+                color: kPrimaryColor,
+                borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(20),
                   topRight: Radius.circular(20),
                 ),
@@ -203,14 +198,7 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
                   child: Container(
                     height: 80,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.transparent,
-                          Colors.black.withOpacity(0.7),
-                        ],
-                      ),
+                      color: Colors.black.withOpacity(0.5),
                     ),
                   ),
                 ),
@@ -284,12 +272,7 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
                       Container(
                         padding: const EdgeInsets.all(5),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              kPrimaryColor.withOpacity(0.15),
-                              kPrimaryColor.withOpacity(0.05),
-                            ],
-                          ),
+                          color: kPrimaryColor.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(7),
                         ),
                         child: const Icon(
@@ -322,12 +305,7 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            kPrimaryColor.withOpacity(0.05),
-                            kPrimaryColor.withOpacity(0.02),
-                          ],
-                        ),
+                        color: kPrimaryColor.withOpacity(0.05),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(
                           color: kPrimaryColor.withOpacity(0.1),
@@ -409,13 +387,8 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
             width: 60,
             height: 4,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  Colors.transparent,
-                  kPrimaryColor.withOpacity(0.3),
-                  Colors.transparent,
-                ],
-              ),
+              color: kPrimaryColor.withOpacity(0.3),
+              borderRadius: BorderRadius.circular(2),
             ),
           ),
           const SizedBox(height: 12),

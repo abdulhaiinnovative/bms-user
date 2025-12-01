@@ -112,29 +112,31 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
     final searchProvider =
         Provider.of<SearchProviderNew>(context, listen: false);
     FocusScope.of(context).unfocus(); // Dismiss keyboard
+
+    // Get the search query - pass empty string if no search text
+    // The API will use filters to return results
+    final query = searchController.text.trim();
+
     if (widget.tabController.index == 0) {
       searchProvider.searchServices(
-        searchController.text.isEmpty ? 'all' : searchController.text,
+        query,
         categoryId: selectedCategoryId,
         minPrice: minPrice,
         maxPrice: maxPrice,
         sortBy: sortBy,
-        sortOrder: sortOrder,
       );
     } else if (widget.tabController.index == 1) {
       searchProvider.searchDeals(
-        searchController.text.isEmpty ? 'all' : searchController.text,
+        query,
         categoryId: selectedCategoryId,
         minPrice: minPrice,
         maxPrice: maxPrice,
         sortBy: sortBy,
-        sortOrder: sortOrder,
       );
     } else {
       searchProvider.searchSalons(
-        searchController.text.isEmpty ? 'all' : searchController.text,
+        query,
         sortBy: sortBy,
-        sortOrder: sortOrder,
       );
     }
   }
@@ -279,11 +281,7 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
                 const SizedBox(width: 10),
                 Container(
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [kPrimaryColor, kPrimaryColor.withOpacity(0.8)],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
+                    color: kPrimaryColor,
                     borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       BoxShadow(
@@ -408,11 +406,7 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
                 ),
                 indicator: BoxDecoration(
                   borderRadius: BorderRadius.circular(11),
-                  gradient: const LinearGradient(
-                    colors: [kPrimaryColor, Color(0xFFE8445D)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: kPrimaryColor,
                   boxShadow: [
                     BoxShadow(
                       color: kPrimaryColor.withOpacity(0.35),
@@ -456,14 +450,7 @@ class FilterItem extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  kPrimaryColor.withOpacity(0.12),
-                  kPrimaryColor.withOpacity(0.08),
-                ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              color: kPrimaryColor.withOpacity(0.12),
               borderRadius: BorderRadius.circular(24),
               border:
                   Border.all(width: 1.5, color: kPrimaryColor.withOpacity(0.6)),
@@ -494,11 +481,7 @@ class FilterItem extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(3),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [kPrimaryColor, Color(0xFFE8445D)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
+                        color: kPrimaryColor,
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(

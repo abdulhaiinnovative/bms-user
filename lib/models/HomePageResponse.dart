@@ -421,6 +421,7 @@ class Salon {
   final int? averageRating;
   final int? reviewCount;
   final bool? isFavourite;
+  final List<ActiveDay>? activeDays;
 
   Salon({
     this.id,
@@ -456,6 +457,7 @@ class Salon {
     this.averageRating,
     this.reviewCount,
     this.isFavourite,
+    this.activeDays,
   });
 
   factory Salon.fromJson(Map<String, dynamic> json) {
@@ -503,6 +505,40 @@ class Salon {
           ? json['review_count']
           : (json['review_count'] as num?)?.toInt(),
       isFavourite: json['is_favourite'],
+      activeDays: json['active_days'] != null
+          ? (json['active_days'] as List)
+              .map((e) => ActiveDay.fromJson(e))
+              .toList()
+          : null,
+    );
+  }
+}
+
+class ActiveDay {
+  final int? id;
+  final int? salonId;
+  final String? day;
+  final String? openingTime;
+  final String? closingTime;
+  final int? status;
+
+  ActiveDay({
+    this.id,
+    this.salonId,
+    this.day,
+    this.openingTime,
+    this.closingTime,
+    this.status,
+  });
+
+  factory ActiveDay.fromJson(Map<String, dynamic> json) {
+    return ActiveDay(
+      id: json['id'],
+      salonId: json['salon_id'],
+      day: json['day'],
+      openingTime: json['opening_time'],
+      closingTime: json['closing_time'],
+      status: json['status'],
     );
   }
 }

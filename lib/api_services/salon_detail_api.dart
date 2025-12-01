@@ -32,22 +32,23 @@ class SalonDetailAPI {
       log('');
       log('📄 RAW JSON RESPONSE:');
       log('────────────────────────────────────────────────────────');
-      
+
       try {
         final jsonResponse = jsonDecode(response.body);
-        final prettyJson = JsonEncoder.withIndent('  ').convert(jsonResponse);
+        final prettyJson =
+            const JsonEncoder.withIndent('  ').convert(jsonResponse);
         log(prettyJson);
       } catch (e) {
         log(response.body);
       }
-      
+
       log('────────────────────────────────────────────────────────');
       log('════════════════════════════════════════════════════════');
 
       if (response.statusCode == 200) {
         log('');
         log('✅ SUCCESS - Parsing salon details...');
-        
+
         final apiResponse =
             SalonDetailApiResponse.fromJson(jsonDecode(response.body));
 
@@ -63,35 +64,38 @@ class SalonDetailAPI {
         log('📅 Created: ${salonDetails.createdAt ?? "N/A"}');
         log('');
         log('📜 Sections (${salonDetails.sections?.length ?? 0}):');
-        
+
         if (salonDetails.sections != null) {
           for (var i = 0; i < salonDetails.sections!.length; i++) {
             final section = salonDetails.sections![i];
             log('   [$i] ${section.name} (Type: ${section.type})');
             log('       Data items: ${section.data?.length ?? 0}');
-            
+
             if (section.data != null && section.data!.isNotEmpty) {
               final dataCount = section.data!.length;
               final preview = dataCount > 3 ? 3 : dataCount;
-              
+
               for (var j = 0; j < preview; j++) {
                 final item = section.data![j];
-                if (section.type == 2) { // Services
+                if (section.type == 2) {
+                  // Services
                   log('       - Service $j: ${item.name} (ID: ${item.id}, Price: ${item.price})');
-                } else if (section.type == 6) { // Deals
+                } else if (section.type == 6) {
+                  // Deals
                   log('       - Deal $j: ${item.name} (ID: ${item.id}, Total: ${item.totalPrice})');
-                } else if (section.type == 4) { // Staff
+                } else if (section.type == 4) {
+                  // Staff
                   log('       - Staff $j: ${item.name} (ID: ${item.id}, Email: ${item.email})');
                 }
               }
-              
+
               if (dataCount > 3) {
                 log('       ... and ${dataCount - 3} more items');
               }
             }
           }
         }
-        
+
         log('────────────────────────────────────────────────────────');
         log('════════════════════════════════════════════════════════');
 

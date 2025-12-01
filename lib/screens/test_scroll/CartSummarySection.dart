@@ -1,6 +1,8 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
-class CartSummarySection extends StatelessWidget {
+class CartSummarySection extends StatefulWidget {
   final int totalItems;
   final double totalAmount;
   final VoidCallback onContinue;
@@ -15,6 +17,28 @@ class CartSummarySection extends StatelessWidget {
   });
 
   @override
+  State<CartSummarySection> createState() => _CartSummarySectionState();
+}
+
+class _CartSummarySectionState extends State<CartSummarySection> {
+@override
+void initState() {
+  super.initState();
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+  log(  '🛒 CartSummarySection: totalItems=${widget.totalItems}, totalAmount=${widget.totalAmount}');
+}
+  @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Container(
@@ -28,14 +52,14 @@ class CartSummarySection extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$totalItems Item',
+                  '${widget.totalItems} Item',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
                 ),
                 Text(
-                  'Total: Rs ${totalAmount.toStringAsFixed(0)}',
+                  'Total: Rs ${widget.totalAmount.toStringAsFixed(0)}',
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: 14,
@@ -46,9 +70,9 @@ class CartSummarySection extends StatelessWidget {
             SizedBox(
               width: 120,
               child: ElevatedButton(
-                onPressed: onContinue,
+                onPressed: widget.onContinue,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor,
+                  backgroundColor: widget.buttonColor,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(40),
                   ),

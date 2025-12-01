@@ -26,6 +26,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     // Load profile data if authenticated
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
+      developer.log(
+          'ProfileScreen initState - isAuthenticated: ${authProvider.isAuthenticated}');
+      developer
+          .log('ProfileScreen initState - authState: ${authProvider.state}');
+      developer.log(
+          'ProfileScreen initState - currentUser: ${authProvider.currentUser?.email}');
       if (authProvider.isAuthenticated) {
         context.read<ProfileViewModel>().loadProfile();
       }
@@ -37,6 +43,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer2<AuthProvider, ProfileViewModel>(
       builder: (context, authProvider, profileViewModel, child) {
         final isAuthenticated = authProvider.isAuthenticated;
+
+        developer
+            .log('ProfileScreen build - isAuthenticated: $isAuthenticated');
+        developer.log('ProfileScreen build - authState: ${authProvider.state}');
+        developer.log(
+            'ProfileScreen build - currentUser: ${authProvider.currentUser?.email}');
 
         return Scaffold(
           backgroundColor: kScreenBg,
@@ -66,18 +78,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return SingleChildScrollView(
       child: Column(
         children: [
-          // Profile Header with gradient
+          // Profile Header
           Container(
             width: double.infinity,
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  kPrimaryColor.withOpacity(0.1),
-                  kPrimaryColor.withOpacity(0.05),
-                ],
-              ),
+              color: kPrimaryColor.withOpacity(0.08),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
@@ -221,14 +226,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: 120,
                 height: 120,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      kPrimaryColor.withOpacity(0.2),
-                      kPrimaryColor.withOpacity(0.1),
-                    ],
-                  ),
+                  color: kPrimaryColor.withOpacity(0.15),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(

@@ -55,6 +55,8 @@ class SalonData {
   final String? policy;
   final String? type;
   final String? kind;
+  final String? minBookingTime;
+  final String? maxBookingTime;
 
   // TODO: FAVOURITES MODEL - Backend favourite status
   // This field comes from API response (is_favourite)
@@ -62,6 +64,7 @@ class SalonData {
   final bool? isFavourite;
   final List<Section>? sections;
   final Location? location;
+  final List<SalonActiveDay>? activeDays;
 
   SalonData({
     required this.name,
@@ -80,9 +83,12 @@ class SalonData {
     required this.policy,
     required this.type,
     required this.kind,
+    this.minBookingTime,
+    this.maxBookingTime,
     required this.isFavourite,
     required this.sections,
     required this.location,
+    this.activeDays,
   });
 
   factory SalonData.fromJson(Map<String, dynamic> json) {
@@ -106,11 +112,19 @@ class SalonData {
       type: json['type'],
       kind: json['kind'],
 
+      minBookingTime: json['min_booking_time'],
+      maxBookingTime: json['max_booking_time'],
+
       // TODO: FAVOURITES PARSING - Parse is_favourite from API
       isFavourite: json['is_favourite'],
       sections:
           (json['sections'] as List).map((e) => Section.fromJson(e)).toList(),
       location: Location.fromJson(json['location']),
+      activeDays: json['active_days'] != null
+          ? (json['active_days'] as List)
+              .map((e) => SalonActiveDay.fromJson(e))
+              .toList()
+          : null,
     );
   }
 }
@@ -604,3 +618,32 @@ class OpeningTiming {
 //     );
 //   }
 // }
+
+class SalonActiveDay {
+  final int? id;
+  final int? salonId;
+  final String? day;
+  final String? openingTime;
+  final String? closingTime;
+  final int? status;
+
+  SalonActiveDay({
+    this.id,
+    this.salonId,
+    this.day,
+    this.openingTime,
+    this.closingTime,
+    this.status,
+  });
+
+  factory SalonActiveDay.fromJson(Map<String, dynamic> json) {
+    return SalonActiveDay(
+      id: json['id'] as int?,
+      salonId: json['salon_id'] as int?,
+      day: json['day'] as String?,
+      openingTime: json['opening_time'] as String?,
+      closingTime: json['closing_time'] as String?,
+      status: json['status'] as int?,
+    );
+  }
+}

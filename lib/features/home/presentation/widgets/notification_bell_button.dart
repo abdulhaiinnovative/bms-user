@@ -31,8 +31,17 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
 
         return InkWell(
           borderRadius: BorderRadius.circular(100),
-          onTap: () {
-            Navigator.pushNamed(context, NotificationsScreen.routeName);
+          onTap: () async {
+            // Capture provider reference before async gap
+            final viewModel =
+                Provider.of<NotificationsViewModel>(context, listen: false);
+
+            await Navigator.pushNamed(context, NotificationsScreen.routeName);
+
+            // Refresh unread count when returning from notifications screen
+            if (mounted) {
+              viewModel.loadUnreadCount();
+            }
           },
           child: Stack(
             clipBehavior: Clip.none,
@@ -42,7 +51,7 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
                 height: 46,
                 width: 46,
                 decoration: BoxDecoration(
-                  color: kSecondaryColor.withOpacity(0.1),
+                  color: kSecondaryColor.withValues(alpha: 0.1),
                   shape: BoxShape.circle,
                 ),
                 child: SvgPicture.asset(
@@ -55,25 +64,32 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
               ),
               if (unreadCount > 0)
                 Positioned(
-                  top: -3,
+                  top: 0,
                   right: 0,
                   child: Container(
-                    height: 20,
-                    constraints: const BoxConstraints(minWidth: 20),
-                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    height: 18,
+                    constraints: const BoxConstraints(minWidth: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: 4),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF4848),
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: Colors.white, width: 2),
+                      borderRadius: BorderRadius.circular(9),
+                      border: Border.all(color: Colors.white, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
                     child: Center(
                       child: Text(
                         unreadCount > 99 ? '99+' : unreadCount.toString(),
                         style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
                           color: Colors.white,
-                          height: 1,
+                          height: 1.2,
                         ),
                       ),
                     ),

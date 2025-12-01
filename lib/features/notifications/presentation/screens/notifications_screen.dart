@@ -255,6 +255,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await viewModel.markAsRead(notification.id);
     }
 
+    // Check if widget is still mounted before using context
+    if (!mounted) return;
+
     // Handle navigation based on notification data
     if (notification.appRoute != null && notification.appRoute!.isNotEmpty) {
       // Navigate to app route

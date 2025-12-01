@@ -1,30 +1,53 @@
-import 'package:flutter/material.dart';
-import 'package:app/constants.dart';
+// import 'dart:developer';
 
-class BookNow extends StatelessWidget {
-  final VoidCallback? onTap;
+// import 'package:flutter/material.dart';
+// import 'package:app/constants.dart';
 
-  const BookNow({super.key, this.onTap});
+// class BookNow extends StatefulWidget {
+//   final VoidCallback? onTap;
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-        decoration: BoxDecoration(
-          color: kPrimaryDarkColor,
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: const Text(
-          'Book Now',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    );
-  }
-}
+//   const BookNow({super.key, this.onTap});
+
+//   @override
+//   State<BookNow> createState() => _BookNowState();
+// }
+
+// class _BookNowState extends State<BookNow> {
+//   @override
+//   void initState() {
+//     super.initState();
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//     log('🔘 BookNow: Widget initialized');
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: widget.onTap,
+//       child: Container(
+//         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+//         decoration: BoxDecoration(
+//           color: kPrimaryDarkColor,
+//           borderRadius: BorderRadius.circular(10),
+//         ),
+//         child: const Text(
+//           'Book Now',
+//           style: TextStyle(
+//             fontSize: 14,
+//             fontWeight: FontWeight.bold,
+//             color: Colors.white,
+//           ),
+//         ),
+//       ),
+//     );
+//   }
+// }

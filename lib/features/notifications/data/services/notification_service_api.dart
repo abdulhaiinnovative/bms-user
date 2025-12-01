@@ -135,12 +135,23 @@ class NotificationServiceAPI {
   /// Mark all notifications as read
   Future<MarkAllReadResponse> markAllAsRead() async {
     try {
-      log('📖 NotificationAPI: Marking all notifications as read');
+      log('� MARK ALL READ - START');
+      log('🔵 Using HTTP Method: GET');
+      log('🔵 Endpoint constant value: $markAllReadEndpoint');
+      log('🔵 Base URL: $baseURL');
+      log('🔵 Full URL will be: $baseURL$markAllReadEndpoint');
+      log('🔵 About to call AuthInterceptor.get()');
 
-      final response = await AuthInterceptor.post(
+      final response = await AuthInterceptor.get(
         markAllReadEndpoint,
         requiresAuth: true,
       );
+
+      log('🔵 Response received!');
+      log('🔵 Response status: ${response.statusCode}');
+      log('🔵 Response data: ${response.data}');
+      log('🔵 Response request method: ${response.requestOptions.method}');
+      log('🔵 Response request URI: ${response.requestOptions.uri}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData =
@@ -149,16 +160,35 @@ class NotificationServiceAPI {
                 : jsonDecode(response.data.toString());
 
         final markAllReadResponse = MarkAllReadResponse.fromJson(responseData);
-        log('✅ NotificationAPI: Marked ${markAllReadResponse.updatedCount} notifications as read');
+        log('✅ MARK ALL READ - SUCCESS');
+        log('✅ Updated count: ${markAllReadResponse.updatedCount} notifications');
         return markAllReadResponse;
       } else {
+        log('❌ MARK ALL READ - Non-success status code: ${response.statusCode}');
         throw Exception('Failed to mark all as read: ${response.statusCode}');
       }
-    } on DioException catch (dioError) {
-      log('❌ NotificationAPI: Mark all as read error - ${dioError.message}');
+    } on DioException catch (dioError, stackTrace) {
+      log('❌ MARK ALL READ - DioException caught');
+      log('❌ Error type: ${dioError.type}');
+      log('❌ Error message: ${dioError.message}');
+
+      if (dioError.response != null) {
+        log('❌ Response status: ${dioError.response!.statusCode}');
+        log('❌ Response data: ${dioError.response!.data}');
+        log('❌ Request method used: ${dioError.requestOptions.method}');
+        log('❌ Request path: ${dioError.requestOptions.path}');
+        log('❌ Request URI: ${dioError.requestOptions.uri}');
+        log('❌ Request base URL: ${dioError.requestOptions.baseUrl}');
+        log('❌ Request headers: ${dioError.requestOptions.headers}');
+      }
+
+      log('❌ Stack trace:\n$stackTrace');
       throw Exception('Failed to mark all notifications as read');
-    } catch (e) {
-      log('💥 NotificationAPI: Mark all as read error - $e');
+    } catch (e, stackTrace) {
+      log('💥 MARK ALL READ - General exception caught');
+      log('💥 Exception type: ${e.runtimeType}');
+      log('💥 Exception message: $e');
+      log('💥 Stack trace:\n$stackTrace');
       throw Exception('Failed to mark all as read: ${e.toString()}');
     }
   }

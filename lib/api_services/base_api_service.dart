@@ -1,5 +1,4 @@
 import 'package:dio/dio.dart';
-import 'dart:developer';
 import '../features/auth/utils/auth_interceptor.dart';
 
 /// Base API service class that all other API services can extend
@@ -224,8 +223,8 @@ abstract class BaseApiService {
           }
         }
       }
-    } catch (e) {
-      log('Error extracting error message: $e');
+    } catch (_) {
+      // suppressed
     }
 
     return handleDioError(error);
@@ -243,27 +242,18 @@ abstract class BaseApiService {
         // Handle string responses that might contain JSON
         return null;
       }
-    } catch (e) {
-      log('Error parsing response: $e');
+    } catch (_) {
+      // suppressed
     }
     return null;
   }
 
-  /// Log request details
-  static void _logRequest(String method, String path, String? tag) {
-    final logTag = tag ?? 'BaseApiService';
-    log('$logTag: $method $path');
-  }
+  /// No-op: Request logging removed
+  static void _logRequest(String method, String path, String? tag) {}
 
-  /// Log response details
-  static void _logResponse(Response response, String? tag) {
-    final logTag = tag ?? 'BaseApiService';
-    log('$logTag: Response ${response.statusCode} - ${response.requestOptions.path}');
-  }
+  /// No-op: Response logging removed
+  static void _logResponse(Response response, String? tag) {}
 
-  /// Log error details
-  static void _logError(DioException error, String? tag) {
-    final logTag = tag ?? 'BaseApiService';
-    log('$logTag: Error ${error.type} - ${error.requestOptions.path}: ${error.message}');
-  }
+  /// No-op: Error logging removed
+  static void _logError(DioException error, String? tag) {}
 }

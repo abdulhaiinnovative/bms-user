@@ -161,12 +161,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    kPrimaryColor.withOpacity(0.1),
-                    kPrimaryColor.withOpacity(0.05),
-                  ],
-                ),
+                color: kPrimaryColor.withOpacity(0.08),
                 borderRadius:
                     const BorderRadius.vertical(top: Radius.circular(16)),
               ),
@@ -175,12 +170,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          kPrimaryColor.withOpacity(0.2),
-                          kPrimaryColor.withOpacity(0.1),
-                        ],
-                      ),
+                      color: kPrimaryColor.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child:
@@ -204,9 +194,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-                        ),
+                        color: const Color(0xFFFF6B6B),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(

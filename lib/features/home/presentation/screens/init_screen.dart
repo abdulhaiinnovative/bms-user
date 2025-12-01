@@ -27,27 +27,25 @@ class _InitScreenState extends State<InitScreen> {
     });
   }
 
-  final List<Widget> pages = const [
-    HomeScreen(),
-    // const FavoriteScreen(),
-    // const SearchServiceScreen(),
-    SearchServiceScreenNew(),
-    // TODO: FAVOURITES NAVIGATION - Favourites screen in bottom navigation
-    FavouritesScreen(),
-    MyBookings(),
-    ProfileScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: pages[currentSelectedIndex],
+      body: IndexedStack(
+        index: currentSelectedIndex,
+        children: const [
+          HomeScreen(),
+          SearchServiceScreenNew(),
+          FavouritesScreen(),
+          MyBookings(),
+          ProfileScreen(),
+        ],
+      ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.08),
+              color: Colors.black.withValues(alpha: 0.08),
               blurRadius: 12,
               offset: const Offset(0, -2),
             ),

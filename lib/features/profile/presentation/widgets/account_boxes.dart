@@ -51,16 +51,9 @@ class AccountBoxes extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: statusColor != null
-                            ? [statusColor!, statusColor!.withOpacity(0.7)]
-                            : [
-                                kPrimaryColor.withOpacity(0.15),
-                                kPrimaryColor.withOpacity(0.1),
-                              ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: statusColor != null
+                          ? statusColor!.withOpacity(0.15)
+                          : kPrimaryColor.withOpacity(0.15),
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Icon(

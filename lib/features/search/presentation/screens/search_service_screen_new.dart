@@ -12,6 +12,18 @@ import 'package:app/features/home/presentation/widgets/services_dashboard.dart';
 import '../../../../screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import '../../../../screens/test_scroll/salon_category_and_services_list.dart';
 
+// TODO: [FEATURE] Add advanced search filters (price range, rating, distance)
+// TODO: [FEATURE] Implement voice search functionality
+// TODO: [FEATURE] Add search history and suggestions
+// TODO: [FEATURE] Add "Near Me" location-based search
+// TODO: [FEATURE] Implement saved searches functionality
+// TODO: [ENHANCEMENT] Add search result sorting (relevance, price, rating, distance)
+// TODO: [ENHANCEMENT] Show "Did you mean..." suggestions for typos
+// TODO: [UX] Add pull-to-refresh on all tabs
+// TODO: [UX] Implement infinite scroll pagination for all tabs
+// TODO: [OPTIMIZATION] Cache search results for faster loading
+// TODO: [ANALYTICS] Track popular search terms
+
 class SearchServiceScreenNew extends StatefulWidget {
   const SearchServiceScreenNew({super.key});
 
@@ -93,18 +105,16 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
       // Deals tab - trigger search if empty
       log('🏷️ Deals tab active - triggering search');
       searchProvider.searchDeals(
-        'all',
+        '',
         categoryId: categoryId,
-        sortBy: 'total_price',
-        sortOrder: 'asc',
+        sortBy: 'price_low',
       );
     } else if (_tabController.index == 2 && searchProvider.salons.isEmpty) {
       // Salons tab - trigger search if empty
       log('🏪 Salons tab active - triggering search');
       searchProvider.searchSalons(
-        'all',
+        '',
         sortBy: 'rating',
-        sortOrder: 'desc',
       );
     }
   }
@@ -121,11 +131,70 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
   /// Build a loading widget
   Widget _buildLoadingState() {
     return Container(
-      padding: const EdgeInsets.all(60),
-      child: const Center(
-        child: CircularProgressIndicator(
-          strokeWidth: 3,
-          color: kPrimaryColor,
+      padding: const EdgeInsets.all(80),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      colors: [
+                        kPrimaryColor.withOpacity(0.2),
+                        kPrimaryColor.withOpacity(0.05),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(
+                  width: 60,
+                  height: 60,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 3,
+                    valueColor: AlwaysStoppedAnimation<Color>(kPrimaryColor),
+                  ),
+                ),
+                Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: kPrimaryColor.withOpacity(0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.search_rounded,
+                    color: kPrimaryColor,
+                    size: 18,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Searching...',
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Finding the best results for you',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -139,29 +208,57 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.error_outline_rounded,
-              size: 72,
-              color: Colors.red[300],
+            Container(
+              width: 100,
+              height: 100,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.red.shade400,
+                    Colors.red.shade300,
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.red.withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 56,
+                color: Colors.white,
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 28),
+            const Text(
               'Oops! Something went wrong',
               style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: -0.5,
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
-            Text(
-              error,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Text(
+                error,
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[700],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -177,28 +274,49 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.search_off_rounded,
-              size: 72,
-              color: Colors.grey[300],
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    kPrimaryColor.withOpacity(0.1),
+                    kPrimaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Icon(
+                Icons.search_off_rounded,
+                size: 64,
+                color: Colors.grey[400],
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 28),
+            const Text(
               'No Services Found',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Try adjusting your search or filters',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Text(
+                'Try adjusting your search or filters to find what you\'re looking for',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -214,28 +332,49 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.local_offer_outlined,
-              size: 72,
-              color: Colors.grey[300],
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.orange.withOpacity(0.15),
+                    Colors.orange.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Icon(
+                Icons.local_offer_rounded,
+                size: 64,
+                color: Colors.orange[400],
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 28),
+            const Text(
               'No Deals Available',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Check back later for amazing offers',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Text(
+                'Check back later for amazing offers and exclusive deals',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -251,28 +390,49 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.store_mall_directory_outlined,
-              size: 72,
-              color: Colors.grey[300],
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    kPrimaryColor.withOpacity(0.1),
+                    kPrimaryColor.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+              ),
+              child: Icon(
+                Icons.storefront_rounded,
+                size: 64,
+                color: kPrimaryColor.withOpacity(0.6),
+              ),
             ),
-            const SizedBox(height: 20),
-            Text(
+            const SizedBox(height: 28),
+            const Text(
               'No Salons Found',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey[700],
+                fontWeight: FontWeight.w800,
+                color: Color(0xFF2D2D2D),
+                letterSpacing: -0.5,
               ),
             ),
-            const SizedBox(height: 10),
-            Text(
-              'Try searching in a different area',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
+            const SizedBox(height: 12),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 30),
+              child: Text(
+                'Try searching in a different area or adjust your filters',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.grey[600],
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
           ],
         ),
@@ -305,8 +465,16 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
             // Body (scrollable tabs)
             Expanded(
               child: Container(
-                color: kScreenBg,
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                decoration: BoxDecoration(
+                  color: kScreenBg,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
                 child: TabBarView(
                   controller: _tabController,
                   children: [
@@ -315,7 +483,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                       controller: _servicesScrollController,
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.only(top: 8, bottom: 8),
                           sliver: searchProvider.isLoading &&
                                   searchProvider.services.isEmpty
                               ? SliverToBoxAdapter(child: _buildLoadingState())
@@ -331,11 +499,9 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                             (BuildContext context, int index) {
                                               final service = searchProvider
                                                   .services[index];
-                                              return Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 4,
-                                                  vertical: 6,
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 4,
                                                 ),
                                                 child: ServicesCard(
                                                   title: service.name ?? "",
@@ -370,7 +536,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                       controller: _dealsScrollController,
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.only(top: 8, bottom: 8),
                           sliver: searchProvider.isLoading &&
                                   searchProvider.deals.isEmpty
                               ? SliverToBoxAdapter(child: _buildLoadingState())
@@ -386,11 +552,9 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                             (BuildContext context, int index) {
                                               final deal =
                                                   searchProvider.deals[index];
-                                              return Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 4,
-                                                  vertical: 6,
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 4,
                                                 ),
                                                 child: DealsCard(
                                                   title: deal.name ?? "",
@@ -434,7 +598,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                       controller: _salonsScrollController,
                       slivers: [
                         SliverPadding(
-                          padding: const EdgeInsets.only(top: 4),
+                          padding: const EdgeInsets.only(top: 8, bottom: 8),
                           sliver: searchProvider.isLoading &&
                                   searchProvider.salons.isEmpty
                               ? SliverToBoxAdapter(child: _buildLoadingState())
@@ -450,11 +614,9 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                             (BuildContext context, int index) {
                                               final salon =
                                                   searchProvider.salons[index];
-                                              return Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 4,
-                                                  vertical: 6,
+                                              return Padding(
+                                                padding: const EdgeInsets.only(
+                                                  bottom: 8,
                                                 ),
                                                 child: SalonCard(
                                                   name: salon.name ?? "",

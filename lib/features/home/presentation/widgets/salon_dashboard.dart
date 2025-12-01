@@ -163,24 +163,17 @@ class SalonCard extends StatelessWidget {
                   // ),
                   //
                   // Gradient Overlay at Bottom
-                  Positioned(
-                    bottom: 0,
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      height: 80,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.transparent,
-                            Colors.black.withOpacity(0.7),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
+                  // Positioned(
+                  //   bottom: 0,
+                  //   left: 0,
+                  //   right: 0,
+                  //   child: Container(
+                  //     height: 40,
+                  //     decoration: BoxDecoration(
+                  //       color: Colors.black.withOpacity(0.5),
+                  //     ),
+                  //   ),
+                  // ),
                   // Rating Badge Overlay
                   Positioned(
                     bottom: 12,
@@ -246,12 +239,7 @@ class SalonCard extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(4),
                           decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                kPrimaryColor.withOpacity(0.15),
-                                kPrimaryColor.withOpacity(0.05),
-                              ],
-                            ),
+                            color: kPrimaryColor.withOpacity(0.15),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: const Icon(

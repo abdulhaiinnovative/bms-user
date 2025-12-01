@@ -19,6 +19,20 @@ import 'package:app/features/home/presentation/widgets/services_dashboard.dart';
 import '../test_scroll/salon_category_and_services_list.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:app/helper/auth_dialog_helper.dart';
+import '../../components/rating_dialog.dart';
+
+// TODO: [FEATURE] Add 360° virtual tour of salon
+// TODO: [FEATURE] Implement video walkthrough of salon
+// TODO: [FEATURE] Add "Share Salon" functionality (social media)
+// TODO: [FEATURE] Add "Report Salon" option for inappropriate content
+// TODO: [FEATURE] Implement photo gallery with fullscreen view
+// TODO: [ENHANCEMENT] Show salon's response to reviews
+// TODO: [ENHANCEMENT] Add "Verified Photos" badge for authentic images
+// TODO: [ENHANCEMENT] Display salon awards/certifications
+// TODO: [UX] Add "Call Now" button with direct phone integration
+// TODO: [UX] Show salon on map with directions button
+// TODO: [UX] Add "Save to Favorites" with collections (My Favorites, Want to Try, etc.)
+// TODO: [ANALYTICS] Track most viewed services on salon details
 
 class SalonDetailsScrollingTabsEffectB extends StatefulWidget {
   const SalonDetailsScrollingTabsEffectB({super.key});
@@ -262,6 +276,26 @@ class _SalonDetailsScrollingTabsEffectB
     }
   }
 
+  /// Show rating dialog for the salon
+  void _showRatingDialog() {
+    if (salonDetailsss?.id == null || salonDetailsss?.name == null) {
+      log('❌ Cannot show rating dialog: Salon data is null');
+      return;
+    }
+
+    RatingDialog.show(
+      context: context,
+      salonId: salonDetailsss!.id!,
+      salonName: salonDetailsss!.name!,
+      bookingId: null, // No specific booking context
+      onRatingSubmitted: () {
+        // Optionally refresh salon data to show updated rating
+        log('✅ Rating submitted, refreshing salon data...');
+        // You can call setState or refresh data here if needed
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -314,7 +348,7 @@ class _SalonDetailsScrollingTabsEffectB
       backgroundColor: Colors.white,
       pinned: true,
       snap: false,
-      expandedHeight: size.height / 1.60,
+      expandedHeight: size.height / 2.2,
       leading: !isExpanded
           ? IconButton(
               icon: const Icon(
@@ -437,6 +471,23 @@ class _SalonDetailsScrollingTabsEffectB
                 ),
               ),
             ),
+            // Rate button - positioned to the left of favorite button
+            Positioned(
+              right: 72,
+              top: 32,
+              child: Container(
+                decoration: const BoxDecoration(
+                    color: whiteColor, shape: BoxShape.circle),
+                child: IconButton(
+                  icon: const Icon(Icons.rate_review),
+                  color: kPrimaryColor,
+                  tooltip: 'Rate & Review',
+                  onPressed: () {
+                    _showRatingDialog();
+                  },
+                ),
+              ),
+            ),
             // TODO: FAVOURITES UI - Heart icon button for add/remove favourites
             // Shows filled heart when favourited, outlined when not
             // Displays loading spinner during API call
@@ -515,7 +566,7 @@ class _SalonDetailsScrollingTabsEffectB
         ),
         Container(
             alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.symmetric(vertical: 0, horizontal: 16),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 2),
             child: Text(
               salonDetailsss?.name ?? "",
               textAlign: TextAlign.start,
@@ -528,7 +579,7 @@ class _SalonDetailsScrollingTabsEffectB
             )),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.start,
             mainAxisSize: MainAxisSize.max,
@@ -549,7 +600,7 @@ class _SalonDetailsScrollingTabsEffectB
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 16),
+          padding: const EdgeInsets.symmetric(vertical: 1, horizontal: 16),
           child: Row(
             children: [
               Icon(
@@ -571,7 +622,7 @@ class _SalonDetailsScrollingTabsEffectB
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -580,12 +631,10 @@ class _SalonDetailsScrollingTabsEffectB
             ],
           ),
         ),
-        const SizedBox(
-          height: 4,
-        ),
+        const SizedBox(height: 2),
         const Divider(thickness: 1, height: 1),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 2),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -596,7 +645,7 @@ class _SalonDetailsScrollingTabsEffectB
                     .bodyMedium
                     ?.copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               Row(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -910,7 +959,10 @@ class _SalonDetailsScrollingTabsEffectB
         press: () {
           //Navigator.pushNamed(context, ProductsScreen.routeName);
           Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName,
-              arguments: deal);
+              arguments: {
+                'item': deal,
+                'salonDetailsss': salonDetailsss,
+              });
           log('Tapped Deal: ${deal.name}');
           log('Tapped Deal:salon id   ${deal.services?[0].salon?.id}');
           log('Tapped Deal:name   ${deal.services?[0].salon?.name}');
@@ -945,7 +997,10 @@ class _SalonDetailsScrollingTabsEffectB
 
           log('==================================');
           Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName,
-              arguments: service);
+              arguments: {
+                'item': service,
+                'salonDetailsss': salonDetailsss,
+              });
           log('Tapped Deal: ${service.name}');
           log('Tapped Deal:salon id   ${service.salon?.id}');
           log('Tapped Deal:name   ${service.salon?.name}');
@@ -1306,7 +1361,7 @@ class _SalonDetailsScrollingTabsEffectB
           backgroundColor: Colors.white,
           pinned: true,
           snap: false,
-          expandedHeight: MediaQuery.of(context).size.height / 1.33,
+          expandedHeight: MediaQuery.of(context).size.height / 2.2,
           flexibleSpace: FlexibleSpaceBar(
             collapseMode: CollapseMode.parallax,
             background: Shimmer.fromColors(

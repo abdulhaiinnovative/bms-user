@@ -178,9 +178,7 @@ class _DealsListScreenState extends State<DealsListScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
-                          ),
+                          color: const Color(0xFFFF6B6B),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(

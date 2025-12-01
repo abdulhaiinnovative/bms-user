@@ -21,7 +21,7 @@ class NotificationCard extends StatelessWidget {
         decoration: BoxDecoration(
           color: notification.isRead
               ? Colors.white
-              : kPrimaryColor.withOpacity(0.05),
+              : kPrimaryColor.withValues(alpha: 0.05),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,7 +31,7 @@ class NotificationCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: _getCategoryColor().withOpacity(0.1),
+                color: _getCategoryColor().withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Center(

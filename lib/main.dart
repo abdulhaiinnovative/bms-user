@@ -15,6 +15,7 @@ import 'package:app/features/auth/presentation/screens/splash/splash_screen.dart
 import 'firebase_options.dart';
 import 'routes.dart';
 import 'theme.dart';
+import 'package:http/http.dart'as http;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,6 +28,8 @@ Future<void> main() async {
     serverClientId:
         '55638853518-g0g84a7rsoolhi6ugo76se0o0seovf9b.apps.googleusercontent.com',
   );
+
+
 
   runApp(
     MultiProvider(

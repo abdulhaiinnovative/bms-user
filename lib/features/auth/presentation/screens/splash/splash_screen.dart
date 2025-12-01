@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../constants.dart';
-import '../../../utils/auth_manager.dart';
+import '../../providers/auth_provider.dart';
 import '../../../../home/presentation/screens/init_screen.dart';
 import '../auth/auth_screen.dart';
 import 'onboarding_screen.dart';
@@ -56,13 +57,20 @@ class _SplashScreenState extends State<SplashScreen>
 
     if (!mounted) return;
 
+    // Initialize AuthProvider to load authentication state
+    final authProvider = context.read<AuthProvider>();
+    log('🚀 SplashScreen: Initializing AuthProvider');
+    await authProvider.initializeAuth();
+
     final prefs = await SharedPreferences.getInstance();
     final hasSeenOnboarding = prefs.getBool('hasSeenOnboarding') ?? false;
 
-    final isLoggedIn = await AuthManager.isLoggedIn();
+    final isLoggedIn = authProvider.isAuthenticated;
 
     log('🚀 SplashScreen: hasSeenOnboarding = $hasSeenOnboarding');
     log('🚀 SplashScreen: isLoggedIn = $isLoggedIn');
+    log('🚀 SplashScreen: authState = ${authProvider.state}');
+    log('🚀 SplashScreen: currentUser = ${authProvider.currentUser?.email}');
 
     if (!mounted) return;
 

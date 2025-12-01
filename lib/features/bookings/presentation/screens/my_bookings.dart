@@ -184,323 +184,454 @@ class _MyBookingsState extends State<MyBookings>
           final booking = bookings[index];
           log('Rendering booking ID: ${booking.id}');
           final date = DateTime.tryParse(booking.date ?? '');
+          // Format: Dec 24, 2025 (full month abbreviation, day, year)
           final formattedDate =
-              date != null ? DateFormat('MMM dd, yyyy').format(date) : 'N/A';
+              date != null ? DateFormat('MMM d, y').format(date) : 'N/A';
           String formattedTime = 'N/A';
           String title = booking.title ?? '-';
           if (booking.time != null) {
             try {
               final time = DateFormat('HH:mm:ss').parse(booking.time!);
-              formattedTime = DateFormat('hh:mm a').format(time);
+              formattedTime = DateFormat('h:mm a').format(time);
             } catch (e, stackTrace) {
               log('Error parsing time for booking ID ${booking.id}: $e\nStack: $stackTrace');
             }
           }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Colors.white, Colors.grey.shade50],
-                ),
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: kPrimaryColor.withOpacity(0.1),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            child: Material(
+              elevation: 0,
+              color: Colors.transparent,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.grey.shade200,
+                    width: 1.5,
                   ),
-                ],
-              ),
-              child: InkWell(
-                borderRadius: BorderRadius.circular(16),
-                onTap: () async {
-                  final result = await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          BookingDetailsScreen(booking: booking),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                      spreadRadius: 0,
                     ),
-                  );
-                  if (result == true) {
-                    viewModel.refresh();
-                  }
-                },
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.02),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(20),
+                  onTap: () async {
+                    final result = await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            BookingDetailsScreen(booking: booking),
+                      ),
+                    );
+                    if (result == true) {
+                      viewModel.refresh();
+                    }
+                  },
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header with salon info
-                      Row(
-                        children: [
-                          Hero(
-                            tag: 'salon-logo-${booking.id ?? 'unknown'}',
-                            child: Container(
-                              width: 56,
-                              height: 56,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
+                      // Header Section with Salon Info
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: kPrimaryColor.withValues(alpha: 0.05),
+                          borderRadius: const BorderRadius.only(
+                            topLeft: Radius.circular(20),
+                            topRight: Radius.circular(20),
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            // Salon Logo
+                            Hero(
+                              tag: 'salon-logo-${booking.id ?? 'unknown'}',
+                              child: Container(
+                                width: 72,
+                                height: 72,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  color: Colors.white,
+                                  border: Border.all(
+                                    color: Colors.grey.shade200,
+                                    width: 2,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color:
+                                          Colors.black.withValues(alpha: 0.08),
+                                      blurRadius: 12,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: booking.salon?.logo != null
+                                      ? Image.network(
+                                          booking.salon!.logo!,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stack) =>
+                                                  Container(
+                                            color: Colors.grey[50],
+                                            child: Icon(Icons.store_rounded,
+                                                size: 32,
+                                                color: Colors.grey[400]),
+                                          ),
+                                        )
+                                      : Container(
+                                          color: Colors.grey[50],
+                                          child: Icon(Icons.store_rounded,
+                                              size: 32,
+                                              color: Colors.grey[400]),
+                                        ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Salon Details
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    booking.salon?.name ?? 'Unknown Salon',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black87,
+                                      letterSpacing: -0.3,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Row(
+                                    children: [
+                                      Icon(Icons.location_on_rounded,
+                                          size: 16, color: Colors.grey[500]),
+                                      const SizedBox(width: 4),
+                                      Expanded(
+                                        child: Text(
+                                          booking.salon?.address ??
+                                              'Unknown Address',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            color: Colors.grey[600],
+                                            height: 1.3,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
-                              child: ClipRRect(
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Status Badge Row
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 14, vertical: 8),
+                              decoration: BoxDecoration(
+                                color: _getStatusColor(booking.status),
                                 borderRadius: BorderRadius.circular(12),
-                                child: booking.salon?.logo != null
-                                    ? Image.network(
-                                        booking.salon!.logo!,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stack) =>
-                                            Container(
-                                          color: Colors.grey[200],
-                                          child: Icon(Icons.store,
-                                              size: 28,
-                                              color: Colors.grey[600]),
-                                        ),
-                                      )
-                                    : Container(
-                                        color: Colors.grey[200],
-                                        child: Icon(Icons.store,
-                                            size: 28, color: Colors.grey[600]),
-                                      ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: _getStatusColor(booking.status)
+                                        .withValues(alpha: 0.25),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
+                                  ),
+                                ],
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: Colors.white,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    (booking.status ?? 'N/A').toUpperCase(),
+                                    style: const TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.white,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            const Spacer(),
+                            Text(
+                              'ID: #${booking.id ?? 'N/A'}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.grey[600],
+                                letterSpacing: 0.3,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Service Title Section
+                      if (title != '-')
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          child: Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[50],
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
                               children: [
-                                Text(
-                                  booking.salon?.name ?? 'Unknown Salon',
-                                  style: const TextStyle(
-                                    fontSize: 17,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.black87,
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor,
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  child: const Icon(Icons.cut_rounded,
+                                      size: 20, color: Colors.white),
                                 ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    Icon(Icons.location_on_outlined,
-                                        size: 14, color: Colors.grey[600]),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        booking.salon?.address ??
-                                            'Unknown Address',
+                                const SizedBox(width: 14),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Service Booked',
                                         style: TextStyle(
-                                          fontSize: 13,
+                                          fontSize: 11,
                                           color: Colors.grey[600],
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.5,
                                         ),
-                                        maxLines: 1,
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        title,
+                                        style: const TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                          letterSpacing: -0.2,
+                                        ),
+                                        maxLines: 2,
                                         overflow: TextOverflow.ellipsis,
                                       ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
                                 ),
                               ],
                             ),
-                          ),
-                          // Status badge
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 6),
-                            decoration: BoxDecoration(
-                              color: _getStatusColor(booking.status)
-                                  .withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(
-                                color: _getStatusColor(booking.status),
-                                width: 1.5,
-                              ),
-                            ),
-                            child: Text(
-                              (booking.status ?? 'N/A').toUpperCase(),
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: _getStatusColor(booking.status),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      Divider(height: 1, color: Colors.grey.shade300),
-                      const SizedBox(height: 16),
-
-                      // Booking details
-                      if (title != '-')
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: kPrimaryColor.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(Icons.description_outlined,
-                                    size: 18, color: kPrimaryColor),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Service',
-                                      style: TextStyle(
-                                        fontSize: 11,
-                                        color: Colors.grey[600],
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      title,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.black87,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
                           ),
                         ),
 
-                      // Date and Time row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildInfoCard(
-                              Icons.calendar_today_outlined,
-                              'Date',
-                              formattedDate,
-                              Colors.blue,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildInfoCard(
-                              Icons.access_time_outlined,
-                              'Time',
-                              formattedTime,
-                              Colors.orange,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Payment and Type row
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildInfoCard(
-                              Icons.payment_outlined,
-                              'Payment',
-                              booking.paymentStatus ?? 'N/A',
-                              Colors.green,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: _buildInfoCard(
-                              Icons.category_outlined,
-                              'Type',
-                              booking.bookingType ?? 'N/A',
-                              Colors.purple,
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 16),
-                      Divider(height: 1, color: Colors.grey.shade300),
-                      const SizedBox(height: 12),
-
-                      // Price and action
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Total Amount',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey[600],
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'PKR ${booking.payment ?? 0}',
-                                style: const TextStyle(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.bold,
-                                  color: kPrimaryDarkColor,
-                                  letterSpacing: -0.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 20, vertical: 10),
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                colors: [kPrimaryColor, kPrimaryDarkColor],
-                              ),
-                              borderRadius: BorderRadius.circular(25),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: kPrimaryColor.withOpacity(0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                            ),
-                            child: const Row(
-                              mainAxisSize: MainAxisSize.min,
+                      // Main Info Grid
+                      Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          children: [
+                            // Date & Time Row
+                            Row(
                               children: [
-                                Text(
-                                  'View Details',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
+                                Expanded(
+                                  child: _buildModernInfoCard(
+                                    icon: Icons.calendar_month_rounded,
+                                    label: 'DATE',
+                                    value: formattedDate,
+                                    cardColor: const Color(0xFF3B82F6),
                                   ),
                                 ),
-                                SizedBox(width: 6),
-                                Icon(Icons.arrow_forward_rounded,
-                                    color: Colors.white, size: 18),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildModernInfoCard(
+                                    icon: Icons.schedule_rounded,
+                                    label: 'TIME',
+                                    value: formattedTime,
+                                    cardColor: const Color(0xFFF59E0B),
+                                  ),
+                                ),
                               ],
                             ),
+                            const SizedBox(height: 12),
+                            // Payment & Type Row
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildModernInfoCard(
+                                    icon: Icons.payments_rounded,
+                                    label: 'PAYMENT',
+                                    value: booking.paymentStatus ?? 'N/A',
+                                    cardColor: const Color(0xFF10B981),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: _buildModernInfoCard(
+                                    icon: Icons.category_rounded,
+                                    label: 'TYPE',
+                                    value: booking.bookingType ?? 'N/A',
+                                    cardColor: kPrimaryColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Footer with Price & Action
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: const BorderRadius.only(
+                            bottomLeft: Radius.circular(20),
+                            bottomRight: Radius.circular(20),
                           ),
-                        ],
+                          border: Border(
+                            top: BorderSide(
+                              color: Colors.grey.shade200,
+                              width: 1,
+                            ),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            // Price Section
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Total Amount',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Row(
+                                    children: [
+                                      const Text(
+                                        'PKR ',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.black54,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${booking.payment ?? 0}',
+                                        style: const TextStyle(
+                                          fontSize: 28,
+                                          fontWeight: FontWeight.w800,
+                                          color: kPrimaryDarkColor,
+                                          letterSpacing: -1,
+                                          height: 1.2,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                            // View Details Button
+                            Container(
+                              decoration: BoxDecoration(
+                                color: kPrimaryColor,
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: kPrimaryColor.withValues(alpha: 0.4),
+                                    blurRadius: 12,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
+                              ),
+                              child: Material(
+                                color: Colors.transparent,
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(16),
+                                  onTap: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            BookingDetailsScreen(
+                                                booking: booking),
+                                      ),
+                                    );
+                                    if (result == true) {
+                                      viewModel.refresh();
+                                    }
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(
+                                        horizontal: 24, vertical: 14),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          'View Details',
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 0.3,
+                                          ),
+                                        ),
+                                        SizedBox(width: 8),
+                                        Icon(Icons.arrow_forward_rounded,
+                                            color: Colors.white, size: 20),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -529,54 +660,72 @@ class _MyBookingsState extends State<MyBookings>
     }
   }
 
-  Widget _buildInfoCard(
-      IconData icon, String label, String value, Color color) {
+  Widget _buildModernInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color cardColor,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(10),
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: color.withOpacity(0.2),
-          width: 1,
+          color: cardColor.withValues(alpha: 0.2),
+          width: 1.5,
         ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(icon, size: 16, color: color),
+        boxShadow: [
+          BoxShadow(
+            color: cardColor.withValues(alpha: 0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Icon with solid background
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius: BorderRadius.circular(10),
+              boxShadow: [
+                BoxShadow(
+                  color: cardColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
                 ),
               ],
             ),
+            child: Icon(icon, size: 20, color: Colors.white),
+          ),
+          const SizedBox(height: 12),
+          // Label
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          // Value
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+              color: Colors.black87,
+              letterSpacing: -0.2,
+              height: 1.2,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
         ],
       ),
@@ -599,15 +748,7 @@ class _MyBookingsState extends State<MyBookings>
                 color: Colors.white,
               ),
             ),
-            flexibleSpace: Container(
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [kPrimaryDarkColor, kPrice],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-              ),
-            ),
+            backgroundColor: kPrimaryColor,
             bottom: TabBar(
               controller: _tabController,
               indicatorColor: Colors.white,

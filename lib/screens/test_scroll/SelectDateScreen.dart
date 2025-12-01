@@ -1,13 +1,9 @@
-import 'dart:developer';
-
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:table_calendar/table_calendar.dart';
+import 'package:intl/intl.dart';
 import '../../models/home/Professional.dart';
 import 'package:app/models/HomePageResponse.dart';
-
-import 'CustomAppBar.dart';
-import 'select_time_screen.dart';
+import 'confirm_booking_screen.dart';
 
 class SelectDateScreen extends StatefulWidget {
   static const String routeName = '/select-date';
@@ -19,15 +15,16 @@ class SelectDateScreen extends StatefulWidget {
 }
 
 class _SelectDateScreenState extends State<SelectDateScreen> {
-  DateTime _currentDate = DateTime.now();
-  DateTime? _selectedDay;
-  List<DateTime> _availableDates = [];
-  List<Professional> _selectedProfessionals = [];
+  DateTime? _selectedDate;
+  String? _selectedTime;
+  List<String> _availableTimeSlots = [];
+
   String? _salonName;
   String? _salonAddress;
   String? _salonImage;
-
+  Salon? _salon;
   Map<dynamic, int>? _cartItems;
+  final List<Professional> _selectedProfessionals = [];
 
   @override
   void initState() {
@@ -39,252 +36,633 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
         _salonName = arguments['salonName'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
         _salonImage = arguments['salonImage'] as String?;
+        _salon = arguments['salon'] as Salon?;
 
-        log('════════════════════════════════════════');
-        log('📅 SELECT DATE SCREEN - INIT');
-        log('════════════════════════════════════════');
-        log('Cart Items Count: ${_cartItems?.length ?? 0}');
-        log('Salon: $_salonName');
-        log('Salon Address: $_salonAddress');
-        log('Salon Image: $_salonImage');
-
-        final selectedProfessionals = arguments['selectedProfessionals'] as Map<dynamic, String?>?;
+        final selectedProfessionals =
+            arguments['selectedProfessionals'] as Map<dynamic, String?>?;
         if (selectedProfessionals != null) {
-          log('Selected Professionals:');
           for (var entry in selectedProfessionals.entries) {
-            if (entry.key is Service) {
+            if (entry.key is Service &&
+                entry.value != null &&
+                entry.value != 'Any') {
               final service = entry.key as Service;
-              final professionalName = entry.value;
-              log('  - Service: ${service.name} → ${professionalName ?? "Any"}');
-              
-              if (professionalName != null && professionalName != 'Any' && service.professionals != null) {
-                final professional = service.professionals!.firstWhere(
-                      (p) => p.name == professionalName,
-                  orElse: () => Professional(name: 'Unknown'),
-                );
-                if (professional.name != 'Unknown') {
+              if (service.professionals != null) {
+                try {
+                  final professional = service.professionals!.firstWhere(
+                    (p) => p.name == entry.value,
+                  );
                   _selectedProfessionals.add(professional);
-                  log('    Added Professional: ${professional.name} (ID: ${professional.id})');
-                }
+                } catch (e) {}
               }
             }
           }
         }
-        log('Total Professionals Selected: ${_selectedProfessionals.length}');
-        log('════════════════════════════════════════');
-      } else {
-        log('⚠️ No valid arguments passed to SelectDateScreen');
-        _selectedProfessionals = [];
-        _salonName = null;
-        _salonAddress = null;
-        _cartItems = null;
       }
-
-      setState(() {
-        _availableDates = _calculateAvailableDates();
-      });
     });
   }
 
-  List<DateTime> _calculateAvailableDates() {
-    final now = DateTime(_currentDate.year, _currentDate.month, _currentDate.day);
-    final endDate = DateTime.now().add(const Duration(days: 60));
-    List<DateTime> availableDates = [];
+  Future<void> _selectDate() async {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
 
-    if (_selectedProfessionals.isNotEmpty) {
-      for (DateTime date = now; date.isBefore(endDate) || date.isAtSameMomentAs(endDate); date = date.add(const Duration(days: 1))) {
-        bool isAvailable = true;
-        for (var professional in _selectedProfessionals) {
-          if (!_isProfessionalAvailableOnDate(professional, date)) {
-            isAvailable = false;
-            break;
-          }
-        }
-        if (isAvailable) {
-          availableDates.add(DateTime(date.year, date.month, date.day));
-        }
-      }
+    const int defaultMaxDays = 30;
+    int maxBookingDays = defaultMaxDays;
+
+    if (_salon == null) {
+      // use default
+    } else if (_salon!.maxBookingTime == null) {
+      // use default
+    } else if (_salon!.maxBookingTime!.isEmpty) {
+      // use default
     } else {
-      for (DateTime date = now; date.isBefore(endDate) || date.isAtSameMomentAs(endDate); date = date.add(const Duration(days: 1))) {
-        availableDates.add(DateTime(date.year, date.month, date.day));
+      try {
+        maxBookingDays = int.parse(_salon!.maxBookingTime!);
+        if (maxBookingDays < 1) {
+          maxBookingDays = defaultMaxDays;
+        } else if (maxBookingDays > 365) {
+          maxBookingDays = 365;
+        }
+      } catch (e) {
+        maxBookingDays = defaultMaxDays;
       }
     }
 
-    return availableDates;
+    final lastDay = today.add(Duration(days: maxBookingDays));
+
+    DateTime initialDateToUse = _selectedDate ?? today;
+    if (!_isSalonOpenOnDate(initialDateToUse)) {
+      for (int i = 0; i <= maxBookingDays; i++) {
+        final testDate = today.add(Duration(days: i));
+        if (_isSalonOpenOnDate(testDate)) {
+          initialDateToUse = testDate;
+          break;
+        }
+      }
+    }
+
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDateToUse,
+      firstDate: today,
+      lastDate: lastDay,
+      selectableDayPredicate: (DateTime date) {
+        final isOpen = _isSalonOpenOnDate(date);
+        return isOpen;
+      },
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: kPrimaryDarkColor,
+              onPrimary: Colors.white,
+              onSurface: Colors.black,
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null && mounted) {
+      setState(() {
+        _selectedDate = picked;
+        _selectedTime = null;
+        _availableTimeSlots = _generateTimeSlots(picked);
+      });
+    }
   }
 
-  bool _isProfessionalAvailableOnDate(Professional professional, DateTime date) {
-    final startDate = professional.start_date != null ? DateTime.parse(professional.start_date!) : null;
-    final endDate = professional.end_date != null ? DateTime.parse(professional.end_date!) : null;
-    if (startDate != null && date.isBefore(startDate)) return false;
-    if (endDate != null && date.isAfter(endDate)) return false;
-
-    switch (date.weekday) {
-      case DateTime.monday:
-        return professional.monday == 1;
-      case DateTime.tuesday:
-        return professional.tuesday == 1;
-      case DateTime.wednesday:
-        return professional.wednesday == 1;
-      case DateTime.thursday:
-        return professional.thursday == 1;
-      case DateTime.friday:
-        return professional.friday == 1;
-      case DateTime.saturday:
-        return professional.saturday == 1;
-      case DateTime.sunday:
-        return professional.sunday == 1;
-      default:
-        return false;
+  bool _isSalonOpenOnDate(DateTime date) {
+    if (_salon == null) {
+      return false;
     }
+
+    if (_salon!.activeDays == null) {
+      return false;
+    }
+
+    if (_salon!.activeDays!.isEmpty) {
+      return false;
+    }
+
+    final dayName = _getDayName(date.weekday);
+    if (dayName.isEmpty) {
+      return false;
+    }
+
+    ActiveDay? matchingDay;
+
+    for (var activeDay in _salon!.activeDays!) {
+      if (activeDay.day != null &&
+          activeDay.day!.toLowerCase().trim() == dayName.toLowerCase().trim()) {
+        matchingDay = activeDay;
+        break;
+      }
+    }
+
+    if (matchingDay == null) {
+      return false;
+    }
+
+    if (matchingDay.status == null) {
+      return false;
+    }
+
+    final isOpen = matchingDay.status == 1;
+    return isOpen;
+  }
+
+  String _getDayName(int weekday) {
+    switch (weekday) {
+      case DateTime.monday:
+        return 'monday';
+      case DateTime.tuesday:
+        return 'tuesday';
+      case DateTime.wednesday:
+        return 'wednesday';
+      case DateTime.thursday:
+        return 'thursday';
+      case DateTime.friday:
+        return 'friday';
+      case DateTime.saturday:
+        return 'saturday';
+      case DateTime.sunday:
+        return 'sunday';
+      default:
+        return '';
+    }
+  }
+
+  String _getClosedDaysMessage() {
+    if (_salon?.activeDays == null || _salon!.activeDays!.isEmpty) {
+      return 'Salon schedule information unavailable';
+    }
+
+    final closedDays = _salon!.activeDays!
+        .where((day) => day.status == 0)
+        .map((day) => _capitalizeFirstLetter(day.day ?? ''))
+        .where((day) => day.isNotEmpty)
+        .toList();
+
+    if (closedDays.isEmpty) {
+      return 'Salon is open all days of the week';
+    } else if (closedDays.length == 7) {
+      return 'Salon is currently closed';
+    } else if (closedDays.length == 1) {
+      return 'Closed on ${closedDays[0]}s. These days are disabled in the calendar.';
+    } else if (closedDays.length == 2) {
+      return 'Closed on ${closedDays[0]}s & ${closedDays[1]}s. These days are disabled in the calendar.';
+    } else {
+      final lastDay = closedDays.removeLast();
+      return 'Closed on ${closedDays.join(', ')} & $lastDay. These days are disabled in the calendar.';
+    }
+  }
+
+  String _capitalizeFirstLetter(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1).toLowerCase();
+  }
+
+  List<String> _generateTimeSlots(DateTime date) {
+    List<String> slots = [];
+
+    String? openingTime;
+    String? closingTime;
+
+    if (_salon?.activeDays != null) {
+      final dayName = _getDayName(date.weekday);
+      try {
+        final activeDay = _salon!.activeDays!.firstWhere(
+          (ad) => ad.day?.toLowerCase() == dayName.toLowerCase(),
+        );
+        openingTime = activeDay.openingTime;
+        closingTime = activeDay.closingTime;
+      } catch (e) {}
+    }
+
+    int startHour = 8;
+    int startMinute = 0;
+    int endHour = 23;
+    int endMinute = 0;
+
+    if (openingTime != null && openingTime.isNotEmpty) {
+      try {
+        final parts = openingTime.split(':');
+        startHour = int.parse(parts[0]);
+        startMinute = int.parse(parts[1]);
+      } catch (e) {}
+    }
+
+    if (closingTime != null &&
+        closingTime.isNotEmpty &&
+        closingTime != '00:00:00') {
+      try {
+        final parts = closingTime.split(':');
+        endHour = int.parse(parts[0]);
+        endMinute = int.parse(parts[1]);
+      } catch (e) {}
+    }
+
+    DateTime startTime =
+        DateTime(date.year, date.month, date.day, startHour, startMinute);
+    DateTime endTime =
+        DateTime(date.year, date.month, date.day, endHour, endMinute);
+
+    while (startTime.isBefore(endTime) || startTime.isAtSameMomentAs(endTime)) {
+      final hour = startTime.hour % 12 == 0 ? 12 : startTime.hour % 12;
+      final period = startTime.hour < 12 ? 'AM' : 'PM';
+      final timeString =
+          '$hour:${startTime.minute.toString().padLeft(2, '0')} $period';
+      slots.add(timeString);
+      startTime = startTime.add(const Duration(minutes: 15));
+    }
+
+    return slots;
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: CustomAppBar(salonName: _salonName, salonAddress: _salonAddress, salonImage: _salonImage),
-      body: Stack(
-        children: [
-          Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                child: TableCalendar(
-                  firstDay: _currentDate,
-                  lastDay: DateTime.now().add(const Duration(days: 60)),
-                  focusedDay: _currentDate,
-                  selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-                  onDaySelected: (selectedDay, focusedDay) {
-                    if (_availableDates.any((d) => isSameDay(d, selectedDay))) {
-                      setState(() {
-                        _selectedDay = selectedDay;
-                        _currentDate = focusedDay; // Update focused day
-                      });
-                    }
-                  },
-                  calendarFormat: CalendarFormat.month,
-                  availableCalendarFormats: const {CalendarFormat.month: 'Month'},
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: BoxDecoration(
-                      color: Colors.blueAccent.withOpacity(0.3),
-                      shape: BoxShape.circle,
-                    ),
-                    selectedDecoration: const BoxDecoration(
-                      color: kPrimaryDarkColor,
-                      shape: BoxShape.circle,
-                    ),
-                    markerDecoration: const BoxDecoration(
-                      color: Colors.green,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  daysOfWeekStyle: const DaysOfWeekStyle(
-                    weekdayStyle: TextStyle(color: Colors.black),
-                    weekendStyle: TextStyle(color: Colors.black),
-                  ),
-                  headerStyle: const HeaderStyle(
-                    formatButtonVisible: false,
-                    titleCentered: true,
-                  ),
-                  enabledDayPredicate: (date) {
-                    return _availableDates.any((d) => isSameDay(d, date));
-                  },
-                  calendarBuilders: CalendarBuilders(
-                    markerBuilder: (context, date, events) {
-                      if (_availableDates.any((d) => isSameDay(d, date))) {
-                        return Positioned(
-                          bottom: 1,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: kPrimaryDarkColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        );
-                      }
-                      return null;
-                    },
-                  ),
-                ),
-              ),
-              if (_selectedDay != null)
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    'Selected Date: ${_selectedDay!.toString().split(' ')[0]}',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              const SizedBox(height: 80), // Space for the positioned button
-            ],
-          ),
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 42),
-              decoration: const BoxDecoration(
+      appBar: _buildAppBar(),
+      body: Container(
+        color: kScreenBg,
+        child: Column(
+          children: [
+            Container(
+              margin: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
                 color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 10,
-                    spreadRadius: 2,
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
                   ),
                 ],
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 48), // Full-width button
-                  backgroundColor: _selectedDay != null ? kPrimaryDarkColor : Colors.grey,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                ),
-                onPressed: _selectedDay != null
-                    ? () {
-                  log('════════════════════════════════════════');
-                  log('📍 NAVIGATING TO SELECT TIME SCREEN');
-                  log('════════════════════════════════════════');
-                  log('Selected Date: ${_selectedDay.toString().split(' ')[0]}');
-                  log('Selected Professionals Count: ${_selectedProfessionals.length}');
-                  _selectedProfessionals.forEach((prof) {
-                    log('  - ${prof.name} (ID: ${prof.id})');
-                  });
-                  log('Cart Items Count: ${_cartItems?.length ?? 0}');
-                  log('Salon: $_salonName');
-                  log('════════════════════════════════════════');
-                  
-                  Navigator.pushNamed(
-                    context,
-                    SelectTimeScreen.routeName,
-                    arguments: {
-                      'cartItems': _cartItems,
-                      'selectedDay': _selectedDay,
-                      'selectedProfessionals': _selectedProfessionals,
-                      'salonName': _salonName,
-                      'salonAddress': _salonAddress,
-                    },
-                  );
-                }
-                    : null,
-                child: const Text(
-                  'Confirm Date',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+              child: InkWell(
+                onTap: _selectDate,
+                borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: kPrimaryDarkColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Icon(
+                          Icons.calendar_today,
+                          color: kPrimaryDarkColor,
+                          size: 28,
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Select Date',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              _selectedDate != null
+                                  ? DateFormat('EEEE, MMMM d, yyyy')
+                                      .format(_selectedDate!)
+                                  : 'Tap to choose a date',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                                color: _selectedDate != null
+                                    ? Colors.black
+                                    : Colors.grey.shade400,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_forward_ios,
+                        color: Colors.grey.shade400,
+                        size: 20,
+                      ),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+            if (_salon?.activeDays != null && _salon!.activeDays!.isNotEmpty)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: Colors.blue.shade100,
+                      width: 1,
+                    ),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline,
+                        color: Colors.blue.shade700,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _getClosedDaysMessage(),
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.blue.shade900,
+                            fontWeight: FontWeight.w500,
+                            height: 1.3,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            if (_selectedDate != null) ...[
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Select Time',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade800,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _availableTimeSlots.isEmpty
+                    ? Center(
+                        child: Text(
+                          'No time slots available for this date',
+                          style: TextStyle(
+                              fontSize: 16, color: Colors.grey.shade600),
+                        ),
+                      )
+                    : GridView.builder(
+                        padding: const EdgeInsets.all(16),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 12,
+                          mainAxisSpacing: 12,
+                          childAspectRatio: 2.5,
+                        ),
+                        itemCount: _availableTimeSlots.length,
+                        itemBuilder: (context, index) {
+                          final time = _availableTimeSlots[index];
+                          final isSelected = _selectedTime == time;
+
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                _selectedTime = time;
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(8),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? kPrimaryDarkColor
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? kPrimaryDarkColor
+                                      : Colors.grey.shade300,
+                                  width: isSelected ? 2 : 1,
+                                ),
+                              ),
+                              child: Center(
+                                child: Text(
+                                  time,
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: isSelected
+                                        ? FontWeight.bold
+                                        : FontWeight.w500,
+                                    color: isSelected
+                                        ? Colors.white
+                                        : Colors.black,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+              ),
+            ] else
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.calendar_month,
+                        size: 80,
+                        color: Colors.grey.shade300,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Please select a date first',
+                        style: TextStyle(
+                          fontSize: 18,
+                          color: Colors.grey.shade600,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 54),
+                    backgroundColor:
+                        (_selectedDate != null && _selectedTime != null)
+                            ? kPrimaryDarkColor
+                            : Colors.grey.shade300,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    elevation: 0,
+                  ),
+                  onPressed: (_selectedDate != null && _selectedTime != null)
+                      ? () {
+                          Navigator.pushNamed(
+                            context,
+                            ConfirmBookingScreen.routeName,
+                            arguments: {
+                              'cartItems': _cartItems,
+                              'selectedDay': _selectedDate,
+                              'selectedTime': _selectedTime,
+                              'selectedProfessionals': _selectedProfessionals,
+                              'salonName': _salonName,
+                              'salonAddress': _salonAddress,
+                              'salonImage': _salonImage,
+                              'salonId': _salon?.id,
+                            },
+                          );
+                        }
+                      : null,
+                  child: Text(
+                    'Continue to Booking',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: (_selectedDate != null && _selectedTime != null)
+                          ? Colors.white
+                          : Colors.grey.shade500,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// AppBar - Modern redesigned to match confirm booking screen
+  AppBar _buildAppBar() {
+    return AppBar(
+      automaticallyImplyLeading: false,
+      toolbarHeight: 70,
+      backgroundColor: Colors.white,
+      elevation: 0,
+      flexibleSpace: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+      ),
+      title: Padding(
+        padding: const EdgeInsets.only(top: 8),
+        child: Row(
+          children: [
+            // Modern back button
+            GestureDetector(
+              onTap: () => Navigator.of(context).pop(),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: kPrimaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: kPrimaryColor.withOpacity(0.2),
+                    width: 1,
+                  ),
+                ),
+                child: const Icon(
+                  Icons.arrow_back_ios_new,
+                  color: kPrimaryColor,
+                  size: 18,
+                ),
+              ),
+            ),
+            const SizedBox(width: 14),
+            // Salon info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _salonName ?? 'Select Date',
+                    style: const TextStyle(
+                      color: Color(0xFF2D2D2D),
+                      fontSize: 19,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      height: 1.2,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+            // Salon image
+            if (_salonImage != null && _salonImage!.isNotEmpty)
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: kPrimaryColor.withOpacity(0.3),
+                    width: 2,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: kPrimaryColor.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: Image.network(
+                    _salonImage!,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: kPrimaryColor.withOpacity(0.1),
+                      child: const Icon(
+                        Icons.storefront_rounded,
+                        color: kPrimaryColor,
+                        size: 24,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

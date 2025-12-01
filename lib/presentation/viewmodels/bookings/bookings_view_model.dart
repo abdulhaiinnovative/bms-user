@@ -49,35 +49,50 @@ class BookingsViewModel extends BaseViewModel {
 
     await executeAsync(
       operation: () async {
-        log('Loading bookings - Page: $_currentPage');
+        log('📅 Loading bookings - Page: $_currentPage');
 
         final response = await _repository.getBookingsList(
           page: _currentPage,
           url: _nextPageUrl,
         );
 
-        log('Bookings response received - Status: ${response.status}');
+        log('📅 Bookings response received');
+        log('📅 Response type: ${response.runtimeType}');
+        log('📅 Response status: ${response.status}');
+        log('📅 Has response data: ${response.response != null}');
+        log('📅 Has booking data: ${response.response?.data != null}');
 
-        if (response.status == 1 && response.paginatedData != null) {
-          final newBookings = response.paginatedData?.data ?? [];
+        if (response.status == true && response.response?.data != null) {
+          final bookingData = response.response!.data!;
+          final newBookings = bookingData.data ?? [];
+
+          log('📅 New bookings count: ${newBookings.length}');
 
           if (!refresh) {
             if (newBookings.isNotEmpty) {
               _allBookings.addAll(newBookings);
+              log('📅 Added ${newBookings.length} bookings to existing list');
             }
           } else {
             _allBookings = newBookings;
+            log('📅 Replaced bookings list with ${newBookings.length} bookings');
           }
 
-          _currentPage = response.paginatedData?.currentPage ?? 1;
-          _lastPage = response.paginatedData?.lastPage ?? 1;
-          _totalBookings = response.paginatedData?.total ?? 0;
-          _nextPageUrl = response.paginatedData?.nextPageUrl;
+          _currentPage = bookingData.currentPage ?? 1;
+          _lastPage = bookingData.lastPage ?? 1;
+          _totalBookings = bookingData.total ?? 0;
+          _nextPageUrl = bookingData.nextPageUrl;
 
-          log('Bookings loaded successfully - Total: $totalBookings, Current Page: $currentPage, Last Page: $lastPage');
+          log('📅 Bookings loaded successfully');
+          log('📅 Total: $totalBookings, Current Page: $currentPage, Last Page: $lastPage');
+          log('📅 All bookings count: ${_allBookings.length}');
+          log('📅 Next page URL: $_nextPageUrl');
 
           // Filter bookings into upcoming and past
           _filterBookings();
+        } else {
+          log('❌ Invalid response structure or no data');
+          log('❌ Status: ${response.status}, Response: ${response.response}, Data: ${response.response?.data}');
         }
 
         notifyListeners();

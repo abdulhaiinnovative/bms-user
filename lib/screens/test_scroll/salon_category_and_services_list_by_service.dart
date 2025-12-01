@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:app/models/SalonServicesCategorizedResponse.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
@@ -72,6 +70,8 @@ class _SalonCategoryAndServicesListByServiceState
                   'salonName': mSalonName,
                   'salonImage': mSalonImage,
                   'salonAddress': mSalonAddess,
+                  'salonId':
+                      mDeal?.services?[0].salon?.id ?? mService?.salon?.id,
                 },
               );
             }
@@ -82,6 +82,7 @@ class _SalonCategoryAndServicesListByServiceState
   }
 
   Deal? mDeal;
+  Service? mService;
   SalonServicesCategorizedResponse? responseData;
   var mSalonName;
   var mSalonImage;
@@ -103,18 +104,22 @@ class _SalonCategoryAndServicesListByServiceState
       if (arguments != null && arguments is Deal) {
         setState(() {
           mDeal = arguments; // Store the Deal object
-          log('mDeal:: ${mDeal?.name}');
           mSalonName = mDeal?.services?[0].salon?.name;
           mSalonImage = mDeal?.services?[0].salon?.image;
           mSalonAddess = mDeal?.services?[0].salon?.address;
-
-          log('Deal:id   ${mDeal?.services?[0].salon?.id}');
-          log('Deal:name   ${mDeal?.services?[0].salon?.name}');
-          log('Deal:image   ${mDeal?.services?[0].salon?.image}');
-          log('Deal:address   ${mDeal?.services?[0].salon?.address}');
         });
-      } else {
-        log('No Deal data passed');
+      } else if (arguments != null && arguments is Service) {
+        setState(() {
+          mService = arguments; // Store the Service object
+          mSalonName = mService?.salon?.name;
+          mSalonImage = mService?.salon?.image;
+          mSalonAddess = mService?.salon?.address;
+
+          // Add service to cart automatically
+          if (mService != null) {
+            _handleAddToCart(mService!);
+          }
+        });
       }
 
       loadData();
@@ -131,52 +136,27 @@ class _SalonCategoryAndServicesListByServiceState
 
     SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
 
-    log("mDeal?.services?[0]?.salon?.id  ${mDeal?.services?[0].salon?.id}");
+    // Get salon ID from either Deal or Service
+    int? salonId = mDeal?.services?[0].salon?.id ?? mService?.salon?.id;
 
-    responseData = await api.fetchAllServicesAndDealsCategorizedData(
-        mDeal?.services?[0].salon?.id ?? 0);
+    if (salonId == null || salonId == 0) {
+      return;
+    }
+
+    responseData = await api.fetchAllServicesAndDealsCategorizedData(salonId);
 
     if (responseData != null) {
       setState(() {
         responseData?.response?.data?.forEach((category) {
-          log('Category: ${category.name}');
           // Add category name to tabNames
           tabNames.add(category.name ?? "NA");
           // Create a new list for this category's services
           List<Service> categoryServices = [];
-          // Add services to the category's list
-          // category.items?.forEach((item) {
-          //   log('Item: ${item.name}, Price: ${item.price}');
-          //   categoryServices.add(item);
-          // });
-          // Add services to the category's list
-          // category.services?.forEach((item) {
-          //   log('Item: ${item.name}, Price: ${item.price}');
-          //   categoryServices.add(item);
-          // });
           // Add the category's service list to serviceItem
           serviceItem.add(categoryServices);
           salonCategories.add(GlobalKey());
         });
-
-        // int i = 0;
-        // responseData?.response?.data?.forEach((category) {
-        //   log('Category: ${category.name}');
-        //   tabNames.add(category.name ?? "NA");
-        //   i++;
-        //   category.services?.forEach((item) {
-        //     log('Item: ${item.name}, Price: ${item.price}');
-        //     serviceItem.add(item, "i");
-        //   });
-        // });
       });
-
-      log("tabNames:::: ${tabNames.length}");
-      log("serviceItem:::: ${serviceItem.length}");
-
-      log("responseData:::: ${responseData?.response?.data?.first.name}");
-    } else {
-      log("responseData::::No data received");
     }
   }
 
@@ -240,102 +220,265 @@ class _SalonCategoryAndServicesListByServiceState
     );
   }
 
-  /// AppBar
+  /// AppBar - Brand new design from scratch with horizontal scrollable tabs
   AppBar _buildAppBar() {
     return AppBar(
-      leading: IconButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        icon: const Icon(Icons.arrow_back),
-      ),
-      title: Row(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle, // Ensures circular shape
-              border: Border.all(
-                color: kPrimaryDarkColor, // Border color (customize as needed)
-                width: 3.0, // Border width
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(
-                  25.0), // Half of 50 for a perfect circle
-              child: mSalonImage != null && mSalonImage!.isNotEmpty
-                  ? Image.network(
-                      mSalonImage!,
-                      height: 50,
-                      width: 50,
-                      fit: BoxFit.cover,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const SizedBox(
-                          height: 50,
-                          width: 50,
-                          child: Center(child: CircularProgressIndicator()),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        height: 50,
-                        width: 50,
-                        color: Colors.grey[300],
-                        child:
-                            const Icon(Icons.broken_image, color: Colors.grey),
-                      ),
-                    )
-                  : Container(
-                      height: 50,
-                      width: 50,
-                      color: Colors.grey[300],
-                      child: const Icon(Icons.image, color: Colors.grey),
-                    ),
-            ),
+      automaticallyImplyLeading: false,
+      backgroundColor: kPrimaryColor,
+      elevation: 8,
+      shadowColor: kPrimaryColor.withOpacity(0.4),
+      toolbarHeight: 140,
+      flexibleSpace: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              kPrimaryColor,
+              Color(0xFF551E66),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  mSalonName ?? 'No Salon Name',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                        fontSize: 20,
+                // Top Row: Back button and Info icon
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Back Button
+                    GestureDetector(
+                      onTap: () => Navigator.of(context).pop(),
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Icon(
+                          Icons.arrow_back_ios_new,
+                          color: Colors.white,
+                          size: 18,
+                        ),
                       ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                    ),
+                    // Info or Share Button
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: const Icon(
+                        Icons.share_outlined,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                    ),
+                  ],
                 ),
-                Text(
-                  mSalonAddess ?? 'No Address',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w400,
-                        fontSize: 14,
+                const SizedBox(height: 20),
+                // Salon Info Row - Centered Layout
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Salon Image
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(14),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.2),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
                       ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: mSalonImage != null && mSalonImage!.isNotEmpty
+                            ? Image.network(
+                                mSalonImage!,
+                                fit: BoxFit.cover,
+                                loadingBuilder:
+                                    (context, child, loadingProgress) {
+                                  if (loadingProgress == null) return child;
+                                  return Container(
+                                    color: Colors.white,
+                                    child: const Center(
+                                      child: SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  kPrimaryColor),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Container(
+                                  color: Colors.white,
+                                  child: const Icon(
+                                    Icons.storefront_rounded,
+                                    color: kPrimaryColor,
+                                    size: 28,
+                                  ),
+                                ),
+                              )
+                            : Container(
+                                color: Colors.white,
+                                child: const Icon(
+                                  Icons.storefront_rounded,
+                                  color: kPrimaryColor,
+                                  size: 28,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Salon Name and Rating
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            mSalonName ?? 'Select Services',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.5,
+                              height: 1.2,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.2),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  color: Color(0xFFFFB800),
+                                  size: 16,
+                                ),
+                                SizedBox(width: 5),
+                                Text(
+                                  '4.8',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-        ],
+        ),
       ),
       bottom: tabNames.isNotEmpty
-          ? TabBar(
-              isScrollable: true,
-              indicatorColor: Theme.of(context).primaryColor,
-              labelColor: Theme.of(context).primaryColor,
-              unselectedLabelColor:
-                  Theme.of(context).textTheme.bodyMedium?.color,
-              labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-              unselectedLabelStyle:
-                  const TextStyle(fontWeight: FontWeight.w400),
-              tabs: tabNames.map((name) => Tab(child: Text(name))).toList(),
-              onTap: (int index) => scrollToIndex(index),
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(60),
+              child: Container(
+                color: Colors.transparent,
+                padding: const EdgeInsets.only(bottom: 12),
+                child: SizedBox(
+                  height: 48,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    itemCount: tabNames.length,
+                    itemBuilder: (context, index) {
+                      final isSelected =
+                          DefaultTabController.of(context).index == index;
+                      return GestureDetector(
+                        onTap: () {
+                          DefaultTabController.of(context).animateTo(index);
+                          scrollToIndex(index);
+                        },
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white
+                                : Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: isSelected
+                                  ? Colors.white
+                                  : Colors.white.withOpacity(0.3),
+                              width: 1.5,
+                            ),
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.1),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            tabNames[index],
+                            style: TextStyle(
+                              color: isSelected ? kPrimaryColor : Colors.white,
+                              fontSize: 14,
+                              fontWeight: isSelected
+                                  ? FontWeight.w700
+                                  : FontWeight.w500,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             )
           : null,
-      backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
-      elevation: 4,
     );
   }
 
@@ -348,108 +491,119 @@ class _SalonCategoryAndServicesListByServiceState
 
   /// Single Product item widget
   Widget _buildSingleItem(Service item) {
-    return Column(
-      children: [
-        SizedBox(
-          width: double.infinity,
-          height: 120,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
-            child: Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.name ?? "---",
-                          style: const TextStyle(
-                            fontSize: 21,
-                            fontWeight: FontWeight.bold,
-                          ),
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Service Name
+          Text(
+            item.name ?? "---",
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF2D2D2D),
+              letterSpacing: -0.3,
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Service Description
+          Text(
+            item.description ?? "No description available",
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey.shade600,
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          // Price and Add Button Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Price Section
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    "PKR ${item.price}",
+                    style: const TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w800,
+                      color: kPrimaryColor,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  if (item.oldPrice != null && item.oldPrice != item.price)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 3),
+                      child: Text(
+                        "PKR ${item.oldPrice}",
+                        style: TextStyle(
+                          decoration: TextDecoration.lineThrough,
+                          fontSize: 14,
+                          color: Colors.grey.shade500,
+                          fontWeight: FontWeight.w500,
                         ),
-                        Text(
-                          item.description ?? "-=-",
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                              fontSize: 12, color: Colors.grey.shade600),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.only(top: 14),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                mainAxisAlignment: MainAxisAlignment.end,
-                                children: [
-                                  Text(
-                                    "${item.price}",
-                                    style: const TextStyle(
-                                        fontSize: 16, color: Colors.black),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Text(
-                                    "${item.price} RS",
-                                    style: const TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                        fontSize: 13,
-                                        color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    // Background color of the box
-                                    shape: BoxShape.rectangle,
-                                    // Shape of the box
-                                    borderRadius: BorderRadius.circular(8.0),
-                                    // Rounded corners for the box
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.grey.withOpacity(0.3),
-                                        // Light grey shadow color
-                                        blurRadius: 4.0,
-                                        // Blur radius of the shadow
-                                        offset: const Offset(
-                                            0, 4), // Position of the shadow
-                                      ),
-                                    ],
-                                  ),
-                                  child: IconButton(
-                                    icon: Icon(
-                                      _cartItems.containsKey(item)
-                                          ? Icons.check
-                                          : Icons.add,
-                                      color: _cartItems.containsKey(item)
-                                          ? Colors.green
-                                          : Colors.black,
-                                      size: 26.0,
-                                    ),
-                                    onPressed: () => _handleAddToCart(item),
-                                  )),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
+                    ),
+                ],
+              ),
+              // Add Button
+              Container(
+                decoration: BoxDecoration(
+                  color: _cartItems.containsKey(item)
+                      ? const Color(0xFF4CAF50)
+                      : kPrimaryColor,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: (_cartItems.containsKey(item)
+                              ? const Color(0xFF4CAF50)
+                              : kPrimaryColor)
+                          .withOpacity(0.3),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => _handleAddToCart(item),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        _cartItems.containsKey(item)
+                            ? Icons.check_rounded
+                            : Icons.add_rounded,
+                        color: Colors.white,
+                        size: 24,
+                      ),
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-        const SizedBox(
-          height: 20,
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -471,16 +625,6 @@ class _SalonCategoryAndServicesListByServiceState
                   fontWeight: FontWeight.w900,
                 ),
               ),
-              // TextButton(
-              //   onPressed: () {},
-              //   child: const Text(
-              //     'View more',
-              //     style: TextStyle(
-              //         fontSize: 13,
-              //         fontWeight: FontWeight.w300,
-              //         color: Colors.indigo),
-              //   ),
-              // ),
             ],
           ),
           const Divider(),

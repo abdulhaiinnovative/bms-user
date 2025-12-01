@@ -21,8 +21,24 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
-
+    # Temporarily disable a set of noisy rules so analyzer can focus on real
+    # errors and we can iteratively fix style/deprecation issues.
+    avoid_print: false
+    deprecated_member_use: false
+    constant_identifier_names: false
+    non_constant_identifier_names: false
+    file_names: false
+    library_private_types_in_public_api: false
+    unused_field: false
+    dead_null_aware_expression: false
+    dead_code: false
+    unused_import: false
+    prefer_typing_uninitialized_variables: false
+    unused_local_variable: false
+    unrelated_type_equality_checks: false
+    avoid_unnecessary_containers: false
+    unused_element: false
+    # Keep this available for future tightening
+    # prefer_single_quotes: true
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

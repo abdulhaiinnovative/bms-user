@@ -42,32 +42,27 @@ class NotificationsViewModel extends BaseViewModel {
 
     await executeAsync(
       operation: () async {
-        final response = await _repository.getNotifications(page: _currentPage);
+        final response = await _repository.getNotifications(page: _currentPage)
+            as NotificationsResponse;
 
-        log('NotificationsViewModel: Response received - Success: ${response.success}');
+        log('NotificationsViewModel: Response received - Page: ${response.currentPage}');
 
-        if (response.success == true) {
-          if (refresh) {
-            _notifications = response.data ?? [];
-          } else {
-            if (response.data != null && response.data!.isNotEmpty) {
-              _notifications.addAll(response.data!);
-            }
-          }
-
-          _currentPage = response.pagination?.currentPage ?? 1;
-          _lastPage = response.pagination?.lastPage ?? 1;
-          _totalNotifications = response.pagination?.total ?? 0;
-
-          log('NotificationsViewModel: Loaded ${_notifications.length} notifications');
-          log('  - Current Page: $_currentPage');
-          log('  - Last Page: $_lastPage');
-          log('  - Total: $_totalNotifications');
+        if (refresh) {
+          _notifications = response.data;
         } else {
-          final errorMsg = response.message ?? 'Failed to load notifications';
-          log('NotificationsViewModel: Load failed - $errorMsg');
-          throw Exception(errorMsg);
+          if (response.data.isNotEmpty) {
+            _notifications.addAll(response.data);
+          }
         }
+
+        _currentPage = response.currentPage;
+        _lastPage = response.lastPage;
+        _totalNotifications = response.total;
+
+        log('NotificationsViewModel: Loaded ${_notifications.length} notifications');
+        log('  - Current Page: $_currentPage');
+        log('  - Last Page: $_lastPage');
+        log('  - Total: $_totalNotifications');
 
         notifyListeners();
       },
@@ -115,24 +110,23 @@ class NotificationsViewModel extends BaseViewModel {
     log('NotificationsViewModel: Marking notification $notificationId as read');
 
     try {
-      final response = await _repository.markAsRead(notificationId);
+      final response =
+          await _repository.markAsRead(notificationId) as MarkReadResponse;
 
-      if (response.success == true) {
-        // Update local state
-        final index = _notifications.indexWhere((n) => n.id == notificationId);
-        if (index != -1) {
-          _notifications[index] =
-              _notifications[index].copyWith(readAt: DateTime.now().toString());
-          _unreadCount = (_unreadCount - 1).clamp(0, _totalNotifications);
-          notifyListeners();
-          log('NotificationsViewModel: Notification $notificationId marked as read locally');
-        }
-
-        // Refresh unread count from server
-        await loadUnreadCount();
-      } else {
-        log('NotificationsViewModel: Failed to mark notification as read');
+      // Update local state
+      final index = _notifications.indexWhere((n) => n.id == notificationId);
+      if (index != -1) {
+        _notifications[index] = _notifications[index].copyWith(
+          isRead: true,
+          readAt: response.readAt,
+        );
+        _unreadCount = (_unreadCount - 1).clamp(0, _totalNotifications);
+        notifyListeners();
+        log('NotificationsViewModel: Notification $notificationId marked as read locally');
       }
+
+      // Refresh unread count from server
+      await loadUnreadCount();
     } catch (e) {
       log('NotificationsViewModel: Mark as read error - $e');
       // Don't show error to user, just log it
@@ -145,35 +139,36 @@ class NotificationsViewModel extends BaseViewModel {
 
     await executeAsyncSilent(
       operation: () async {
-        final response = await _repository.markAllAsRead();
+        final response =
+            await _repository.markAllAsRead() as MarkAllReadResponse;
 
-        if (response.success == true) {
-          // Update local state
-          _notifications = _notifications.map((n) {
-            return n.copyWith(readAt: DateTime.now().toString());
-          }).toList();
-          _unreadCount = 0;
+        // Update local state
+        final now = DateTime.now().toString();
+        _notifications = _notifications.map((n) {
+          return n.copyWith(
+            isRead: true,
+            readAt: now,
+          );
+        }).toList();
+        _unreadCount = 0;
 
-          log('NotificationsViewModel: Marked ${response.updatedCount} notifications as read');
-          notifyListeners();
+        log('NotificationsViewModel: Marked ${response.updatedCount} notifications as read');
+        notifyListeners();
 
-          // Refresh unread count from server
-          await loadUnreadCount();
-        } else {
-          log('NotificationsViewModel: Failed to mark all as read');
-        }
+        // Refresh unread count from server
+        await loadUnreadCount();
       },
     );
   }
 
   /// Get unread notifications
   List<NotificationItem> get unreadNotifications =>
-      _notifications.where((n) => n.readAt == null).toList();
+      _notifications.where((n) => !n.isRead).toList();
 
   /// Get read notifications
   List<NotificationItem> get readNotifications =>
-      _notifications.where((n) => n.readAt != null).toList();
+      _notifications.where((n) => n.isRead).toList();
 
   /// Check if notification is unread
-  bool isUnread(NotificationItem notification) => notification.readAt == null;
+  bool isUnread(NotificationItem notification) => !notification.isRead;
 }

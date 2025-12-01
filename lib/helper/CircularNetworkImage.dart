@@ -8,12 +8,12 @@ class CircularNetworkImage extends StatelessWidget {
   final double width;
   final double border;
 
-  const CircularNetworkImage({super.key, 
+  const CircularNetworkImage({
+    super.key,
     required this.imageUrl,
     required this.height,
     required this.width,
     required this.border,
-
   });
 
   @override
@@ -23,11 +23,7 @@ class CircularNetworkImage extends StatelessWidget {
       height: height,
       decoration: const BoxDecoration(
         shape: BoxShape.circle,
-        gradient: LinearGradient(
-          colors: kGradientColorRing,
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: kPrimaryColor,
       ),
       padding: EdgeInsets.all(border), // Border width
       child: Container(

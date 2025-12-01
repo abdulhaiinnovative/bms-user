@@ -151,9 +151,7 @@ class _AuthScreenState extends State<AuthScreen>
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [kPrimaryColor, Color(0xFFFF6B9D)],
-                        ),
+                        color: kPrimaryColor,
                         borderRadius: BorderRadius.circular(30),
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
@@ -400,18 +398,16 @@ class _SignInFormState extends State<SignInForm> {
           FormError(errors: errors),
           const SizedBox(height: 24),
 
-          // Sign In Button with gradient
+          // Sign In Button
           Container(
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [kPrimaryColor, Color(0xFFFF6B9D)],
-              ),
+              color: kPrimaryColor,
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: kPrimaryColor.withOpacity(0.4),
+                  color: kPrimaryColor.withValues(alpha: 0.4),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -478,7 +474,7 @@ class _SignInFormState extends State<SignInForm> {
               border: Border.all(color: Colors.grey[300]!, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
@@ -527,24 +523,27 @@ class _SignInFormState extends State<SignInForm> {
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        print('🔔 AuthScreen: FCM Token retrieved for login');
+        debugPrint('🔔 AuthScreen: FCM Token retrieved for login');
       }
 
-      print('🔐 AuthScreen: Attempting login...');
+      debugPrint('🔐 AuthScreen: Attempting login...');
       final success = await authProvider.login(
         _emailController.text.trim(),
         _passwordController.text,
         fcmToken: fcmToken,
       );
 
-      print('🔐 AuthScreen: Login result = $success');
+      debugPrint('🔐 AuthScreen: Login result = $success');
       if (!mounted) return;
 
       if (success) {
-        print('✅ AuthScreen: Login successful, navigating to InitScreen...');
+        debugPrint(
+            '✅ AuthScreen: Login successful, navigating to InitScreen...');
+        if (!mounted) return;
         Navigator.pushReplacementNamed(context, InitScreen.routeName);
       } else {
-        print('❌ AuthScreen: Login failed - ${authProvider.errorMessage}');
+        debugPrint('❌ AuthScreen: Login failed - ${authProvider.errorMessage}');
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Login failed'),
@@ -553,7 +552,7 @@ class _SignInFormState extends State<SignInForm> {
         );
       }
     } else {
-      print('⚠️ AuthScreen: Form validation failed');
+      debugPrint('⚠️ AuthScreen: Form validation failed');
     }
   }
 
@@ -561,12 +560,12 @@ class _SignInFormState extends State<SignInForm> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      print('🔵 AuthScreen: Starting Google Sign-In...');
+      debugPrint('🔵 AuthScreen: Starting Google Sign-In...');
 
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        print('🔔 AuthScreen: FCM Token retrieved for Google Sign-In');
+        debugPrint('🔔 AuthScreen: FCM Token retrieved for Google Sign-In');
       }
 
       // Sign in with Google
@@ -575,16 +574,19 @@ class _SignInFormState extends State<SignInForm> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        print('✅ AuthScreen: Google Sign-In successful');
+        debugPrint('✅ AuthScreen: Google Sign-In successful');
 
         if (result['isComplete'] == true) {
           // Profile is complete, navigate to home
-          print('✅ AuthScreen: Profile complete, navigating to InitScreen...');
+          debugPrint(
+              '✅ AuthScreen: Profile complete, navigating to InitScreen...');
+          if (!mounted) return;
           Navigator.pushReplacementNamed(context, InitScreen.routeName);
         } else {
           // Profile is incomplete, navigate to complete profile
-          print(
+          debugPrint(
               '⚠️ AuthScreen: Profile incomplete, navigating to CompleteProfileScreen...');
+          if (!mounted) return;
           Navigator.pushReplacementNamed(
             context,
             CompleteProfileScreen.routeName,
@@ -596,7 +598,8 @@ class _SignInFormState extends State<SignInForm> {
           );
         }
       } else {
-        print('❌ AuthScreen: Google Sign-In failed');
+        debugPrint('❌ AuthScreen: Google Sign-In failed');
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -607,7 +610,7 @@ class _SignInFormState extends State<SignInForm> {
         );
       }
     } catch (e) {
-      print('❌ AuthScreen: Google Sign-In error - $e');
+      debugPrint('❌ AuthScreen: Google Sign-In error - $e');
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -969,18 +972,16 @@ class _SignUpFormState extends State<SignUpForm> {
           FormError(errors: errors),
           const SizedBox(height: 20),
 
-          // Sign Up Button with gradient
+          // Sign Up Button
           Container(
             width: double.infinity,
             height: 56,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [kPrimaryColor, Color(0xFFFF6B9D)],
-              ),
+              color: kPrimaryColor,
               borderRadius: BorderRadius.circular(28),
               boxShadow: [
                 BoxShadow(
-                  color: kPrimaryColor.withOpacity(0.4),
+                  color: kPrimaryColor.withValues(alpha: 0.4),
                   blurRadius: 15,
                   offset: const Offset(0, 8),
                 ),
@@ -1047,7 +1048,7 @@ class _SignUpFormState extends State<SignUpForm> {
               border: Border.all(color: Colors.grey[300]!, width: 1.5),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.05),
+                  color: Colors.black.withValues(alpha: 0.05),
                   blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),

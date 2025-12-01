@@ -113,11 +113,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                             Container(
                               width: double.infinity,
                               decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  colors: [Colors.white, Color(0xFFFAFAFA)],
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                ),
+                                color: Colors.white,
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withOpacity(0.03),
@@ -138,14 +134,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                         width: 120,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          gradient: const LinearGradient(
-                                            colors: [
-                                              kPrimaryColor,
-                                              kPrimaryDarkColor
-                                            ],
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                          ),
+                                          color: kPrimaryColor,
                                           boxShadow: [
                                             BoxShadow(
                                               color: kPrimaryColor
@@ -177,14 +166,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(8),
                                           decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                kPrimaryColor,
-                                                kPrimaryDarkColor
-                                              ],
-                                              begin: Alignment.topLeft,
-                                              end: Alignment.bottomRight,
-                                            ),
+                                            color: kPrimaryColor,
                                             shape: BoxShape.circle,
                                             border: Border.all(
                                               color: Colors.white,
@@ -264,12 +246,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                             label: 'Appointments',
                                             value:
                                                 '${viewModel.appointmentCount}',
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFF667eea),
-                                                Color(0xFF764ba2)
-                                              ],
-                                            ),
+                                            cardColor: const Color(0xFF667eea),
                                           ),
                                         ),
                                         const SizedBox(width: 12),
@@ -280,12 +257,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                             label: 'Cancelled',
                                             value:
                                                 '${viewModel.userData?.cancelCount ?? 0}',
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFFf093fb),
-                                                Color(0xFFf5576c)
-                                              ],
-                                            ),
+                                            cardColor: const Color(0xFFf093fb),
                                           ),
                                         ),
                                       ],
@@ -442,16 +414,16 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
     required IconData icon,
     required String label,
     required String value,
-    required LinearGradient gradient,
+    required Color cardColor,
   }) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: gradient,
+        color: cardColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: gradient.colors.first.withOpacity(0.3),
+            color: cardColor.withOpacity(0.3),
             blurRadius: 12,
             offset: const Offset(0, 6),
           ),

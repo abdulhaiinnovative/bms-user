@@ -34,25 +34,27 @@ class SalonServicesCategorizedAPI {
       log('');
       log('📄 RAW JSON RESPONSE:');
       log('────────────────────────────────────────────────────────');
-      
+
       // Pretty print JSON
-      final prettyJson = JsonEncoder.withIndent('  ').convert(response.data);
+      final prettyJson =
+          const JsonEncoder.withIndent('  ').convert(response.data);
       log(prettyJson);
-      
+
       log('────────────────────────────────────────────────────────');
       log('════════════════════════════════════════════════════════');
 
       if (response.statusCode == 200) {
         log('');
         log('✅ SUCCESS - Parsing response data...');
-        final parsedResponse = SalonServicesCategorizedResponse.fromJson(response.data);
-        
+        final parsedResponse =
+            SalonServicesCategorizedResponse.fromJson(response.data);
+
         log('');
         log('📊 PARSED DATA SUMMARY:');
         log('────────────────────────────────────────────────────────');
         log('Status Code: ${parsedResponse.statusCode}');
         log('Total Categories: ${parsedResponse.response?.data?.length ?? 0}');
-        
+
         if (parsedResponse.response?.data != null) {
           for (var category in parsedResponse.response!.data!) {
             log('');
@@ -60,10 +62,10 @@ class SalonServicesCategorizedAPI {
             log('   ID: ${category.id}');
             log('   Description: ${category.description ?? "N/A"}');
             log('   Has Services: ${category.isServices}');
-            
+
             if (category.items != null && category.items!.isNotEmpty) {
               log('   Items Count: ${category.items!.length}');
-              
+
               if (category.isServices == true) {
                 log('   Services:');
                 for (var item in category.items!) {
@@ -90,7 +92,7 @@ class SalonServicesCategorizedAPI {
         }
         log('────────────────────────────────────────────────────────');
         log('════════════════════════════════════════════════════════');
-        
+
         return parsedResponse;
       } else {
         log('');
