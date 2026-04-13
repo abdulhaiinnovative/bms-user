@@ -1,10 +1,10 @@
-import 'dart:developer';
 import 'package:app/screens/profile/components/account_boxes.dart';
+import 'package:app/screens/profile/edit_profile_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants.dart';
-import '../../models/my_account_response.dart';
+// import '../../models/my_account_response.dart'; // Unused import removed
 import '../../features/profile/presentation/viewmodels/profile_view_model.dart';
 
 class MyAccountScreen extends StatefulWidget {
@@ -62,7 +62,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                   ),
                 ),
                 onPressed: () {
-                  // TODO: Navigate to edit profile
+                  Navigator.pushNamed(context, EditProfileScreen.routeName);
                 },
               ),
               const SizedBox(width: 8),
@@ -257,40 +257,20 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                   Padding(
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 20),
-                                    child: Row(
-                                      children: [
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            viewModel,
-                                            icon: Icons.event_available_rounded,
-                                            label: 'Appointments',
-                                            value:
-                                                '${viewModel.appointmentCount}',
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFF667eea),
-                                                Color(0xFF764ba2)
-                                              ],
-                                            ),
-                                          ),
+                                    child: Center(
+                                      child: _buildStatCard(
+                                        viewModel,
+                                        icon: Icons.event_available_rounded,
+                                        label: 'Appointments',
+                                        value:
+                                            '${viewModel.appointmentCount}',
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFF667eea),
+                                            Color(0xFF764ba2)
+                                          ],
                                         ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            viewModel,
-                                            icon: Icons.cancel_outlined,
-                                            label: 'Cancelled',
-                                            value:
-                                                '${viewModel.userData?.cancelCount ?? 0}',
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(0xFFf093fb),
-                                                Color(0xFFf5576c)
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 24),
@@ -354,6 +334,21 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 12),
+                                  AccountBoxes(
+                                    icon: viewModel.isRestricted
+                                        ? Icons.block_rounded
+                                        : viewModel.isActive
+                                            ? Icons.check_circle_outline_rounded
+                                            : Icons.pause_circle_outline,
+                                    title: "Account Status",
+                                    value: viewModel.accountStatusText,
+                                    press: null,
+                                    statusColor: viewModel.isRestricted
+                                        ? Colors.red
+                                        : viewModel.isActive
+                                            ? Colors.green
+                                            : Colors.orange,
+                                  ),
                                   AccountBoxes(
                                     icon: Icons.check_circle_outline_rounded,
                                     title: "Profile Completion",

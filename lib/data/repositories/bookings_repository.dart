@@ -1,5 +1,7 @@
 import 'package:app/core/base/base_repository.dart';
 import 'package:app/api_services/MyBookingsAPI.dart';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 
 /// Repository for bookings operations
 class BookingsRepository extends BaseRepository {
@@ -13,9 +15,25 @@ class BookingsRepository extends BaseRepository {
     required int page,
     String? url,
   }) async {
-    return await execute(
+    if (kDebugMode) {
+      developer.log(
+          'BookingsRepository.getBookingsList called | page=$page | url=$url',
+          name: 'bookings.repository');
+    }
+
+    final result = await execute(
       operation: () => _bookingsAPI.getBooking(page: page, url: url),
       errorContext: 'Get bookings list',
     );
+
+    if (kDebugMode) {
+      try {
+        developer.log(
+            'BookingsRepository.getBookingsList result | status=${result?.status} | dataLength=${result?.response?.data?.data?.length ?? 0}',
+            name: 'bookings.repository');
+      } catch (_) {}
+    }
+
+    return result;
   }
 }

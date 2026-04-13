@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// debug import removed
 
 /// Base Repository that all repositories should extend
 /// Provides common error handling and logging
@@ -11,14 +11,7 @@ abstract class BaseRepository {
     try {
       return await operation();
     } catch (e) {
-      final context = errorContext ?? 'Repository operation';
-      final errorMessage = '$context failed: ${e.toString()}';
-
-      if (kDebugMode) {
-        print('Repository Error: $errorMessage');
-      }
-
-      // Re-throw the error so the ViewModel can handle it
+      // Repository error handling (logging removed)
       rethrow;
     }
   }
@@ -31,13 +24,7 @@ abstract class BaseRepository {
     try {
       return await operation();
     } catch (e) {
-      final context = errorContext ?? 'Repository operation';
-      final errorMessage = '$context failed: ${e.toString()}';
-
-      if (kDebugMode) {
-        print('Repository Safe Error: $errorMessage');
-      }
-
+      // Repository safe error handling (logging removed)
       return null;
     }
   }

@@ -7,7 +7,7 @@ class Type1 {
   factory Type1.fromJson(Map<String, dynamic> json) {
     return Type1(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Type1Data.fromJson(item))
           .toList(),
     );

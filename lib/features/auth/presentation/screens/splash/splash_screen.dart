@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -53,13 +52,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _navigateToNextScreen() async {
+    // SplashScreen navigation check started (debug log removed)
     await Future.delayed(const Duration(milliseconds: 2500));
 
-    if (!mounted) return;
+    if (!mounted) {
+      // Widget not mounted, aborting navigation (debug log removed)
+      return;
+    }
 
-    // Initialize AuthProvider to load authentication state
+    // Initialize AuthProvider to load authentication state (debug log removed)
     final authProvider = context.read<AuthProvider>();
-    log('🚀 SplashScreen: Initializing AuthProvider');
     await authProvider.initializeAuth();
 
     final prefs = await SharedPreferences.getInstance();
@@ -67,22 +69,28 @@ class _SplashScreenState extends State<SplashScreen>
 
     final isLoggedIn = authProvider.isAuthenticated;
 
-    log('🚀 SplashScreen: hasSeenOnboarding = $hasSeenOnboarding');
-    log('🚀 SplashScreen: isLoggedIn = $isLoggedIn');
-    log('🚀 SplashScreen: authState = ${authProvider.state}');
-    log('🚀 SplashScreen: currentUser = ${authProvider.currentUser?.email}');
+    // Auth check results (debug logs removed)
 
-    if (!mounted) return;
+    if (!mounted) {
+      // Widget not mounted after auth check (debug log removed)
+      return;
+    }
 
     if (!hasSeenOnboarding) {
-      log('🚀 SplashScreen: Navigating to Onboarding');
-      Navigator.pushReplacementNamed(context, OnboardingScreen.routeName);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
+      );
     } else if (isLoggedIn) {
-      log('🚀 SplashScreen: Navigating to Home (InitScreen)');
-      Navigator.pushReplacementNamed(context, InitScreen.routeName);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const InitScreen()),
+      );
     } else {
-      log('🚀 SplashScreen: Navigating to Auth (Login/Signup)');
-      Navigator.pushReplacementNamed(context, AuthScreen.routeName);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
     }
   }
 

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import '../../constants.dart';
 import '../../models/notification/notification_model.dart';
@@ -116,19 +115,10 @@ class NotificationServiceAPI {
   /// Mark all notifications as read
   Future<MarkAllReadResponse> markAllAsRead() async {
     try {
-      log('🔵 MARK ALL READ - START');
-      log('🔵 Using HTTP Method: GET');
-      log('🔵 Endpoint: $markAllReadEndpoint');
-      log('🔵 Full URL: $baseURL$markAllReadEndpoint');
-      log('🔵 Requires Auth: true');
-
       final response = await AuthInterceptor.get(
         markAllReadEndpoint,
         requiresAuth: true,
       );
-
-      log('🔵 Response received - Status: ${response.statusCode}');
-      log('🔵 Response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData =
@@ -137,28 +127,13 @@ class NotificationServiceAPI {
                 : jsonDecode(response.data.toString());
 
         final markAllReadResponse = MarkAllReadResponse.fromJson(responseData);
-        log('✅ MARK ALL READ - SUCCESS: ${markAllReadResponse.updatedCount} notifications updated');
         return markAllReadResponse;
       } else {
-        log('❌ MARK ALL READ - Failed with status: ${response.statusCode}');
         throw Exception('Failed to mark all as read: ${response.statusCode}');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('❌ MARK ALL READ - DioException');
-      log('❌ Error type: ${dioError.type}');
-      log('❌ Error message: ${dioError.message}');
-      if (dioError.response != null) {
-        log('❌ Response status: ${dioError.response!.statusCode}');
-        log('❌ Response data: ${dioError.response!.data}');
-        log('❌ Request method: ${dioError.requestOptions.method}');
-        log('❌ Request path: ${dioError.requestOptions.path}');
-        log('❌ Request URI: ${dioError.requestOptions.uri}');
-      }
-      log('❌ Stack trace: $stackTrace');
       throw Exception('Failed to mark all notifications as read');
     } catch (e, stackTrace) {
-      log('❌ MARK ALL READ - General Exception: $e');
-      log('❌ Stack trace: $stackTrace');
       throw Exception('Failed to mark all as read: ${e.toString()}');
     }
   }

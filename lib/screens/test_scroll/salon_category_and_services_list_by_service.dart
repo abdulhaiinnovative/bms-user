@@ -1,12 +1,14 @@
+import 'dart:developer';
+
 import 'package:app/models/SalonServicesCategorizedResponse.dart';
-import 'package:app/models/HomePageResponse.dart';
+import 'package:app/models/salon_detail_models.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
-import 'package:app/features/auth/utils/auth_manager.dart';
+// Debug logging imports removed
 import 'package:flutter/material.dart';
 // import 'package:app/screens/test_scroll/jewellery_repository.dart';
 import '../../api_services/salon_services_categorized_api.dart';
 import '../../constants.dart';
-import 'CartSummarySection.dart';
+import '../../components/cart_bottom_bar.dart';
 
 class SalonCategoryAndServicesListByService extends StatefulWidget {
   static String routeName = "/scrolling_tab_list_by_service";
@@ -21,7 +23,6 @@ class _SalonCategoryAndServicesListByServiceState
     extends State<SalonCategoryAndServicesListByService> {
   final Map<Service, int> _cartItems = {};
   double _totalAmount = 0.0;
-  int _totalItems = 0;
 
   void _handleAddToCart(Service service) {
     setState(() {
@@ -31,7 +32,6 @@ class _SalonCategoryAndServicesListByServiceState
         _cartItems[service] = 1;
       }
 
-      _totalItems = _cartItems.length;
       _totalAmount = _cartItems.entries
           .fold(0.0, (sum, entry) => sum + (entry.key.price! * entry.value));
     });
@@ -43,40 +43,31 @@ class _SalonCategoryAndServicesListByServiceState
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 10,
-              spreadRadius: 2,
-            )
-          ],
-          borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-        ),
-        child: CartSummarySection(
-          totalItems: _cartItems.length,
-          totalAmount: _totalAmount,
-          buttonColor: kPrimaryDarkColor,
-          onContinue: () {
-            if (_cartItems.isNotEmpty) {
-              Navigator.pushNamed(
-                context,
-                SelectProfessionals.routeName,
-                arguments: {
-                  'cartItems': _cartItems,
-                  'salonName': mSalonName,
-                  'salonImage': mSalonImage,
-                  'salonAddress': mSalonAddess,
-                  'salonId':
-                      mDeal?.services?[0].salon?.id ?? mService?.salon?.id,
-                },
-              );
-            }
-          },
-        ),
+      child: CartBottomBar(
+        totalItemsOverride: _cartItems.length,
+        totalAmountOverride: _totalAmount,
+        buttonColor: kPrimaryDarkColor,
+        buttonText: 'Continue',
+        onTap: () {
+          if (_cartItems.isNotEmpty) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const SelectProfessionals(),
+                settings: RouteSettings(
+                  arguments: {
+                    'cartItems': _cartItems,
+                    'salonName': mSalonName,
+                    'salonImage': mSalonImage,
+                    'salonAddress': mSalonAddess,
+                    'salonId':
+                        mDeal?.salonId ?? mService?.salonId, // Use salonId
+                  },
+                ),
+              ),
+            );
+          }
+        },
       ),
     );
   }
@@ -97,6 +88,8 @@ class _SalonCategoryAndServicesListByServiceState
 
   @override
   void initState() {
+    log("initState called in SalonCategoryAndServicesListByService");
+    log("Initial mDeal: $mDeal, mService: $mService, mSalonName: $mSalonName, mSalonImage: $mSalonImage, mSalonAddess: $mSalonAddess");
     scrollController = ScrollController();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -104,16 +97,16 @@ class _SalonCategoryAndServicesListByServiceState
       if (arguments != null && arguments is Deal) {
         setState(() {
           mDeal = arguments; // Store the Deal object
-          mSalonName = mDeal?.services?[0].salon?.name;
-          mSalonImage = mDeal?.services?[0].salon?.image;
-          mSalonAddess = mDeal?.services?[0].salon?.address;
+          mSalonName = null; // Salon name not available in Deal object
+          mSalonImage = null; // Salon image not available in Deal object
+          mSalonAddess = null; // Salon address not available in Deal object
         });
       } else if (arguments != null && arguments is Service) {
         setState(() {
           mService = arguments; // Store the Service object
-          mSalonName = mService?.salon?.name;
-          mSalonImage = mService?.salon?.image;
-          mSalonAddess = mService?.salon?.address;
+          mSalonName = null; // Salon name not available in Service object
+          mSalonImage = null; // Salon image not available in Service object
+          mSalonAddess = null; // Salon address not available in Service object
 
           // Add service to cart automatically
           if (mService != null) {
@@ -137,7 +130,7 @@ class _SalonCategoryAndServicesListByServiceState
     SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
 
     // Get salon ID from either Deal or Service
-    int? salonId = mDeal?.services?[0].salon?.id ?? mService?.salon?.id;
+    int? salonId = mDeal?.salonId ?? mService?.salonId;
 
     if (salonId == null || salonId == 0) {
       return;
@@ -157,6 +150,8 @@ class _SalonCategoryAndServicesListByServiceState
           salonCategories.add(GlobalKey());
         });
       });
+
+      // Debug logging removed
     }
   }
 

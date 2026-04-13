@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import '../../../../constants.dart';
+import '../../../../components/inactive_user_banner.dart';
 import 'home_screen.dart';
 import '../../../profile/presentation/screens/profile_screen.dart';
 import '../../../search/presentation/screens/search_service_screen_new.dart';
 import '../../../favourites/presentation/screens/favourites_screen.dart';
 import '../../../bookings/presentation/screens/my_bookings.dart';
+import '../../../../presentation/viewmodels/favourites/favourites_view_model.dart';
+import '../../../../presentation/viewmodels/bookings/bookings_view_model.dart';
+import '../../../profile/presentation/viewmodels/profile_view_model.dart';
 
 const Color inActiveIconColor = Color(0xFFB6B6B6);
 
@@ -20,24 +25,57 @@ class InitScreen extends StatefulWidget {
 
 class _InitScreenState extends State<InitScreen> {
   int currentSelectedIndex = 0;
+  final GlobalKey<_FavouritesScreenWrapperState> _favouritesKey = GlobalKey();
+  final GlobalKey<_BookingsScreenWrapperState> _bookingsKey = GlobalKey();
+
+  @override
+  void initState() {
+    super.initState();
+    // Load user profile data to check if user is inactive
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<ProfileViewModel>().loadProfile();
+    });
+  }
 
   void updateCurrentIndex(int index) {
     setState(() {
       currentSelectedIndex = index;
     });
+
+    // Clear state and trigger API refresh when switching to favourites or bookings tab
+    if (index == 2) {
+      // Switched to favourites tab - clear state and refresh
+      final favouritesViewModel = context.read<FavouritesViewModel>();
+      favouritesViewModel
+          .refresh(); // This clears state internally with refresh=true
+      _favouritesKey.currentState?.refreshData();
+    } else if (index == 3) {
+      // Switched to bookings tab - clear state and refresh
+      final bookingsViewModel = context.read<BookingsViewModel>();
+      bookingsViewModel
+          .refresh(); // This clears state internally with refresh=true
+      _bookingsKey.currentState?.refreshData();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: currentSelectedIndex,
-        children: const [
-          HomeScreen(),
-          SearchServiceScreenNew(),
-          FavouritesScreen(),
-          MyBookings(),
-          ProfileScreen(),
+      body: Column(
+        children: [
+          const InactiveUserBanner(),
+          Expanded(
+            child: IndexedStack(
+              index: currentSelectedIndex,
+              children: [
+                HomeScreen(isActiveTab: currentSelectedIndex == 0),
+                const SearchServiceScreenNew(),
+                _FavouritesScreenWrapper(key: _favouritesKey),
+                _BookingsScreenWrapper(key: _bookingsKey),
+                const ProfileScreen(),
+              ],
+            ),
+          ),
         ],
       ),
       bottomNavigationBar: Container(
@@ -170,5 +208,52 @@ class _InitScreenState extends State<InitScreen> {
         ),
       ),
     );
+  }
+}
+
+// Wrapper for FavouritesScreen to enable refresh on tab change
+class _FavouritesScreenWrapper extends StatefulWidget {
+  const _FavouritesScreenWrapper({super.key});
+
+  @override
+  State<_FavouritesScreenWrapper> createState() =>
+      _FavouritesScreenWrapperState();
+}
+
+class _FavouritesScreenWrapperState extends State<_FavouritesScreenWrapper> {
+  final GlobalKey<State<FavouritesScreen>> _screenKey = GlobalKey();
+
+  void refreshData() {
+    // Trigger a rebuild which will call initState of FavouritesScreen (debug log removed)
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Return a new instance on each build to trigger initState
+    return FavouritesScreen(key: _screenKey);
+  }
+}
+
+// Wrapper for MyBookings to enable refresh on tab change
+class _BookingsScreenWrapper extends StatefulWidget {
+  const _BookingsScreenWrapper({super.key});
+
+  @override
+  State<_BookingsScreenWrapper> createState() => _BookingsScreenWrapperState();
+}
+
+class _BookingsScreenWrapperState extends State<_BookingsScreenWrapper> {
+  final GlobalKey<State<MyBookings>> _screenKey = GlobalKey();
+
+  void refreshData() {
+    // Trigger a rebuild which will call initState of MyBookings (debug log removed)
+    setState(() {});
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Return a new instance on each build to trigger initState
+    return MyBookings(key: _screenKey);
   }
 }

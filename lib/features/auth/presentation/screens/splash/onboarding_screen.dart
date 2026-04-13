@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../../../constants.dart';
@@ -37,32 +36,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ];
 
   Future<void> _completeOnboarding() async {
-    log('🎯 OnboardingScreen: Starting onboarding completion...');
-
     // Mark onboarding as seen
     final prefs = await SharedPreferences.getInstance();
-    final success = await prefs.setBool('hasSeenOnboarding', true);
-
-    log('🎯 OnboardingScreen: hasSeenOnboarding saved = $success');
-
-    // Verify it was saved correctly
-    final verified = prefs.getBool('hasSeenOnboarding') ?? false;
-    log('🎯 OnboardingScreen: hasSeenOnboarding verified = $verified');
+    await prefs.setBool('hasSeenOnboarding', true);
 
     // Check if user is logged in using AuthManager (consistent with SplashScreen)
     final isLoggedIn = await AuthManager.isLoggedIn();
 
-    log('🎯 OnboardingScreen: Onboarding complete');
-    log('🎯 OnboardingScreen: isLoggedIn = $isLoggedIn');
-
     if (!mounted) return;
 
     if (isLoggedIn) {
-      log('🎯 OnboardingScreen: User is logged in, navigating to InitScreen');
-      Navigator.pushReplacementNamed(context, InitScreen.routeName);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const InitScreen()),
+      );
     } else {
-      log('🎯 OnboardingScreen: User not logged in, navigating to AuthScreen');
-      Navigator.pushReplacementNamed(context, AuthScreen.routeName);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthScreen()),
+      );
     }
   }
 
@@ -73,11 +65,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       onPopInvokedWithResult: (didPop, result) async {
         if (didPop) return;
 
-        log('🔙 OnboardingScreen: Back button pressed, navigating to Auth screen');
-
         // Navigate to auth screen when user tries to go back
         if (mounted) {
-          Navigator.pushReplacementNamed(context, AuthScreen.routeName);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const AuthScreen()),
+          );
         }
       },
       child: Scaffold(

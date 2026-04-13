@@ -1,12 +1,14 @@
-import 'dart:developer';
 import 'package:app/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:shimmer/shimmer.dart';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import '../../../../models/MyBookingResponse.dart';
 import '../../../../presentation/viewmodels/bookings/bookings_view_model.dart';
 import 'booking_details_screen.dart';
+import '../../../auth/presentation/screens/auth/auth_screen.dart';
 
 class MyBookings extends StatefulWidget {
   static const String routeName = "/my-bookings";
@@ -35,6 +37,10 @@ class _MyBookingsState extends State<MyBookings>
 
     // Load bookings using ViewModel
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (kDebugMode) {
+        developer.log('MyBookings.initState: loading bookings (refresh=true)',
+            name: 'booking.screen');
+      }
       context.read<BookingsViewModel>().loadBookings(refresh: true);
     });
   }
@@ -66,25 +72,28 @@ class _MyBookingsState extends State<MyBookings>
     if (controller.hasClients &&
         controller.position.pixels >=
             controller.position.maxScrollExtent * 0.9) {
-      log('Scroll reached 90% of max extent, fetching more data');
+      if (kDebugMode) {
+        developer.log(
+            'MyBookings._scrollListener: requesting loadNextPage | tab=${_tabController.index}',
+            name: 'booking.screen');
+      }
       viewModel.loadNextPage();
     }
   }
 
   Widget _buildShimmer() {
     return ListView.builder(
+      padding: const EdgeInsets.all(16),
       itemCount: 5,
       itemBuilder: (_, __) => Shimmer.fromColors(
-        baseColor: Colors.grey[200]!,
+        baseColor: Colors.grey[300]!,
         highlightColor: Colors.grey[100]!,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Container(
-            height: 120,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          height: 140,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
           ),
         ),
       ),
@@ -93,62 +102,154 @@ class _MyBookingsState extends State<MyBookings>
 
   Widget _buildEmptyState() {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.event_busy, size: 80, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text(
-            "No appointments booked yet",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[600],
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: kPrimaryColor.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.calendar_today_outlined,
+                size: 80,
+                color: kPrimaryColor.withOpacity(0.6),
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Book your next salon visit now!",
-            style: TextStyle(fontSize: 16, color: Colors.grey[500]),
-          ),
-        ],
+            const SizedBox(height: 24),
+            const Text(
+              'No Bookings Yet',
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'You haven\'t made any salon bookings.\nExplore salons and book your first appointment!',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton(
+              onPressed: () {
+                // Navigate to home screen (first tab)
+                Navigator.of(context).pop();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              child: const Text(
+                'Explore Salons',
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildErrorState(BookingsViewModel viewModel) {
+    final errorMessage =
+        viewModel.errorMessage ?? 'Unable to load your bookings right now';
+    final isAuthError =
+        errorMessage.contains('login') || errorMessage.contains('Unauthorized');
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 80, color: Colors.red[300]),
-          const SizedBox(height: 16),
-          Text(
-            viewModel.errorMessage ?? 'Something went wrong',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-              color: Colors.red[400],
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () => viewModel.refresh(),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blueAccent,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: isAuthError
+                    ? kPrimaryColor.withOpacity(0.1)
+                    : Colors.orange.withOpacity(0.1),
+                shape: BoxShape.circle,
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              child: Icon(
+                isAuthError ? Icons.lock_outline : Icons.cloud_off_outlined,
+                size: 64,
+                color: isAuthError ? kPrimaryColor : Colors.orange[700],
+              ),
             ),
-            child: const Text(
-              "Retry",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+            const SizedBox(height: 24),
+            Text(
+              isAuthError
+                  ? 'Authentication Required'
+                  : 'Oops! Something went wrong',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            Text(
+              errorMessage,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 15,
+                color: Colors.grey[600],
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 28),
+            ElevatedButton.icon(
+              onPressed: () {
+                if (isAuthError) {
+                  // Navigate to login screen
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (context) => const AuthScreen()),
+                    (route) => false,
+                  );
+                } else {
+                  // Try again
+                  viewModel.refresh();
+                }
+              },
+              icon: Icon(isAuthError ? Icons.login : Icons.refresh,
+                  color: Colors.white),
+              label: Text(
+                isAuthError ? 'Login' : 'Try Again',
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                elevation: 2,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -156,18 +257,14 @@ class _MyBookingsState extends State<MyBookings>
   Widget _buildBookingList(BookingsViewModel viewModel, List<Booking> bookings,
       ScrollController controller) {
     if (viewModel.isLoading && !viewModel.isLoadingMore) {
-      log('Showing shimmer for initial loading');
       return _buildShimmer();
     }
     if (viewModel.isError) {
-      log('Showing error state: ${viewModel.errorMessage}');
       return _buildErrorState(viewModel);
     }
     if (bookings.isEmpty && !viewModel.isLoading && !viewModel.isLoadingMore) {
-      log('Showing empty state');
       return _buildEmptyState();
     }
-    log('Building booking list with ${bookings.length} items, IDs: ${bookings.map((b) => b.id).toList()}');
     return RefreshIndicator(
       onRefresh: () => viewModel.refresh(),
       child: ListView.builder(
@@ -175,14 +272,12 @@ class _MyBookingsState extends State<MyBookings>
         itemCount: bookings.length + (viewModel.hasMorePages ? 1 : 0),
         itemBuilder: (context, index) {
           if (index >= bookings.length) {
-            log('Rendering pagination loader');
             return const Padding(
               padding: EdgeInsets.all(16.0),
               child: Center(child: CircularProgressIndicator()),
             );
           }
           final booking = bookings[index];
-          log('Rendering booking ID: ${booking.id}');
           final date = DateTime.tryParse(booking.date ?? '');
           // Format: Dec 24, 2025 (full month abbreviation, day, year)
           final formattedDate =
@@ -193,46 +288,40 @@ class _MyBookingsState extends State<MyBookings>
             try {
               final time = DateFormat('HH:mm:ss').parse(booking.time!);
               formattedTime = DateFormat('h:mm a').format(time);
-            } catch (e, stackTrace) {
-              log('Error parsing time for booking ID ${booking.id}: $e\nStack: $stackTrace');
+            } catch (e) {
+              // ignore parse error
             }
           }
           return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Material(
               elevation: 0,
               color: Colors.transparent,
               child: Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: Colors.grey.shade200,
-                    width: 1.5,
+                    width: 1,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 20,
-                      offset: const Offset(0, 8),
-                      spreadRadius: 0,
-                    ),
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                       spreadRadius: 0,
                     ),
                   ],
                 ),
                 child: InkWell(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(16),
                   onTap: () async {
                     final result = await Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (context) =>
-                            BookingDetailsScreen(booking: booking),
+                            BookingDetailsScreen(bookingId: booking.id ?? 0),
                       ),
                     );
                     if (result == true) {
@@ -244,12 +333,12 @@ class _MyBookingsState extends State<MyBookings>
                     children: [
                       // Header Section with Salon Info
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: kPrimaryColor.withValues(alpha: 0.05),
                           borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(20),
-                            topRight: Radius.circular(20),
+                            topLeft: Radius.circular(16),
+                            topRight: Radius.circular(16),
                           ),
                         ),
                         child: Row(
@@ -258,26 +347,26 @@ class _MyBookingsState extends State<MyBookings>
                             Hero(
                               tag: 'salon-logo-${booking.id ?? 'unknown'}',
                               child: Container(
-                                width: 72,
-                                height: 72,
+                                width: 52,
+                                height: 52,
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12),
                                   color: Colors.white,
                                   border: Border.all(
                                     color: Colors.grey.shade200,
-                                    width: 2,
+                                    width: 1.5,
                                   ),
                                   boxShadow: [
                                     BoxShadow(
                                       color:
-                                          Colors.black.withValues(alpha: 0.08),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
+                                          Colors.black.withValues(alpha: 0.06),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
                                     ),
                                   ],
                                 ),
                                 child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
+                                  borderRadius: BorderRadius.circular(10),
                                   child: booking.salon?.logo != null
                                       ? Image.network(
                                           booking.salon!.logo!,
@@ -287,20 +376,20 @@ class _MyBookingsState extends State<MyBookings>
                                                   Container(
                                             color: Colors.grey[50],
                                             child: Icon(Icons.store_rounded,
-                                                size: 32,
+                                                size: 24,
                                                 color: Colors.grey[400]),
                                           ),
                                         )
                                       : Container(
                                           color: Colors.grey[50],
                                           child: Icon(Icons.store_rounded,
-                                              size: 32,
+                                              size: 24,
                                               color: Colors.grey[400]),
                                         ),
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             // Salon Details
                             Expanded(
                               child: Column(
@@ -309,7 +398,7 @@ class _MyBookingsState extends State<MyBookings>
                                   Text(
                                     booking.salon?.name ?? 'Unknown Salon',
                                     style: const TextStyle(
-                                      fontSize: 18,
+                                      fontSize: 15,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.black87,
                                       letterSpacing: -0.3,
@@ -317,22 +406,22 @@ class _MyBookingsState extends State<MyBookings>
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                  const SizedBox(height: 6),
+                                  const SizedBox(height: 4),
                                   Row(
                                     children: [
                                       Icon(Icons.location_on_rounded,
-                                          size: 16, color: Colors.grey[500]),
-                                      const SizedBox(width: 4),
+                                          size: 14, color: Colors.grey[500]),
+                                      const SizedBox(width: 3),
                                       Expanded(
                                         child: Text(
                                           booking.salon?.address ??
                                               'Unknown Address',
                                           style: TextStyle(
-                                            fontSize: 13,
+                                            fontSize: 12,
                                             color: Colors.grey[600],
                                             height: 1.3,
                                           ),
-                                          maxLines: 2,
+                                          maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
@@ -347,21 +436,21 @@ class _MyBookingsState extends State<MyBookings>
 
                       // Status Badge Row
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                        padding: const EdgeInsets.fromLTRB(14, 12, 14, 0),
                         child: Row(
                           children: [
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 14, vertical: 8),
+                                  horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: _getStatusColor(booking.status),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                                 boxShadow: [
                                   BoxShadow(
                                     color: _getStatusColor(booking.status)
-                                        .withValues(alpha: 0.25),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 3),
+                                        .withValues(alpha: 0.2),
+                                    blurRadius: 4,
+                                    offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
@@ -369,21 +458,21 @@ class _MyBookingsState extends State<MyBookings>
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Container(
-                                    width: 8,
-                                    height: 8,
+                                    width: 6,
+                                    height: 6,
                                     decoration: const BoxDecoration(
                                       color: Colors.white,
                                       shape: BoxShape.circle,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Text(
                                     (booking.status ?? 'N/A').toUpperCase(),
                                     style: const TextStyle(
-                                      fontSize: 12,
+                                      fontSize: 10,
                                       fontWeight: FontWeight.w700,
                                       color: Colors.white,
-                                      letterSpacing: 1,
+                                      letterSpacing: 0.8,
                                     ),
                                   ),
                                 ],
@@ -393,7 +482,7 @@ class _MyBookingsState extends State<MyBookings>
                             Text(
                               'ID: #${booking.id ?? 'N/A'}',
                               style: TextStyle(
-                                fontSize: 13,
+                                fontSize: 11,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.grey[600],
                                 letterSpacing: 0.3,
@@ -406,12 +495,12 @@ class _MyBookingsState extends State<MyBookings>
                       // Service Title Section
                       if (title != '-')
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                          padding: const EdgeInsets.fromLTRB(14, 10, 14, 0),
                           child: Container(
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: Colors.grey[50],
-                              borderRadius: BorderRadius.circular(14),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                 color: Colors.grey.shade200,
                                 width: 1,
@@ -420,15 +509,15 @@ class _MyBookingsState extends State<MyBookings>
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(10),
+                                  padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     color: kPrimaryColor,
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: const Icon(Icons.cut_rounded,
-                                      size: 20, color: Colors.white),
+                                      size: 14, color: Colors.white),
                                 ),
-                                const SizedBox(width: 14),
+                                const SizedBox(width: 10),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -437,24 +526,52 @@ class _MyBookingsState extends State<MyBookings>
                                       Text(
                                         'Service Booked',
                                         style: TextStyle(
-                                          fontSize: 11,
+                                          fontSize: 9,
                                           color: Colors.grey[600],
                                           fontWeight: FontWeight.w600,
-                                          letterSpacing: 0.5,
+                                          letterSpacing: 0.4,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
+                                      const SizedBox(height: 2),
                                       Text(
                                         title,
                                         style: const TextStyle(
-                                          fontSize: 16,
+                                          fontSize: 13,
                                           fontWeight: FontWeight.w700,
                                           color: Colors.black87,
                                           letterSpacing: -0.2,
                                         ),
-                                        maxLines: 2,
+                                        maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
+                                      // Show professional name if available
+                                      if (_getFirstProfessionalName(booking) !=
+                                          null) ...[
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            const Icon(Icons.person,
+                                                size: 12,
+                                                color: kPrimaryDarkColor),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                _getFirstProfessionalName(
+                                                        booking) ??
+                                                    '',
+                                                style: const TextStyle(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: kPrimaryDarkColor,
+                                                  letterSpacing: -0.1,
+                                                ),
+                                                maxLines: 1,
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ],
                                   ),
                                 ),
@@ -465,7 +582,7 @@ class _MyBookingsState extends State<MyBookings>
 
                       // Main Info Grid
                       Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(14),
                         child: Column(
                           children: [
                             // Date & Time Row
@@ -479,7 +596,7 @@ class _MyBookingsState extends State<MyBookings>
                                     cardColor: const Color(0xFF3B82F6),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: _buildModernInfoCard(
                                     icon: Icons.schedule_rounded,
@@ -490,19 +607,28 @@ class _MyBookingsState extends State<MyBookings>
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
                             // Payment & Type Row
                             Row(
                               children: [
-                                Expanded(
-                                  child: _buildModernInfoCard(
-                                    icon: Icons.payments_rounded,
-                                    label: 'PAYMENT',
-                                    value: booking.paymentStatus ?? 'N/A',
-                                    cardColor: const Color(0xFF10B981),
+                                // Hide payment status if booking is cancelled
+                                if (!(booking.status
+                                        ?.toLowerCase()
+                                        .contains('cancel') ??
+                                    false))
+                                  Expanded(
+                                    child: _buildModernInfoCard(
+                                      icon: Icons.payments_rounded,
+                                      label: 'PAYMENT',
+                                      value: booking.paymentStatus ?? 'N/A',
+                                      cardColor: const Color(0xFF10B981),
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
+                                if (!(booking.status
+                                        ?.toLowerCase()
+                                        .contains('cancel') ??
+                                    false))
+                                  const SizedBox(width: 8),
                                 Expanded(
                                   child: _buildModernInfoCard(
                                     icon: Icons.category_rounded,
@@ -517,14 +643,77 @@ class _MyBookingsState extends State<MyBookings>
                         ),
                       ),
 
+                      // Professionals Section (if available)
+                      if (booking.services != null &&
+                          booking.services!
+                              .any((s) => s.selectedProfessional != null))
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: kPrimaryColor.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(
+                                color: kPrimaryColor.withValues(alpha: 0.2),
+                                width: 1,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        kPrimaryColor.withValues(alpha: 0.15),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Icon(Icons.person_rounded,
+                                      size: 14, color: kPrimaryDarkColor),
+                                ),
+                                const SizedBox(width: 10),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Professional${_getProfessionalsCount(booking) > 1 ? 's' : ''}',
+                                        style: TextStyle(
+                                          fontSize: 9,
+                                          color: Colors.grey[600],
+                                          fontWeight: FontWeight.w600,
+                                          letterSpacing: 0.4,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        _getProfessionalsNames(booking),
+                                        style: const TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.black87,
+                                          letterSpacing: -0.2,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+
                       // Footer with Price & Action
                       Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
                           color: Colors.grey[50],
                           borderRadius: const BorderRadius.only(
-                            bottomLeft: Radius.circular(20),
-                            bottomRight: Radius.circular(20),
+                            bottomLeft: Radius.circular(16),
+                            bottomRight: Radius.circular(16),
                           ),
                           border: Border(
                             top: BorderSide(
@@ -536,70 +725,74 @@ class _MyBookingsState extends State<MyBookings>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            // Price Section
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total Amount',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                      fontWeight: FontWeight.w600,
-                                      letterSpacing: 0.5,
+                            // Price Section - Hide if cancelled
+                            if (!(booking.status
+                                    ?.toLowerCase()
+                                    .contains('cancel') ??
+                                false))
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Total Amount',
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.grey[600],
+                                        fontWeight: FontWeight.w600,
+                                        letterSpacing: 0.4,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      const Text(
-                                        'PKR ',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                          color: Colors.black54,
+                                    const SizedBox(height: 2),
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          'PKR ',
+                                          style: TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.black54,
+                                          ),
                                         ),
-                                      ),
-                                      Text(
-                                        '${booking.payment ?? 0}',
-                                        style: const TextStyle(
-                                          fontSize: 28,
-                                          fontWeight: FontWeight.w800,
-                                          color: kPrimaryDarkColor,
-                                          letterSpacing: -1,
-                                          height: 1.2,
+                                        Text(
+                                          '${booking.payment ?? 0}',
+                                          style: const TextStyle(
+                                            fontSize: 22,
+                                            fontWeight: FontWeight.w800,
+                                            color: kPrimaryDarkColor,
+                                            letterSpacing: -0.5,
+                                            height: 1.2,
+                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
+                                      ],
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
                             // View Details Button
                             Container(
                               decoration: BoxDecoration(
                                 color: kPrimaryColor,
-                                borderRadius: BorderRadius.circular(16),
+                                borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: kPrimaryColor.withValues(alpha: 0.4),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 6),
+                                    color: kPrimaryColor.withValues(alpha: 0.3),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 3),
                                   ),
                                 ],
                               ),
                               child: Material(
                                 color: Colors.transparent,
                                 child: InkWell(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(10),
                                   onTap: () async {
                                     final result = await Navigator.push(
                                       context,
                                       MaterialPageRoute(
                                         builder: (context) =>
                                             BookingDetailsScreen(
-                                                booking: booking),
+                                                bookingId: booking.id ?? 0),
                                       ),
                                     );
                                     if (result == true) {
@@ -608,7 +801,7 @@ class _MyBookingsState extends State<MyBookings>
                                   },
                                   child: const Padding(
                                     padding: EdgeInsets.symmetric(
-                                        horizontal: 24, vertical: 14),
+                                        horizontal: 16, vertical: 10),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -616,14 +809,14 @@ class _MyBookingsState extends State<MyBookings>
                                           'View Details',
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: 15,
+                                            fontSize: 12,
                                             fontWeight: FontWeight.w700,
-                                            letterSpacing: 0.3,
+                                            letterSpacing: 0.2,
                                           ),
                                         ),
-                                        SizedBox(width: 8),
+                                        SizedBox(width: 4),
                                         Icon(Icons.arrow_forward_rounded,
-                                            color: Colors.white, size: 20),
+                                            color: Colors.white, size: 16),
                                       ],
                                     ),
                                   ),
@@ -667,19 +860,19 @@ class _MyBookingsState extends State<MyBookings>
     required Color cardColor,
   }) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: cardColor.withValues(alpha: 0.2),
-          width: 1.5,
+          width: 1,
         ),
         boxShadow: [
           BoxShadow(
             color: cardColor.withValues(alpha: 0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
           ),
         ],
       ),
@@ -688,37 +881,37 @@ class _MyBookingsState extends State<MyBookings>
         children: [
           // Icon with solid background
           Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: cardColor,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(8),
               boxShadow: [
                 BoxShadow(
                   color: cardColor.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
+                  blurRadius: 6,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-            child: Icon(icon, size: 20, color: Colors.white),
+            child: Icon(icon, size: 16, color: Colors.white),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           // Label
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: 9,
               color: Colors.grey[600],
               fontWeight: FontWeight.w700,
-              letterSpacing: 1,
+              letterSpacing: 0.8,
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           // Value
           Text(
             value,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 13,
               fontWeight: FontWeight.w700,
               color: Colors.black87,
               letterSpacing: -0.2,
@@ -730,6 +923,48 @@ class _MyBookingsState extends State<MyBookings>
         ],
       ),
     );
+  }
+
+  int _getProfessionalsCount(Booking booking) {
+    if (booking.services == null) return 0;
+    final professionals = <int>{};
+    for (final service in booking.services!) {
+      if (service.selectedProfessional?.id != null) {
+        professionals.add(service.selectedProfessional!.id!);
+      }
+    }
+    return professionals.length;
+  }
+
+  String _getProfessionalsNames(Booking booking) {
+    if (booking.services == null) return 'N/A';
+
+    final professionalMap = <int, String>{};
+    for (final service in booking.services!) {
+      final professional = service.selectedProfessional;
+      if (professional?.id != null) {
+        professionalMap[professional!.id!] = professional.displayName;
+      }
+    }
+
+    if (professionalMap.isEmpty) return 'N/A';
+
+    final names = professionalMap.values.toList();
+    if (names.length == 1) return names[0];
+    if (names.length == 2) return '${names[0]} & ${names[1]}';
+    return '${names[0]} +${names.length - 1} more';
+  }
+
+  String? _getFirstProfessionalName(Booking booking) {
+    if (booking.services == null || booking.services!.isEmpty) return null;
+
+    for (final service in booking.services!) {
+      if (service.selectedProfessional != null) {
+        return service.selectedProfessional!.displayName;
+      }
+    }
+
+    return null;
   }
 
   @override
@@ -749,6 +984,26 @@ class _MyBookingsState extends State<MyBookings>
               ),
             ),
             backgroundColor: kPrimaryColor,
+            actions: [
+              // Show refresh indicator when loading but has data (refetching)
+              if (viewModel.isLoading &&
+                  (viewModel.allBookings.isNotEmpty ||
+                      viewModel.upcomingBookings.isNotEmpty ||
+                      viewModel.pastBookings.isNotEmpty))
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
             bottom: TabBar(
               controller: _tabController,
               indicatorColor: Colors.white,

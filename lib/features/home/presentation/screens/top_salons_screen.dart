@@ -4,7 +4,6 @@ import 'package:app/constants.dart';
 import '../../../../screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import '../viewmodels/top_salons_view_model.dart';
 import 'package:shimmer/shimmer.dart';
-import 'dart:developer';
 
 class TopSalonsScreen extends StatefulWidget {
   static const String routeName = '/top-salons';
@@ -140,11 +139,12 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
       ),
       child: InkWell(
         onTap: () {
-          log('📍 Navigating to salon: ${salon.name} (ID: ${salon.id})');
-          Navigator.pushNamed(
+          Navigator.push(
             context,
-            SalonDetailsScrollingTabsEffectB.routeName,
-            arguments: '${salon.id}',
+            MaterialPageRoute(
+              builder: (context) => const SalonDetailsScrollingTabsEffectB(),
+              settings: RouteSettings(arguments: '${salon.id}'),
+            ),
           );
         },
         borderRadius: BorderRadius.circular(20),

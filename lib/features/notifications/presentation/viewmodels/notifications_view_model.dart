@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import '../../data/repositories/notifications_repository.dart';
 import 'package:app/models/notification/notification_model.dart';
@@ -38,14 +37,10 @@ class NotificationsViewModel extends BaseViewModel {
       notifyListeners();
     }
 
-    log('NotificationsViewModel: Loading notifications - Page: $_currentPage');
-
     await executeAsync(
       operation: () async {
         final response = await _repository.getNotifications(page: _currentPage)
             as NotificationsResponse;
-
-        log('NotificationsViewModel: Response received - Page: ${response.currentPage}');
 
         if (refresh) {
           _notifications = response.data;
@@ -59,11 +54,6 @@ class NotificationsViewModel extends BaseViewModel {
         _lastPage = response.lastPage;
         _totalNotifications = response.total;
 
-        log('NotificationsViewModel: Loaded ${_notifications.length} notifications');
-        log('  - Current Page: $_currentPage');
-        log('  - Last Page: $_lastPage');
-        log('  - Total: $_totalNotifications');
-
         notifyListeners();
       },
     );
@@ -74,41 +64,32 @@ class NotificationsViewModel extends BaseViewModel {
   /// Load next page of notifications
   Future<void> loadNextPage() async {
     if (!hasMorePages || isLoading) {
-      log('NotificationsViewModel: No more pages or already loading');
       return;
     }
 
     _currentPage++;
-    log('NotificationsViewModel: Loading next page: $_currentPage');
     await loadNotifications();
   }
 
   /// Refresh notifications list
   Future<void> refresh() async {
-    log('NotificationsViewModel: Refreshing notifications');
     await loadNotifications(refresh: true);
     await loadUnreadCount();
   }
 
   /// Load unread notification count
   Future<void> loadUnreadCount() async {
-    log('NotificationsViewModel: Loading unread count');
-
     try {
       final response = await _repository.getUnreadCount();
       _unreadCount = response.unreadCount;
-      log('NotificationsViewModel: Unread count: $_unreadCount');
       notifyListeners();
     } catch (e) {
-      log('NotificationsViewModel: Unread count error - $e');
       // Don't throw, just log - unread count is not critical
     }
   }
 
   /// Mark a notification as read
   Future<void> markAsRead(int notificationId) async {
-    log('NotificationsViewModel: Marking notification $notificationId as read');
-
     try {
       final response =
           await _repository.markAsRead(notificationId) as MarkReadResponse;
@@ -122,21 +103,17 @@ class NotificationsViewModel extends BaseViewModel {
         );
         _unreadCount = (_unreadCount - 1).clamp(0, _totalNotifications);
         notifyListeners();
-        log('NotificationsViewModel: Notification $notificationId marked as read locally');
       }
 
       // Refresh unread count from server
       await loadUnreadCount();
     } catch (e) {
-      log('NotificationsViewModel: Mark as read error - $e');
       // Don't show error to user, just log it
     }
   }
 
   /// Mark all notifications as read
   Future<void> markAllAsRead() async {
-    log('NotificationsViewModel: Marking all notifications as read');
-
     await executeAsyncSilent(
       operation: () async {
         final response =
@@ -152,7 +129,6 @@ class NotificationsViewModel extends BaseViewModel {
         }).toList();
         _unreadCount = 0;
 
-        log('NotificationsViewModel: Marked ${response.updatedCount} notifications as read');
         notifyListeners();
 
         // Refresh unread count from server

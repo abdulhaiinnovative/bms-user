@@ -7,7 +7,7 @@ class Type3 {
   factory Type3.fromJson(Map<String, dynamic> json) {
     return Type3(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Type3Data.fromJson(item))
           .toList(),
     );
@@ -116,7 +116,7 @@ class Type3Data {
       averageRating: json['average_rating'],
       reviewCount: json['review_count'],
       isFavourite: json['is_favourite'],
-      images: (json['images'] as List)
+      images: (json['images'] as List? ?? [])
           .map((item) => ImageData.fromJson(item))
           .toList(),
     );
@@ -148,4 +148,3 @@ class ImageData {
     );
   }
 }
-

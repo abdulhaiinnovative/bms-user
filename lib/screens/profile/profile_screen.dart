@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
 import 'package:provider/provider.dart';
-import 'dart:developer' as developer;
-
 import '../../features/auth/presentation/providers/auth_provider.dart';
 import '../../features/auth/presentation/screens/auth/auth_screen.dart';
 import '../../services/fcm_token_service.dart';
@@ -30,8 +28,12 @@ class ProfileScreen extends StatelessWidget {
             ProfileMenu(
               text: "My Account",
               icon: "assets/icons/User Icon.svg",
-              press: () =>
-                  {Navigator.pushNamed(context, MyAccountScreen.routeName)},
+              press: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const MyAccountScreen(),
+                ),
+              ),
             ),
             ProfileMenu(
               text: "Notifications",
@@ -61,8 +63,6 @@ class ProfileScreen extends StatelessWidget {
 
   /// Handle logout functionality
   Future<void> _handleLogout(BuildContext context) async {
-    developer.log('🔴 ProfileScreen: Logout initiated');
-
     // Show confirmation dialog
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -88,7 +88,6 @@ class ProfileScreen extends StatelessWidget {
     );
 
     if (shouldLogout != true) {
-      developer.log('🔴 ProfileScreen: Logout cancelled by user');
       return;
     }
 
@@ -105,23 +104,18 @@ class ProfileScreen extends StatelessWidget {
     );
 
     try {
-      developer.log('🔴 ProfileScreen: Starting logout process...');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       // 1. Sign out from Google (if logged in via Google)
-      developer.log('🔴 ProfileScreen: Signing out from Google...');
       await authProvider.signOutGoogle();
 
       // 2. Clear FCM token
-      developer.log('🔴 ProfileScreen: Clearing FCM token...');
       await FCMTokenService.deleteToken();
 
       // 3. Logout from auth provider (clears AuthManager data)
-      developer.log('🔴 ProfileScreen: Clearing auth data...');
       final logoutSuccess = await authProvider.logout();
 
       // 4. Clear old user details (backward compatibility)
-      developer.log('🔴 ProfileScreen: Clearing legacy user data...');
       await UtilsExtra.clearUserDetails();
 
       // Close loading dialog
@@ -129,13 +123,12 @@ class ProfileScreen extends StatelessWidget {
       Navigator.of(context).pop();
 
       if (logoutSuccess) {
-        developer.log(
-            '✅ ProfileScreen: Logout successful, navigating to auth screen');
-
         // Navigate to auth screen and clear all routes
         if (!context.mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AuthScreen.routeName,
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const AuthScreen(),
+          ),
           (route) => false,
         );
 
@@ -148,8 +141,6 @@ class ProfileScreen extends StatelessWidget {
           ),
         );
       } else {
-        developer.log('❌ ProfileScreen: Logout failed');
-
         // Show error if logout failed
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -161,8 +152,6 @@ class ProfileScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      developer.log('❌ ProfileScreen: Logout error - $e');
-
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();

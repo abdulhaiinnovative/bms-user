@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'notification_config.dart';
@@ -28,10 +27,7 @@ class NotificationHandler {
 
   /// Handle notification tap when app is running or in background
   static void handleNotificationTap(NotificationResponse response) {
-    log('NotificationHandler: Handling notification tap - ${response.payload}');
-
     if (response.payload == null || response.payload!.isEmpty) {
-      log('NotificationHandler: No payload found');
       return;
     }
 
@@ -41,8 +37,6 @@ class NotificationHandler {
       final Map<String, dynamic>? data =
           payload[NotificationConfig.payloadDataKey];
       final String? screen = payload[NotificationConfig.payloadScreenKey];
-
-      log('NotificationHandler: Type: $type, Screen: $screen, Data: $data');
 
       // Handle specific notification types
       if (type != null) {
@@ -62,16 +56,12 @@ class NotificationHandler {
       if (type != null && _dataCallbacks.containsKey(type) && data != null) {
         _dataCallbacks[type]!(data);
       }
-    } catch (e) {
-      log('NotificationHandler: Error parsing payload - $e');
-    }
+    } catch (e) {}
   }
 
   /// Handle iOS foreground notification
   static void handleIOSForegroundNotification(
       int id, String? title, String? body, String? payload) {
-    log('NotificationHandler: iOS foreground notification - $title');
-
     // For iOS, you might want to show a custom dialog or banner
     // when a notification is received while the app is in foreground
     if (_navigatorKey?.currentContext != null) {
@@ -100,14 +90,12 @@ class NotificationHandler {
         _handleGeneralNotification(data);
         break;
       default:
-        log('NotificationHandler: Unknown notification type - $type');
+        break;
     }
   }
 
   /// Handle appointment notifications
   static void _handleAppointmentNotification(Map<String, dynamic> data) {
-    log('NotificationHandler: Handling appointment notification');
-
     // Extract appointment-specific data
     final String? appointmentId = data['appointmentId'];
     final String? action = data['action'];
@@ -132,8 +120,6 @@ class NotificationHandler {
 
   /// Handle promotional notifications
   static void _handlePromoNotification(Map<String, dynamic> data) {
-    log('NotificationHandler: Handling promo notification');
-
     final String? promoId = data['promoId'];
     final String? salonId = data['salonId'];
 
@@ -149,8 +135,6 @@ class NotificationHandler {
 
   /// Handle system notifications
   static void _handleSystemNotification(Map<String, dynamic> data) {
-    log('NotificationHandler: Handling system notification');
-
     final String? action = data['action'];
 
     switch (action) {
@@ -167,7 +151,6 @@ class NotificationHandler {
 
   /// Handle general notifications
   static void _handleGeneralNotification(Map<String, dynamic> data) {
-    log('NotificationHandler: Handling general notification');
     _navigateToScreen(NotificationConfig.homeScreen, data);
   }
 
@@ -176,17 +159,13 @@ class NotificationHandler {
     if (_navigatorKey?.currentState != null) {
       try {
         _navigatorKey!.currentState!.pushNamed(screen, arguments: data);
-        log('NotificationHandler: Navigated to $screen');
       } catch (e) {
-        log('NotificationHandler: Navigation error - $e');
         // Fallback to home screen
         _navigatorKey!.currentState!.pushNamedAndRemoveUntil(
           NotificationConfig.homeScreen,
           (route) => false,
         );
       }
-    } else {
-      log('NotificationHandler: Navigator not available');
     }
   }
 
@@ -230,21 +209,18 @@ class NotificationHandler {
   /// Handle appointment reminder
   static void _handleAppointmentReminder(
       String appointmentId, Map<String, dynamic> data) {
-    log('NotificationHandler: Appointment reminder for $appointmentId');
     _navigateToAppointmentDetails(appointmentId);
   }
 
   /// Handle appointment confirmation
   static void _handleAppointmentConfirmation(
       String appointmentId, Map<String, dynamic> data) {
-    log('NotificationHandler: Appointment confirmation for $appointmentId');
     _navigateToAppointmentDetails(appointmentId);
   }
 
   /// Handle appointment cancellation
   static void _handleAppointmentCancellation(
       String appointmentId, Map<String, dynamic> data) {
-    log('NotificationHandler: Appointment cancellation for $appointmentId');
     _navigateToScreen(NotificationConfig.homeScreen, data);
   }
 
@@ -273,8 +249,6 @@ class NotificationHandler {
 
   /// Handle app update notification
   static void _handleAppUpdate(Map<String, dynamic> data) {
-    log('NotificationHandler: App update notification');
-
     if (_navigatorKey?.currentContext != null) {
       showDialog(
         context: _navigatorKey!.currentContext!,
@@ -305,8 +279,6 @@ class NotificationHandler {
 
   /// Handle maintenance notification
   static void _handleMaintenanceNotification(Map<String, dynamic> data) {
-    log('NotificationHandler: Maintenance notification');
-
     if (_navigatorKey?.currentContext != null) {
       showDialog(
         context: _navigatorKey!.currentContext!,
@@ -330,7 +302,6 @@ class NotificationHandler {
   /// Open app store for updates
   static void _openAppStore() {
     // Implement app store opening logic
-    log('NotificationHandler: Opening app store for update');
     // You can use packages like url_launcher to open the app store
   }
 

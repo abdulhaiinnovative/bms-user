@@ -51,116 +51,115 @@ class _AuthScreenState extends State<AuthScreen>
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
         // Do nothing - prevent back navigation
-        // User must use "Continue without account" button to go to InitScreen
       },
       child: Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Column(
                 children: [
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
 
-                  // Skip for now button at top right
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(
-                              context, InitScreen.routeName);
-                        },
-                        style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                        ),
-                        child: Text(
-                          'Skip for now',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.grey[700],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-
-                  const SizedBox(height: 16),
-
-                  // Logo
-                  Container(
-                    padding: const EdgeInsets.all(20),
-                    decoration: const BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Image.asset(
-                      'assets/images/bms_logo.jpg',
-                      height: 60,
-                      width: 60,
-                      errorBuilder: (context, error, stackTrace) {
-                        return const Icon(
-                          Icons.spa,
-                          size: 60,
-                          color: kPrimaryColor,
+                  // Skip button - minimal design aligned to right
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InitScreen()),
                         );
                       },
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 10),
+                        backgroundColor: Colors.grey[50],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        'Skip',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 40),
 
-                  // Header Text
+                  // Header Text - Modern typography
                   Text(
                     _authMode == AuthMode.signIn
-                        ? "Welcome Back!"
-                        : "Join Us Today",
+                        ? "Welcome Back"
+                        : "Get Started",
                     style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
                       color: Colors.black87,
-                      letterSpacing: 0.5,
+                      letterSpacing: -0.5,
+                      height: 1.2,
                     ),
                   ),
 
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
 
                   Text(
                     _authMode == AuthMode.signIn
-                        ? "Sign in to continue your beauty journey"
-                        : "Create your account and get started",
+                        ? "Sign in to continue"
+                        : "Create your account",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: 14,
+                      fontSize: 15,
                       color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.2,
                     ),
                   ),
 
-                  const SizedBox(height: 30),
+                  const SizedBox(height: 40),
 
-                  // Tab Bar
+                  // Tab Bar - Minimal design
                   Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 20),
+                    padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(30),
+                      borderRadius: BorderRadius.circular(16),
                     ),
                     child: TabBar(
                       controller: _tabController,
                       indicator: BoxDecoration(
-                        color: kPrimaryColor,
-                        borderRadius: BorderRadius.circular(30),
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.05),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       indicatorSize: TabBarIndicatorSize.tab,
-                      labelColor: Colors.white,
+                      labelColor: kPrimaryColor,
                       unselectedLabelColor: Colors.grey[600],
                       labelStyle: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        fontSize: 14,
+                        letterSpacing: 0.3,
                       ),
+                      unselectedLabelStyle: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                      ),
+                      dividerColor: Colors.transparent,
                       tabs: const [
                         Tab(text: "Sign In"),
                         Tab(text: "Sign Up"),
@@ -168,7 +167,7 @@ class _AuthScreenState extends State<AuthScreen>
                     ),
                   ),
 
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
 
                   // Form Section
                   _authMode == AuthMode.signIn
@@ -179,14 +178,14 @@ class _AuthScreenState extends State<AuthScreen>
                         )
                       : const SignUpForm(),
 
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 30),
                 ],
-              ), // Column
-            ), // Padding
-          ), // SingleChildScrollView
-        ), // SafeArea (body)
-      ), // Scaffold (child of PopScope)
-    ); // PopScope
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -207,7 +206,6 @@ class _SignInFormState extends State<SignInForm> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _rememberMe = false;
   bool _obscurePassword = true;
   final List<String?> errors = [];
 
@@ -243,10 +241,11 @@ class _SignInFormState extends State<SignInForm> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Email Field with clean design
+          // Email Field - Modern minimal design
           TextFormField(
             controller: _emailController,
             keyboardType: TextInputType.emailAddress,
+            style: const TextStyle(fontSize: 15),
             onChanged: (value) {
               if (value.isNotEmpty) {
                 removeError(error: kEmailNullError);
@@ -267,43 +266,53 @@ class _SignInFormState extends State<SignInForm> {
             },
             decoration: InputDecoration(
               labelText: "Email",
-              hintText: "Enter your email",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              prefixIcon: const Icon(
+              hintText: "you@example.com",
+              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+              floatingLabelBehavior: FloatingLabelBehavior.auto,
+              labelStyle: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              prefixIcon: Icon(
                 Icons.email_outlined,
-                color: kPrimaryColor,
+                color: Colors.grey[600],
+                size: 22,
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: kPrimaryColor, width: 2),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.red[300]!, width: 1.5),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
               filled: true,
               fillColor: Colors.grey[50],
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 18),
 
-          // Password Field with clean design
+          // Password Field - Modern minimal design
           TextFormField(
             controller: _passwordController,
             obscureText: _obscurePassword,
+            style: const TextStyle(fontSize: 15),
             onChanged: (value) {
               if (value.isNotEmpty) {
                 removeError(error: kPassNullError);
@@ -324,16 +333,26 @@ class _SignInFormState extends State<SignInForm> {
             },
             decoration: InputDecoration(
               labelText: "Password",
-              hintText: "Enter your password",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              prefixIcon: const Icon(
+              hintText: "••••••••",
+              hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+              floatingLabelBehavior: FloatingLabelBehavior.auto,
+              labelStyle: TextStyle(
+                color: Colors.grey[700],
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+              prefixIcon: Icon(
                 Icons.lock_outline,
-                color: kPrimaryColor,
+                color: Colors.grey[600],
+                size: 22,
               ),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                  color: Colors.grey[600],
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                  color: Colors.grey[500],
+                  size: 22,
                 ),
                 onPressed: () {
                   setState(() {
@@ -342,90 +361,84 @@ class _SignInFormState extends State<SignInForm> {
                 },
               ),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!, width: 1.5),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: kPrimaryColor, width: 2),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.red[300]!, width: 1.5),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
                 borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
               filled: true,
               fillColor: Colors.grey[50],
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
 
-          // Remember Me & Forgot Password
-          Row(
-            children: [
-              Checkbox(
-                value: _rememberMe,
-                activeColor: kPrimaryColor,
-                onChanged: (value) {
-                  setState(() {
-                    _rememberMe = value ?? false;
-                  });
-                },
+          // Forgot Password - Aligned to right
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ForgotPasswordScreen()),
+                );
+              },
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
               ),
-              const Text("Remember me"),
-              const Spacer(),
-              TextButton(
-                onPressed: () {
-                  // Navigate to forgot password
-                  Navigator.pushNamed(context, ForgotPasswordScreen.routeName);
-                },
-                child: const Text(
-                  "Forgot Password?",
-                  style: TextStyle(decoration: TextDecoration.underline),
+              child: const Text(
+                "Forgot Password?",
+                style: TextStyle(
+                  fontSize: 14,
+                  color: kPrimaryColor,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-            ],
+            ),
           ),
 
           FormError(errors: errors),
           const SizedBox(height: 24),
 
-          // Sign In Button
-          Container(
+          // Sign In Button - Modern gradient
+          SizedBox(
             width: double.infinity,
             height: 56,
-            decoration: BoxDecoration(
-              color: kPrimaryColor,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: kPrimaryColor.withValues(alpha: 0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
             child: ElevatedButton(
               onPressed: authProvider.isLoading ? null : _handleSignIn,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
+                backgroundColor: kPrimaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                disabledBackgroundColor: Colors.grey[300],
               ),
               child: authProvider.isLoading
                   ? const SizedBox(
-                      height: 24,
-                      width: 24,
+                      height: 22,
+                      width: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -435,60 +448,51 @@ class _SignInFormState extends State<SignInForm> {
                       "Sign In",
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // Divider with "OR"
           Row(
             children: [
-              const Expanded(child: Divider()),
+              Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
                   'OR',
                   style: TextStyle(
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[500],
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    letterSpacing: 1,
                   ),
                 ),
               ),
-              const Expanded(child: Divider()),
+              Expanded(child: Divider(color: Colors.grey[300], thickness: 1)),
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Google Sign-In Button with enhanced styling
-          Container(
+          // Google Sign-In Button with modern minimal styling
+          SizedBox(
             width: double.infinity,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.grey[300]!, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            height: 54,
             child: OutlinedButton.icon(
               onPressed: authProvider.isLoading ? null : _handleGoogleSignIn,
               icon: Image.asset(
                 'assets/images/google-icon.png',
-                height: 24,
-                width: 24,
+                height: 22,
+                width: 22,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.g_mobiledata,
-                      size: 28, color: Colors.blue);
+                      size: 24, color: Colors.blue);
                 },
               ),
               label: const Text(
@@ -496,20 +500,24 @@ class _SignInFormState extends State<SignInForm> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide.none,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: Colors.grey[300]!, width: 1.5),
                 foregroundColor: Colors.black87,
+                backgroundColor: Colors.white,
+                elevation: 0,
+                shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           NoAccountText(onSignUpTap: widget.onSwitchToSignUp),
         ],
       ),
@@ -523,36 +531,82 @@ class _SignInFormState extends State<SignInForm> {
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        debugPrint('🔔 AuthScreen: FCM Token retrieved for login');
+        // FCM token retrieved
       }
-
-      debugPrint('🔐 AuthScreen: Attempting login...');
+      
+      // Call login API - this will save token and user data to local storage on success (status 200)
       final success = await authProvider.login(
         _emailController.text.trim(),
         _passwordController.text,
         fcmToken: fcmToken,
       );
 
-      debugPrint('🔐 AuthScreen: Login result = $success');
       if (!mounted) return;
 
+      // On successful login (status 200), auth data is already saved to local storage
+      // Navigate to home screen
       if (success) {
-        debugPrint(
-            '✅ AuthScreen: Login successful, navigating to InitScreen...');
+        // Clear any existing errors
+        setState(() {
+          errors.clear();
+        });
+        
         if (!mounted) return;
-        Navigator.pushReplacementNamed(context, InitScreen.routeName);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const InitScreen()),
+        );
       } else {
-        debugPrint('❌ AuthScreen: Login failed - ${authProvider.errorMessage}');
         if (!mounted) return;
+
+        // Extract clean error message
+        String errorMessage = authProvider.errorMessage ?? 'Login failed';
+
+        // Clean up the error message - remove "Login failed: Exception: " prefix if present
+        if (errorMessage.startsWith('Login failed: Exception: ')) {
+          errorMessage =
+              errorMessage.replaceFirst('Login failed: Exception: ', '');
+        } else if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.replaceFirst('Exception: ', '');
+        }
+
+        // Show prominent error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Login failed'),
-            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
+
+        // Also add the error to the form errors list for visibility
+        setState(() {
+          errors.clear();
+          errors.add(errorMessage);
+        });
       }
     } else {
-      debugPrint('⚠️ AuthScreen: Form validation failed');
+      // Form validation failed
     }
   }
 
@@ -560,12 +614,12 @@ class _SignInFormState extends State<SignInForm> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      debugPrint('🔵 AuthScreen: Starting Google Sign-In...');
+      // Starting Google Sign-In
 
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        debugPrint('🔔 AuthScreen: FCM Token retrieved for Google Sign-In');
+        // FCM token retrieved for Google Sign-In
       }
 
       // Sign in with Google
@@ -574,31 +628,31 @@ class _SignInFormState extends State<SignInForm> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        debugPrint('✅ AuthScreen: Google Sign-In successful');
-
         if (result['isComplete'] == true) {
           // Profile is complete, navigate to home
-          debugPrint(
-              '✅ AuthScreen: Profile complete, navigating to InitScreen...');
+          // Profile complete, navigating to InitScreen (log removed)
           if (!mounted) return;
-          Navigator.pushReplacementNamed(context, InitScreen.routeName);
-        } else {
-          // Profile is incomplete, navigate to complete profile
-          debugPrint(
-              '⚠️ AuthScreen: Profile incomplete, navigating to CompleteProfileScreen...');
-          if (!mounted) return;
-          Navigator.pushReplacementNamed(
+          Navigator.pushReplacement(
             context,
-            CompleteProfileScreen.routeName,
-            arguments: {
-              'isSocialAuth': true,
-              'socialUser': result['user'],
-              'email': result['user']?.email ?? '',
-            },
+            MaterialPageRoute(builder: (context) => const InitScreen()),
+          );
+        } else {
+          // Profile is incomplete, navigate to CompleteProfileScreen
+          if (!mounted) return;
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const CompleteProfileScreen(),
+              settings: RouteSettings(arguments: {
+                'isSocialAuth': true,
+                'socialUser': result['user'],
+                'email': result['user']?.email ?? '',
+              }),
+            ),
           );
         }
       } else {
-        debugPrint('❌ AuthScreen: Google Sign-In failed');
+        // Google Sign-In failed
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -610,7 +664,7 @@ class _SignInFormState extends State<SignInForm> {
         );
       }
     } catch (e) {
-      debugPrint('❌ AuthScreen: Google Sign-In error - $e');
+      // Google Sign-In error
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -689,33 +743,51 @@ class _SignUpFormState extends State<SignUpForm> {
       obscureText: obscureText,
       onChanged: onChanged,
       validator: (value) => validator(value) as String?,
+      style: const TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+      ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
         floatingLabelBehavior: FloatingLabelBehavior.always,
+        labelStyle: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: Colors.grey[700],
+          letterSpacing: 0.2,
+        ),
+        hintStyle: TextStyle(
+          fontSize: 14,
+          color: Colors.grey[400],
+        ),
         prefixIcon: Icon(
           icon,
-          color: kPrimaryColor,
+          color: Colors.grey[600],
+          size: 22,
         ),
         suffixIcon: suffixIcon,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[200]!),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.grey[200]!),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+          borderRadius: BorderRadius.circular(16),
+          borderSide:
+              BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
         ),
         errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.red.shade300),
         ),
         focusedErrorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Colors.red, width: 2),
         ),
         filled: true,
@@ -754,7 +826,7 @@ class _SignUpFormState extends State<SignUpForm> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Last Name
           _buildStyledTextField(
@@ -777,7 +849,7 @@ class _SignUpFormState extends State<SignUpForm> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Username
           _buildStyledTextField(
@@ -804,7 +876,7 @@ class _SignUpFormState extends State<SignUpForm> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Email
           _buildStyledTextField(
@@ -833,34 +905,60 @@ class _SignUpFormState extends State<SignUpForm> {
             },
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
-          // Phone Number with clean design
-          IntlPhoneField(
+            // Phone Number with modern design
+            IntlPhoneField(
             controller: _phoneController,
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            dropdownTextStyle: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            // counterStyle: TextStyle(
+            //   fontSize: 12,
+            //   fontWeight: FontWeight.w500,
+            //   color: Colors.grey[600],
+            // ),
             decoration: InputDecoration(
               labelText: "Phone Number",
               hintText: "Enter your phone number",
               floatingLabelBehavior: FloatingLabelBehavior.always,
+              labelStyle: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+              letterSpacing: 0.2,
+              ),
+              hintStyle: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[400],
+              ),
+              contentPadding:
+                const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey[200]!),
               ),
               enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey[300]!),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.grey[200]!),
               ),
               focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              borderSide:
+                BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
               ),
               errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: Colors.red.shade300),
               ),
               focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.red, width: 2),
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
               filled: true,
               fillColor: Colors.grey[50],
@@ -868,24 +966,25 @@ class _SignUpFormState extends State<SignUpForm> {
             initialCountryCode: 'PK',
             onChanged: (phone) {
               if (phone.completeNumber.isNotEmpty) {
-                removeError(error: "Phone number is required");
+              removeError(error: "Phone number is required");
               }
             },
             onSaved: (phone) {
               if (phone != null) {
-                _phoneController.text = phone.completeNumber;
+              _phoneController.text = phone.completeNumber;
               }
             },
             validator: (phone) {
               if (phone == null || phone.completeNumber.isEmpty) {
-                addError(error: "Phone number is required");
-                return "";
+              addError(error: "Phone number is required");
+              return "";
               }
               return null;
             },
-          ),
+            ),
 
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 20),
 
           // Password
           _buildStyledTextField(
@@ -915,8 +1014,11 @@ class _SignUpFormState extends State<SignUpForm> {
             },
             suffixIcon: IconButton(
               icon: Icon(
-                _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                _obscurePassword
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: Colors.grey[600],
+                size: 22,
               ),
               onPressed: () {
                 setState(() {
@@ -926,7 +1028,7 @@ class _SignUpFormState extends State<SignUpForm> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
 
           // Confirm Password
           _buildStyledTextField(
@@ -957,9 +1059,10 @@ class _SignUpFormState extends State<SignUpForm> {
             suffixIcon: IconButton(
               icon: Icon(
                 _obscureConfirmPassword
-                    ? Icons.visibility_off
-                    : Icons.visibility,
+                    ? Icons.visibility_off_outlined
+                    : Icons.visibility_outlined,
                 color: Colors.grey[600],
+                size: 22,
               ),
               onPressed: () {
                 setState(() {
@@ -970,36 +1073,28 @@ class _SignUpFormState extends State<SignUpForm> {
           ),
 
           FormError(errors: errors),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // Sign Up Button
-          Container(
+          SizedBox(
             width: double.infinity,
             height: 56,
-            decoration: BoxDecoration(
-              color: kPrimaryColor,
-              borderRadius: BorderRadius.circular(28),
-              boxShadow: [
-                BoxShadow(
-                  color: kPrimaryColor.withValues(alpha: 0.4),
-                  blurRadius: 15,
-                  offset: const Offset(0, 8),
-                ),
-              ],
-            ),
             child: ElevatedButton(
               onPressed: authProvider.isLoading ? null : _handleSignUp,
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.transparent,
+                backgroundColor: kPrimaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
                 shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                disabledBackgroundColor: Colors.grey[300],
               ),
               child: authProvider.isLoading
                   ? const SizedBox(
-                      height: 24,
-                      width: 24,
+                      height: 22,
+                      width: 22,
                       child: CircularProgressIndicator(
                         strokeWidth: 2.5,
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
@@ -1009,14 +1104,15 @@ class _SignUpFormState extends State<SignUpForm> {
                       "Sign Up",
                       style: TextStyle(
                         fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                        fontWeight: FontWeight.w700,
                         color: Colors.white,
+                        letterSpacing: 0.5,
                       ),
                     ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
           // Divider with "OR"
           Row(
@@ -1036,33 +1132,21 @@ class _SignUpFormState extends State<SignUpForm> {
             ],
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
 
-          // Google Sign-Up Button with enhanced styling
-          Container(
+          // Google Sign-Up Button with modern minimal styling
+          SizedBox(
             width: double.infinity,
-            height: 56,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(28),
-              border: Border.all(color: Colors.grey[300]!, width: 1.5),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+            height: 54,
             child: OutlinedButton.icon(
               onPressed: authProvider.isLoading ? null : _handleGoogleSignUp,
               icon: Image.asset(
                 'assets/images/google-icon.png',
-                height: 24,
-                width: 24,
+                height: 22,
+                width: 22,
                 errorBuilder: (context, error, stackTrace) {
                   return const Icon(Icons.g_mobiledata,
-                      size: 28, color: Colors.blue);
+                      size: 24, color: Colors.blue);
                 },
               ),
               label: const Text(
@@ -1070,14 +1154,18 @@ class _SignUpFormState extends State<SignUpForm> {
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w600,
+                  letterSpacing: 0.2,
                 ),
               ),
               style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide.none,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                side: BorderSide(color: Colors.grey[300]!, width: 1.5),
                 foregroundColor: Colors.black87,
+                backgroundColor: Colors.white,
+                elevation: 0,
+                shadowColor: Colors.transparent,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(16),
                 ),
               ),
             ),
@@ -1089,12 +1177,13 @@ class _SignUpFormState extends State<SignUpForm> {
             'By continuing you confirm that you agree\nwith our Terms and Conditions',
             textAlign: TextAlign.center,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: 13,
               color: Colors.grey[600],
+              height: 1.5,
             ),
           ),
 
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
     );
@@ -1107,40 +1196,124 @@ class _SignUpFormState extends State<SignUpForm> {
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        print('🔔 AuthScreen: FCM Token retrieved for registration');
+        // FCM token retrieved (debug log removed)
       }
 
-      print('📝 AuthScreen: Attempting registration...');
+      // Store email and password for auto-login after registration
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      // Call registration API - this will save token and user data on success (status 200)
       final success = await authProvider.register(
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         username: _usernameController.text.trim(),
         phone: _phoneController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+        email: email,
+        password: password,
         fcmToken: fcmToken,
       );
 
-      print('📝 AuthScreen: Registration result = $success');
       if (!mounted) return;
 
       if (success) {
-        print(
-            '✅ AuthScreen: Registration successful, navigating to CompleteProfileScreen...');
-        Navigator.pushReplacementNamed(
-            context, CompleteProfileScreen.routeName);
+        // Registration successful (status 200) - auth data is already saved to local storage
+        // Clear any existing errors
+        setState(() {
+          errors.clear();
+        });
+        
+        // Navigate directly to home screen since registration response includes auth token
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const InitScreen()),
+        );
       } else {
-        print(
-            '❌ AuthScreen: Registration failed - ${authProvider.errorMessage}');
+        // Registration failed - show error
+        if (!mounted) return;
+
+        // Extract clean error message
+        String errorMessage =
+            authProvider.errorMessage ?? 'Registration failed';
+
+        // Handle special case for already exists
+        if (errorMessage.toLowerCase().contains('already exists')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Account already exists. Please sign in instead.',
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Colors.orange.shade600,
+              behavior: SnackBarBehavior.floating,
+              margin: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              duration: const Duration(seconds: 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+          return;
+        }
+
+        // Clean up the error message - remove "Exception: " prefix if present
+        if (errorMessage.startsWith('Registration failed: Exception: ')) {
+          errorMessage =
+              errorMessage.replaceFirst('Registration failed: Exception: ', '');
+        } else if (errorMessage.startsWith('Exception: ')) {
+          errorMessage = errorMessage.replaceFirst('Exception: ', '');
+        }
+
+        // Show prominent error message
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(authProvider.errorMessage ?? 'Registration failed'),
-            backgroundColor: Colors.red,
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    errorMessage,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            margin: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            duration: const Duration(seconds: 4),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
         );
+
+        // Also add the error to the form errors list for visibility
+        setState(() {
+          errors.clear();
+          errors.add(errorMessage);
+        });
       }
     } else {
-      print('⚠️ AuthScreen: Form validation failed');
+      // Form validation failed (debug log removed)
     }
   }
 
@@ -1148,12 +1321,12 @@ class _SignUpFormState extends State<SignUpForm> {
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
     try {
-      print('🔵 AuthScreen: Starting Google Sign-Up...');
+      // Starting Google Sign-Up (debug log removed)
 
       // Get FCM token
       final fcmToken = await FCMTokenService.getFCMToken();
       if (fcmToken != null) {
-        print('🔔 AuthScreen: FCM Token retrieved for Google Sign-Up');
+        // FCM token for Google Sign-Up retrieved (debug log removed)
       }
 
       // Sign in with Google (same as sign-in, Google auth doesn't differentiate)
@@ -1162,28 +1335,31 @@ class _SignUpFormState extends State<SignUpForm> {
       if (!mounted) return;
 
       if (result['success'] == true) {
-        print('✅ AuthScreen: Google Sign-Up successful');
+        // Google Sign-Up successful (debug log removed)
 
         if (result['isComplete'] == true) {
-          // Profile is complete, navigate to home
-          print('✅ AuthScreen: Profile complete, navigating to InitScreen...');
-          Navigator.pushReplacementNamed(context, InitScreen.routeName);
+          // Profile complete, navigating to InitScreen (debug log removed)
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const InitScreen()),
+          );
         } else {
           // Profile is incomplete, navigate to complete profile
-          print(
-              '⚠️ AuthScreen: Profile incomplete, navigating to CompleteProfileScreen...');
-          Navigator.pushReplacementNamed(
+          // Profile incomplete, navigating to CompleteProfileScreen (debug log removed)
+          Navigator.pushReplacement(
             context,
-            CompleteProfileScreen.routeName,
-            arguments: {
-              'isSocialAuth': true,
-              'socialUser': result['user'],
-              'email': result['user']?.email ?? '',
-            },
+            MaterialPageRoute(
+              builder: (context) => const CompleteProfileScreen(),
+              settings: RouteSettings(arguments: {
+                'isSocialAuth': true,
+                'socialUser': result['user'],
+                'email': result['user']?.email ?? '',
+              }),
+            ),
           );
         }
       } else {
-        print('❌ AuthScreen: Google Sign-Up failed');
+        // Google Sign-Up failed (debug log removed)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
@@ -1194,7 +1370,7 @@ class _SignUpFormState extends State<SignUpForm> {
         );
       }
     } catch (e) {
-      print('❌ AuthScreen: Google Sign-Up error - $e');
+      // Google Sign-Up error (debug log removed)
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(

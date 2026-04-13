@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
 import 'package:provider/provider.dart';
-import 'dart:developer' as developer;
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
@@ -9,6 +9,7 @@ import 'package:app/services/fcm_token_service.dart';
 import 'package:app/utlis/UtilsExtra.dart';
 import '../viewmodels/profile_view_model.dart';
 import 'my_account_screen.dart';
+import '../../../../screens/profile/edit_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   static String routeName = "/profile";
@@ -20,18 +21,32 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  static final Uri _helpCenterUri =
+      Uri.parse('https://bms.innovativewidget.com/contact-us');
+
+  Future<void> _openHelpCenter() async {
+    final ok = await launchUrl(
+      _helpCenterUri,
+      mode: LaunchMode.externalApplication,
+    );
+
+    if (!ok && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not open Help Center.'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     // Load profile data if authenticated
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final authProvider = context.read<AuthProvider>();
-      developer.log(
-          'ProfileScreen initState - isAuthenticated: ${authProvider.isAuthenticated}');
-      developer
-          .log('ProfileScreen initState - authState: ${authProvider.state}');
-      developer.log(
-          'ProfileScreen initState - currentUser: ${authProvider.currentUser?.email}');
       if (authProvider.isAuthenticated) {
         context.read<ProfileViewModel>().loadProfile();
       }
@@ -43,12 +58,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Consumer2<AuthProvider, ProfileViewModel>(
       builder: (context, authProvider, profileViewModel, child) {
         final isAuthenticated = authProvider.isAuthenticated;
-
-        developer
-            .log('ProfileScreen build - isAuthenticated: $isAuthenticated');
-        developer.log('ProfileScreen build - authState: ${authProvider.state}');
-        developer.log(
-            'ProfileScreen build - currentUser: ${authProvider.currentUser?.email}');
 
         return Scaffold(
           backgroundColor: kScreenBg,
@@ -178,29 +187,40 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   icon: Icons.person_outline,
                   title: "My Account",
                   subtitle: "Manage your personal information",
-                  onTap: () =>
-                      Navigator.pushNamed(context, MyAccountScreen.routeName),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MyAccountScreen(),
+                    ),
+                  ),
                 ),
                 _buildModernMenuItem(
                   context: context,
-                  icon: Icons.notifications_outlined,
-                  title: "Notifications",
-                  subtitle: "Manage your notification preferences",
-                  onTap: () {},
+                  icon: Icons.edit_outlined,
+                  title: "Edit Profile",
+                  subtitle: "Update your profile information",
+                  onTap: () => Navigator.pushNamed(context, '/edit_profile'),
                 ),
-                _buildModernMenuItem(
-                  context: context,
-                  icon: Icons.settings_outlined,
-                  title: "Settings",
-                  subtitle: "App settings and preferences",
-                  onTap: () {},
-                ),
+                // _buildModernMenuItem(
+                //   context: context,
+                //   icon: Icons.notifications_outlined,
+                //   title: "Notifications",
+                //   subtitle: "Manage your notification preferences",
+                //   onTap: () {},
+                // ),
+                // _buildModernMenuItem(
+                //   context: context,
+                //   icon: Icons.settings_outlined,
+                //   title: "Settings",
+                //   subtitle: "App settings and preferences",
+                //   onTap: () {},
+                // ),
                 _buildModernMenuItem(
                   context: context,
                   icon: Icons.help_outline,
                   title: "Help Center",
                   subtitle: "Get help and support",
-                  onTap: () {},
+                  onTap: _openHelpCenter,
                 ),
                 const SizedBox(height: 16),
                 _buildLogoutButton(context),
@@ -263,7 +283,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    Navigator.pushNamed(context, AuthScreen.routeName);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AuthScreen(),
+                      ),
+                    );
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: kPrimaryColor,
@@ -531,8 +556,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   /// Handle logout functionality
   Future<void> _handleLogout(BuildContext context) async {
-    developer.log('🔴 ProfileScreen: Logout initiated');
-
     // Show confirmation dialog
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -558,7 +581,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     if (shouldLogout != true) {
-      developer.log('🔴 ProfileScreen: Logout cancelled by user');
       return;
     }
 
@@ -575,23 +597,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
 
     try {
-      developer.log('🔴 ProfileScreen: Starting logout process...');
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
       // 1. Sign out from Google (if logged in via Google)
-      developer.log('🔴 ProfileScreen: Signing out from Google...');
       await authProvider.signOutGoogle();
 
       // 2. Clear FCM token
-      developer.log('🔴 ProfileScreen: Clearing FCM token...');
       await FCMTokenService.deleteToken();
 
       // 3. Logout from auth provider (clears AuthManager data)
-      developer.log('🔴 ProfileScreen: Clearing auth data...');
       final logoutSuccess = await authProvider.logout();
 
       // 4. Clear old user details (backward compatibility)
-      developer.log('🔴 ProfileScreen: Clearing legacy user data...');
       await UtilsExtra.clearUserDetails();
 
       // Close loading dialog
@@ -599,13 +616,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Navigator.of(context).pop();
 
       if (logoutSuccess) {
-        developer.log(
-            '✅ ProfileScreen: Logout successful, navigating to auth screen');
-
         // Navigate to auth screen and clear all routes
         if (!context.mounted) return;
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AuthScreen.routeName,
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (context) => const AuthScreen(),
+          ),
           (route) => false,
         );
 
@@ -618,8 +634,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         );
       } else {
-        developer.log('❌ ProfileScreen: Logout failed');
-
         // Show error if logout failed
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -631,8 +645,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         );
       }
     } catch (e) {
-      developer.log('❌ ProfileScreen: Logout error - $e');
-
       // Close loading dialog
       if (!context.mounted) return;
       Navigator.of(context).pop();

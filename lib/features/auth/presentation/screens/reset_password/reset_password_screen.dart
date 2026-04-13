@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../../components/custom_surfix_icon.dart';
@@ -84,8 +83,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        log('🔐 ResetPassword: Resetting password for $_email');
-
         final success = await authProvider.resetPassword(
           email: _email!,
           code: _code!,
@@ -100,8 +97,6 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
         });
 
         if (success) {
-          log('✅ ResetPassword: Password reset successful');
-
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -116,17 +111,15 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
           await Future.delayed(const Duration(seconds: 1));
           if (!mounted) return;
 
-          Navigator.pushNamedAndRemoveUntil(
+          Navigator.pushAndRemoveUntil(
             context,
-            AuthScreen.routeName,
+            MaterialPageRoute(builder: (context) => const AuthScreen()),
             (route) => false,
           );
         } else {
-          log('❌ ResetPassword: Failed');
           addError(error: authProvider.errorMessage ?? 'Password reset failed');
         }
       } catch (e) {
-        log('💥 ResetPassword: Error - $e');
         if (mounted) {
           setState(() {
             _isLoading = false;

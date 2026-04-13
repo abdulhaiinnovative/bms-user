@@ -8,9 +8,14 @@ import '../widgets/salon_dashboard.dart';
 import '../widgets/deals_dashboard.dart';
 import '../widgets/services_dashboard.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:app/components/cart_bottom_bar.dart';
+import 'package:app/screens/test_scroll/select_professionals.dart';
+import 'package:app/providers/cart_provider.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final bool isActiveTab;
+
+  const HomeScreen({super.key, this.isActiveTab = true});
   static String routeName = "/home";
 
   @override
@@ -18,6 +23,33 @@ class HomeScreen extends StatefulWidget {
 }
 
 class HomeScreenState extends State<HomeScreen> {
+  void _proceedToBooking() {
+    final cartProvider = Provider.of<CartProvider>(context, listen: false);
+
+    if (cartProvider.itemCount == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please add services or deals to cart first'),
+          backgroundColor: Colors.orange,
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    Navigator.pushNamed(
+      context,
+      SelectProfessionals.routeName,
+      arguments: {
+        'cartItems': cartProvider.items,
+        // Home context doesn't have a selected salon; booking flow can still proceed.
+        'salonName': cartProvider.salonName,
+        'salonId': cartProvider.salonId,
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -169,54 +201,92 @@ class HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: SafeArea(
-        child: Container(
-          color: kScreenBg, // Set the background color for the entire screen
-          child: Consumer<HomeViewModel>(
-            builder: (context, viewModel, child) {
-              return CustomScrollView(
-                slivers: [
-                  SliverAppBar(
-                    surfaceTintColor: Colors.white,
-                    pinned: false,
-                    floating: true,
-                    snap: true,
-                    flexibleSpace: FlexibleSpaceBar(
-                      background: HomeHeader(),
+        body: SafeArea(
+      child: Stack(
+        children: [
+          Container(
+            color: kScreenBg,
+            child: Consumer<HomeViewModel>(
+              builder: (context, viewModel, child) {
+                return CustomScrollView(
+                  slivers: [
+                    SliverAppBar(
+                      surfaceTintColor: Colors.white,
+                      pinned: false,
+                      floating: true,
+                      snap: true,
+                      flexibleSpace: FlexibleSpaceBar(
+                        background: HomeHeader(),
+                      ),
+                      backgroundColor: Colors.white,
+                      elevation: 0,
+                      automaticallyImplyLeading: false,
                     ),
-                    backgroundColor:
-                        Colors.white, // Set background to transparent
-                    elevation: 0, // Remove shadow
-                    automaticallyImplyLeading: false, // Hide the back button
-                  ),
-                  SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
-                        viewModel.isLoading || !viewModel.hasData
-                            ? _buildShimmer()
-                            : Column(
-                                children: [
-                                  const SizedBox(height: 16),
-                                  CategoriesDashboard(
-                                      type2: viewModel.categories!),
-                                  const SizedBox(height: 8),
-                                  SalonDashboard(type3: viewModel.salons!),
-                                  const SizedBox(height: 8),
-                                  DealsDashboard(type4: viewModel.deals!),
-                                  const SizedBox(height: 8),
-                                  ServicesDashboard(type4: viewModel.services!),
-                                  const SizedBox(height: 16),
-                                ],
-                              ),
-                      ],
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          viewModel.isLoading || !viewModel.hasData
+                              ? _buildShimmer()
+                              : Column(
+                                  children: [
+                                    const SizedBox(height: 16),
+                                    CategoriesDashboard(
+                                        type2: viewModel.categories!),
+                                    const SizedBox(height: 8),
+                                    SalonDashboard(type3: viewModel.salons!),
+                                    // Only show deals section if not empty
+                                    if (viewModel.deals != null &&
+                                        viewModel.deals!.isNotEmpty &&
+                                        viewModel.deals!.any((section) =>
+                                            section.data.isNotEmpty)) ...[
+                                      const SizedBox(height: 8),
+                                      DealsDashboard(type4: viewModel.deals!),
+                                    ],
+                                    // Only show services section if not empty (men/women sections)
+                                    if (viewModel.services != null &&
+                                        viewModel.services!.isNotEmpty &&
+                                        viewModel.services!.any((section) =>
+                                            section.data.isNotEmpty)) ...[
+                                      const SizedBox(height: 8),
+                                      ServicesDashboard(
+                                          type4: viewModel.services!),
+                                    ],
+                                    const SizedBox(height: 16),
+                                    // Keep content visible above the cart bar when it's shown.
+                                    const SizedBox(height: 84),
+                                  ],
+                                ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                );
+              },
+            ),
+          ),
+          // Show cart bottom bar only when not on home tab
+          Consumer<CartProvider>(
+            builder: (context, cart, child) {
+              // Don't show if cart is empty or if on home tab
+              if (cart.itemCount == 0 || !widget.isActiveTab) {
+                return const SizedBox.shrink();
+              }
+
+              return Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: CartBottomBar(
+                  onProceed: _proceedToBooking,
+                  buttonText: 'View Cart',
+                  proceedButtonText: 'Proceed to Booking',
+                  buttonColor: kPrimaryColor,
+                ),
               );
             },
           ),
-        ),
+        ],
       ),
-    );
+    ));
   }
 }

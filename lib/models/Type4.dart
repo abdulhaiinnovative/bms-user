@@ -7,7 +7,7 @@ class Type4 {
   factory Type4.fromJson(Map<String, dynamic> json) {
     return Type4(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Type4Data.fromJson(item))
           .toList(),
     );
@@ -65,7 +65,7 @@ class Type4Data {
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       salon: Salon.fromJson(json['salon']),
-      services: (json['services'] as List)
+      services: (json['services'] as List? ?? [])
           .map((item) => Service.fromJson(item))
           .toList(),
     );

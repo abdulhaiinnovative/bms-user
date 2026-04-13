@@ -1,10 +1,14 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import '../../api_services/BookingService.dart';
 import '../../models/home/Professional.dart';
-import '../../models/HomePageResponse.dart';
+import '../../models/salon_detail_models.dart' as salon_models;
+import '../../models/HomePageResponse.dart' as home_models;
 import 'package:app/constants.dart';
+import 'package:app/utils/restriction_handler.dart';
+import 'package:app/features/auth/utils/auth_manager.dart';
 
 // TODO: [FEATURE] Add promo code/discount code input field
 // TODO: [FEATURE] Add ability to edit cart from confirmation screen
@@ -29,8 +33,12 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   DateTime? _selectedDay;
   String? _selectedTime;
   List<Professional> _selectedProfessionals = [];
+  // Professionals aligned to booking service_id order.
+  // This list may include an "Any" placeholder (id=1) per service.
+  List<Professional> _bookingProfessionals = [];
   String? _salonName;
   String? _salonAddress;
+  String? _salonImage;
   int? _salonId;
   Map<dynamic, int>? _cartItems;
   String? _paymentMethod = 'Cash';
@@ -52,6 +60,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         _selectedTime = arguments['selectedTime'] as String?;
         _selectedProfessionals =
             arguments['selectedProfessionals'] as List<Professional>? ?? [];
+
+        // Prefer booking-aligned list if provided; otherwise fall back.
+        _bookingProfessionals =
+            arguments['bookingProfessionals'] as List<Professional>? ??
+                _selectedProfessionals;
         _salonName = arguments['salonName'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
         _salonId = arguments['salonId'] as int?;
@@ -59,73 +72,25 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         // Fallback: Extract salonId from cart items if not passed directly
         if (_salonId == null && _cartItems != null && _cartItems!.isNotEmpty) {
           final firstItem = _cartItems!.keys.first;
-          if (firstItem is Service) {
-            _salonId = firstItem.salonId ?? firstItem.salon?.id;
-          } else if (firstItem is Deal) {
-            _salonId = firstItem.salonId ?? firstItem.salon?.id;
+          if (firstItem is salon_models.Service) {
+            _salonId = firstItem.salonId;
+          } else if (firstItem is salon_models.Deal) {
+            _salonId = firstItem.salonId;
+          } else if (firstItem is home_models.Service) {
+            _salonId = firstItem.salonId;
+          } else if (firstItem is home_models.Deal) {
+            _salonId = firstItem.salonId;
           }
-          log('📌 SalonId extracted from cart: $_salonId');
         }
-
-        log('════════════════════════════════════════════════════════');
-        log('✅ CONFIRM BOOKING SCREEN - INITIALIZED');
-        log('════════════════════════════════════════════════════════');
-        log('📍 Salon Information:');
-        log('   ID: $_salonId');
-        log('   Name: $_salonName');
-        log('   Address: $_salonAddress');
-        log('');
-        log('📅 Booking Details:');
-        log('   Date: ${_selectedDay?.toString().split(' ')[0] ?? "Not selected"}');
-        log('   Time: $_selectedTime');
-        log('');
-        log('🛒 Cart Items (${_cartItems?.length ?? 0} items):');
-        _cartItems?.forEach((key, value) {
-          if (key is Service) {
-            log('   📦 Service: ${key.name}');
-            log('      - ID: ${key.id}');
-            log('      - Price: PKR ${key.price}');
-            log('      - Old Price: PKR ${key.oldPrice ?? "N/A"}');
-            log('      - Discount: ${key.discountAmount ?? 0}');
-            log('      - Quantity: $value');
-            log('      - Duration: ${key.duration ?? "N/A"}');
-          } else if (key is Deal) {
-            log('   🎁 Deal: ${key.name}');
-            log('      - ID: ${key.id}');
-            log('      - Total Price: PKR ${key.totalPrice}');
-            log('      - Price: PKR ${key.price ?? "N/A"}');
-            log('      - Discount: PKR ${key.discountValue ?? 0}');
-            log('      - Quantity: $value');
-            log('      - Services: ${key.services?.map((s) => s.name).join(", ") ?? "N/A"}');
-          }
-        });
-        log('');
-        log('👨‍⚕️ Selected Professionals (${_selectedProfessionals.length}):');
-        for (var prof in _selectedProfessionals) {
-          log('   - ${prof.name} (ID: ${prof.id})');
-          log('     Email: ${prof.email ?? "N/A"}');
-          log('     Phone: ${prof.phone ?? "N/A"}');
-        }
-        log('');
-        log('💰 Payment:');
-        log('   Method: Cash (default)');
-        final totalAmount = _cartItems?.entries.fold<double>(
-              0.0,
-              (sum, entry) {
-                final item = entry.key;
-                final qty = entry.value;
-                if (item is Service) return sum + ((item.price ?? 0) * qty);
-                if (item is Deal) return sum + ((item.totalPrice ?? 0) * qty);
-                return sum;
-              },
-            ) ??
-            0.0;
-        log('   Total Amount: PKR $totalAmount');
-        log('════════════════════════════════════════════════════════');
 
         setState(() {});
+        if (kDebugMode) {
+          developer.log(
+              'ConfirmBookingScreen: init arguments parsed | salonId=$_salonId | items=${_cartItems?.length ?? 0} | selectedDay=$_selectedDay | selectedTime=$_selectedTime',
+              name: 'booking.screen');
+        }
       } else {
-        log('⚠️ No arguments received in ConfirmBookingScreen');
+        // No arguments received in ConfirmBookingScreen
       }
     });
   }
@@ -257,10 +222,10 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                     icon: Icons.payment,
                     title: 'Payment Method',
                     children: [
-                      _buildPaymentOption(context,
-                          title: 'Credit/Debit Card',
-                          icon: Icons.credit_card,
-                          value: 'Card'),
+                      // _buildPaymentOption(context,
+                      //     title: 'Credit/Debit Card',
+                      //     icon: Icons.credit_card,
+                      //     value: 'Card'),
                       _buildPaymentOption(context,
                           title: 'Cash at Salon',
                           icon: Icons.money,
@@ -311,20 +276,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                           ),
                         ),
                         Text(
-                          'PKR ${_cartItems?.entries.fold<double>(
-                                0.0,
-                                (sum, entry) {
-                                  final item = entry.key;
-                                  final qty = entry.value;
-                                  if (item is Service) {
-                                    return sum + ((item.price ?? 0) * qty);
-                                  }
-                                  if (item is Deal) {
-                                    return sum + ((item.totalPrice ?? 0) * qty);
-                                  }
-                                  return sum;
-                                },
-                              ).toStringAsFixed(0) ?? '0'}',
+                          'PKR ${_calculateTotalPrice().toStringAsFixed(0)}',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w900,
@@ -339,13 +291,28 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                     Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        onTap: _paymentMethod != null ? _confirmBooking : null,
+                        onTap: (_paymentMethod != null &&
+                                _calculateTotalPrice() > 0)
+                            ? _confirmBooking
+                            : () {
+                                if (_calculateTotalPrice() <= 0) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Cannot complete booking: Total price is zero. Please add services or deals with valid prices.'),
+                                      backgroundColor: Colors.red,
+                                      duration: Duration(seconds: 3),
+                                    ),
+                                  );
+                                }
+                              },
                         borderRadius: BorderRadius.circular(14),
                         child: Container(
                           width: double.infinity,
                           height: 45,
                           decoration: BoxDecoration(
-                            gradient: _paymentMethod != null
+                            gradient: (_paymentMethod != null &&
+                                    _calculateTotalPrice() > 0)
                                 ? const LinearGradient(
                                     colors: [
                                       kPrimaryColor,
@@ -355,11 +322,13 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                                     end: Alignment.centerRight,
                                   )
                                 : null,
-                            color: _paymentMethod == null
+                            color: (_paymentMethod == null ||
+                                    _calculateTotalPrice() <= 0)
                                 ? Colors.grey[400]
                                 : null,
                             borderRadius: BorderRadius.circular(14),
-                            boxShadow: _paymentMethod != null
+                            boxShadow: (_paymentMethod != null &&
+                                    _calculateTotalPrice() > 0)
                                 ? [
                                     BoxShadow(
                                       color: kPrimaryColor.withOpacity(0.4),
@@ -410,21 +379,43 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
     String? name;
     String? description;
-    int? price;
-    int? oldPrice;
+    double? price;
+    double? oldPrice;
 
     // Detect type and extract data
-    if (item is Deal) {
+    // Handle salon_detail_models.Deal
+    if (item is salon_models.Deal) {
       name = item.name;
       description =
           item.services?.map((s) => s.name).join(', ') ?? 'No services listed';
-      price = item.totalPrice;
+      final totalPrice = item.totalPrice ?? 0.0;
+      final itemPrice = item.price ?? 0.0;
+      price = totalPrice > 0 ? totalPrice : itemPrice;
       oldPrice = item.price;
-    } else if (item is Service) {
+    }
+    // Handle HomePageResponse.Deal
+    else if (item is home_models.Deal) {
+      name = item.name;
+      description =
+          item.services?.map((s) => s.name).join(', ') ?? 'No services listed';
+      final totalPrice = (item.totalPrice ?? 0).toDouble();
+      final itemPrice = (item.price ?? 0).toDouble();
+      price = totalPrice > 0 ? totalPrice : itemPrice;
+      oldPrice = itemPrice;
+    }
+    // Handle salon_detail_models.Service
+    else if (item is salon_models.Service) {
       name = item.name;
       description = item.description;
       price = item.price;
       oldPrice = item.oldPrice;
+    }
+    // Handle HomePageResponse.Service
+    else if (item is home_models.Service) {
+      name = item.name;
+      description = item.description;
+      price = (item.price ?? 0).toDouble();
+      oldPrice = item.oldPrice != null ? item.oldPrice!.toDouble() : null;
     } else {
       // fallback for unknown type
       try {
@@ -850,14 +841,17 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   /// AppBar - Modern redesigned to match salon category screen
   AppBar _buildAppBar() {
-    // Get salon image from cart items if not directly provided
-    String? salonImageUrl;
-    if (_cartItems != null && _cartItems!.isNotEmpty) {
+    // Get salon image from passed argument or cart items if available
+    String? salonImageUrl = _salonImage;
+    if ((salonImageUrl == null || salonImageUrl.isEmpty) &&
+        _cartItems != null &&
+        _cartItems!.isNotEmpty) {
       final firstItem = _cartItems!.keys.first;
-      if (firstItem is Service && firstItem.salon?.image != null) {
-        salonImageUrl = firstItem.salon!.image;
-      } else if (firstItem is Deal && firstItem.salon?.image != null) {
-        salonImageUrl = firstItem.salon!.image;
+      // Service/Deal no longer embed a Salon object in the new models; prefer passed-in salon image
+      if ((firstItem is salon_models.Service || firstItem is home_models.Service)) {
+        // no direct image available from Service; keep salonImageUrl from args
+      } else if ((firstItem is salon_models.Deal || firstItem is home_models.Deal)) {
+        // no direct image available from Deal; keep salonImageUrl from args
       }
     }
 
@@ -966,38 +960,71 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
     );
   }
 
-  void _confirmBooking() {
-    log('════════════════════════════════════════════════════════');
-    log('🚀 CONFIRM BOOKING BUTTON TAPPED');
-    log('════════════════════════════════════════════════════════');
-    log('📤 Preparing to submit booking with following details:');
-    log('');
-    log('📍 Salon: $_salonName');
-    log('📅 Date: ${_selectedDay?.toString().split(' ')[0]}');
-    log('⏰ Time: $_selectedTime');
-    log('💳 Payment Method: $_paymentMethod');
-    log('📝 Notes: ${_notesController.text.isEmpty ? "None" : _notesController.text}');
-    log('');
-    log('🛒 Cart Items:');
-    _cartItems?.forEach((key, value) {
-      if (key is Service) {
-        log('   - Service: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.price}');
-      } else if (key is Deal) {
-        log('   - Deal: ${key.name} (ID: ${key.id}), Qty: $value, Price: PKR ${key.totalPrice}');
+  double _calculateTotalPrice() {
+    return _cartItems?.entries.fold<double>(
+          0.0,
+          (sum, entry) {
+            final item = entry.key;
+            final qty = entry.value;
+            
+            // Handle salon_detail_models.Service (double? price)
+            if (item is salon_models.Service) {
+              final price = item.price ?? 0.0;
+              return sum + (price * qty);
+            }
+            // Handle HomePageResponse.Service (int? price)
+            if (item is home_models.Service) {
+              final price = (item.price ?? 0).toDouble();
+              return sum + (price * qty);
+            }
+            // Handle salon_detail_models.Deal (double? totalPrice, double? price)
+            if (item is salon_models.Deal) {
+              final totalPrice = item.totalPrice ?? 0.0;
+              final price = item.price ?? 0.0;
+              final effectivePrice = totalPrice > 0 ? totalPrice : price;
+              return sum + (effectivePrice * qty);
+            }
+            // Handle HomePageResponse.Deal (int? totalPrice, int? price)
+            if (item is home_models.Deal) {
+              final totalPrice = (item.totalPrice ?? 0).toDouble();
+              final price = (item.price ?? 0).toDouble();
+              final effectivePrice = totalPrice > 0 ? totalPrice : price;
+              return sum + (effectivePrice * qty);
+            }
+            
+            return sum;
+          },
+        ) ??
+        0.0;
+  }
+
+  Future<void> _confirmBooking() async {
+    // Check user status and restriction before booking
+    try {
+      final userData = await AuthManager.getUserData();
+      if (userData != null) {
+        final canBook = await RestrictionHandler.canUserBook(
+          isRestricted: userData.isRestricted,
+          status: userData.status,
+          context: context,
+        );
+
+        if (!canBook) {
+          // User is restricted or inactive, handler already showed dialog
+          return;
+        }
       }
-    });
-    log('');
-    log('👨‍⚕️ Professionals:');
-    for (var prof in _selectedProfessionals) {
-      log('   - ${prof.name} (ID: ${prof.id})');
+    } catch (e) {
+      if (kDebugMode) {
+        developer.log(
+          'ConfirmBookingScreen: Error checking user status | error=$e',
+          name: 'booking.screen',
+        );
+      }
     }
-    log('');
-    log('📞 Calling BookingService.createBooking()...');
-    log('════════════════════════════════════════════════════════');
 
     // Validate salon ID before making API call
     if (_salonId == null || _salonId == 0) {
-      log('❌ ERROR: Invalid salon ID: $_salonId');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Error: Invalid salon. Please try again.'),
@@ -1006,17 +1033,36 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
       );
       return;
     }
-
     // Call your API
-    BookingService().createBooking(
-      context: context,
-      salonId: _salonId!,
-      cartItems: _cartItems,
-      selectedDay: _selectedDay,
-      selectedTime: _selectedTime,
-      selectedProfessionals: _selectedProfessionals,
-      paymentMethod: _paymentMethod,
-      bookingType: 'appointment', // can adjust dynamically
-    );
+    if (kDebugMode) {
+      developer.log(
+          'ConfirmBookingScreen._confirmBooking called | salonId=$_salonId | items=${_cartItems?.length ?? 0} | selectedDay=$_selectedDay | selectedTime=$_selectedTime | payment=$_paymentMethod',
+          name: 'booking.screen');
+    }
+
+    try {
+      await BookingService().createBooking(
+        context: context,
+        salonId: _salonId!,
+        cartItems: _cartItems,
+        selectedDay: _selectedDay,
+        selectedTime: _selectedTime,
+        // Important: booking requires profession_id length == service_id length.
+        selectedProfessionals: _bookingProfessionals,
+        paymentMethod: _paymentMethod,
+        bookingType: 'appointment', // can adjust dynamically
+      );
+      if (kDebugMode) {
+        developer.log(
+            'ConfirmBookingScreen._confirmBooking completed (BookingService returned)',
+            name: 'booking.screen');
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        developer.log(
+            'ConfirmBookingScreen._confirmBooking exception | error=$e',
+            name: 'booking.screen');
+      }
+    }
   }
 }

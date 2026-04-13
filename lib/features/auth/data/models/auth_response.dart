@@ -3,20 +3,87 @@ class AuthResponse {
   final bool success;
   final String message;
   final AuthData? data;
+  final Map<String, dynamic>? errors;
 
   AuthResponse({
     required this.statusCode,
     required this.success,
     required this.message,
     this.data,
+    this.errors,
   });
 
+  String? get firstErrorMessage {
+    final errs = errors;
+    if (errs == null || errs.isEmpty) return null;
+
+    // Common API format: { field: ["msg1", "msg2"], ... }
+    for (final entry in errs.entries) {
+      final v = entry.value;
+      if (v is List && v.isNotEmpty) {
+        final first = v.first;
+        if (first != null) return first.toString();
+      }
+      if (v != null && v.toString().trim().isNotEmpty) {
+        return v.toString();
+      }
+    }
+    return null;
+  }
+
+  static bool _parseSuccess(dynamic raw, {required int statusCode}) {
+    if (raw is bool) return raw;
+    if (raw is num) return raw == 1;
+    if (raw is String) {
+      final v = raw.trim().toLowerCase();
+      if (v == 'true' || v == '1' || v == 'success') return true;
+      if (v == 'false' || v == '0' || v == 'fail' || v == 'failed') {
+        return false;
+      }
+    }
+
+    // Fallback: many endpoints only provide statusCode.
+    return statusCode == 200 || statusCode == 201;
+  }
+
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
+    final int statusCode =
+        (json['statusCode'] ?? json['status_code'] ?? 200) is String
+            ? int.tryParse(
+                    (json['statusCode'] ?? json['status_code']).toString()) ??
+                200
+            : (json['statusCode'] ?? json['status_code'] ?? 200);
+
+    // API sometimes returns: { statusCode: 200, response: { data: {...} } }
+    final dynamic responseContainer = json['response'];
+    final Map<String, dynamic> payload =
+        (responseContainer is Map<String, dynamic>) ? responseContainer : json;
+
+    final dynamic dataJson = payload['data'] ?? json['data'];
+    final AuthData? authData =
+        (dataJson is Map<String, dynamic>) ? AuthData.fromJson(dataJson) : null;
+
+    final Map<String, dynamic>? errors = (() {
+      final dynamic raw = payload['errors'] ?? json['errors'];
+      if (raw is Map<String, dynamic>) return raw;
+      if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v));
+      return null;
+    })();
+
+    final dynamic successRaw = payload.containsKey('status')
+        ? payload['status']
+        : payload['success'] ?? json['success'] ?? json['status'];
+    final bool success = _parseSuccess(successRaw, statusCode: statusCode);
+
+    final String message =
+        (payload['message'] ?? json['message'] ?? '').toString();
+
     return AuthResponse(
-      statusCode: json['statusCode'] ?? json['status_code'] ?? 200,
-      success: json['status'] ?? json['success'] ?? false,
-      message: json['message'] ?? '',
-      data: json['data'] != null ? AuthData.fromJson(json['data']) : null,
+      statusCode: statusCode,
+      success: success,
+      message: message,
+      data: authData,
+      errors: errors,
     );
   }
 
@@ -26,6 +93,7 @@ class AuthResponse {
       'success': success,
       'message': message,
       'data': data?.toJson(),
+      'errors': errors,
     };
   }
 }

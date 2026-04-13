@@ -1,6 +1,6 @@
-import 'dart:developer';
 import 'price_range_new.dart';
 import 'sorting_new.dart';
+import 'gender_filter_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../constants.dart';
@@ -34,12 +34,25 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
   double maxPrice = 100000;
   String? sortBy = 'name';
   String? sortOrder = 'asc';
+  String? selectedGender;
 
   void _tabListener() {
     if (!widget.tabController.indexIsChanging && mounted) {
       setState(() {
         // This will trigger a rebuild to update filter chips visibility
-        log('🔄 Tab changed to index: ${widget.tabController.index}');
+      });
+
+      // Re-apply search with current filters when tab changes
+      // Use post-frame callback to ensure tab change and setState complete before searching
+      // This prevents race conditions and ensures filters are applied correctly
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final searchProvider =
+              Provider.of<SearchProviderNew>(context, listen: false);
+          if (searchProvider.hasSearched) {
+            _performSearch();
+          }
+        }
       });
     }
   }
@@ -51,17 +64,16 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
     // Add tab controller listener to update UI when tab changes
     widget.tabController.addListener(_tabListener);
 
+    // Only auto-search if navigated with a pre-selected category
+    // Otherwise, data stays empty until user explicitly searches
     if (widget.categoryId != null) {
       selectedCategoryName = widget.categoryName;
       selectedCategoryId = widget.categoryId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _performSearch();
       });
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        _performSearch();
-      });
     }
+    // No automatic search - user must search to get results
   }
 
   @override
@@ -95,6 +107,11 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
           sortOrder = value['sortOrder'];
           _performSearch();
         });
+      } else if (child is GenderFilterNew && value != null) {
+        setState(() {
+          selectedGender = value['gender'];
+          _performSearch();
+        });
       }
     });
   }
@@ -102,9 +119,22 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
   void _performBack() {
     if (Navigator.canPop(context)) {
       Navigator.pop(context); // Return to previous screen
-      log('Back button pressed: Navigating to previous screen');
     } else {
-      log('Back button pressed: No previous route to pop');
+      // No previous route to pop
+    }
+  }
+
+  /// Get filter_type based on current tab index
+  String _getFilterTypeForCurrentTab() {
+    switch (widget.tabController.index) {
+      case 0:
+        return 'service';
+      case 1:
+        return 'deal';
+      case 2:
+        return 'salon';
+      default:
+        return 'service';
     }
   }
 
@@ -116,28 +146,64 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
     // Get the search query - pass empty string if no search text
     // The API will use filters to return results
     final query = searchController.text.trim();
+    final filterType = _getFilterTypeForCurrentTab();
 
-    if (widget.tabController.index == 0) {
-      searchProvider.searchServices(
-        query,
-        categoryId: selectedCategoryId,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        sortBy: sortBy,
-      );
-    } else if (widget.tabController.index == 1) {
-      searchProvider.searchDeals(
-        query,
-        categoryId: selectedCategoryId,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        sortBy: sortBy,
-      );
-    } else {
-      searchProvider.searchSalons(
-        query,
-        sortBy: sortBy,
-      );
+    // Search based on current tab's filter type
+    // Only pass filters that are applicable to the current tab
+    switch (filterType) {
+      case 'service':
+        // Services support: category, price, gender, sort
+        searchProvider.searchServices(
+          query,
+          categoryId: selectedCategoryId,
+          minPrice: minPrice != 100 ? minPrice : null,
+          maxPrice: maxPrice != 100000 ? maxPrice : null,
+          gender: selectedGender, // Gender applies to services
+          sortBy: _mapSortBy(sortBy, sortOrder),
+        );
+        break;
+      case 'deal':
+        // Deals support: category, price, sort (NO gender)
+        searchProvider.searchDeals(
+          query,
+          categoryId: selectedCategoryId,
+          minPrice: minPrice != 100 ? minPrice : null,
+          maxPrice: maxPrice != 100000 ? maxPrice : null,
+          sortBy: _mapSortBy(sortBy, sortOrder),
+          // Note: Gender is NOT passed for deals as they don't have gender property
+        );
+        break;
+      case 'salon':
+        // Salons support: gender, sort (NO category, NO price)
+        searchProvider.searchSalons(
+          query,
+          gender: selectedGender != null
+              ? [selectedGender!]
+              : null, // Gender applies to salons
+          sortBy: _mapSortBy(sortBy, sortOrder),
+          // Note: Category and price are NOT passed for salons
+        );
+        break;
+    }
+  }
+
+  /// Maps sortBy and sortOrder to API sort_by values
+  String _mapSortBy(String? sortBy, String? sortOrder) {
+    if (sortBy == null) return 'relevance';
+
+    switch (sortBy) {
+      case 'price':
+        return sortOrder == 'asc' ? 'price_low' : 'price_high';
+      case 'rating':
+        return 'rating';
+      case 'name':
+        return 'relevance';
+      case 'total_price':
+        return sortOrder == 'asc' ? 'price_low' : 'price_high';
+      case 'created_at':
+        return 'newest';
+      default:
+        return 'relevance';
     }
   }
 
@@ -153,6 +219,28 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
         onClear: () => setState(() {
           selectedCategoryId = null;
           selectedCategoryName = null;
+          _performSearch();
+        }),
+      ));
+    }
+
+    // Show gender filter for Services (0) and Salons (2) tabs
+    if ((currentTab == 0 || currentTab == 2) && selectedGender != null) {
+      String genderLabel;
+      if (selectedGender == 'male') {
+        genderLabel = '👨 Male';
+      } else if (selectedGender == 'female') {
+        genderLabel = '👩 Female';
+      } else {
+        genderLabel = '👥 Unisex';
+      }
+
+      chips.add(FilterItem(
+        label: genderLabel,
+        onTap: () =>
+            _showBottomSheet(GenderFilterNew(selectedGender: selectedGender)),
+        onClear: () => setState(() {
+          selectedGender = null;
           _performSearch();
         }),
       ));
@@ -315,47 +403,60 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
           const SizedBox(height: 12),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
-              children: [
-                _buildFilterButton(
-                  icon: Icons.sort_rounded,
-                  label: 'Sort',
-                  onTap: () {
-                    log("Click event on Sort");
-                    _showBottomSheet(SortingNew(
-                      tabIndex: widget.tabController.index,
-                      currentSortBy: sortBy,
-                      currentSortOrder: sortOrder,
-                    ));
-                  },
-                ),
-                const SizedBox(width: 8),
-                _buildFilterButton(
-                  icon: Icons.filter_list_rounded,
-                  label: 'Category',
-                  onTap: () {
-                    log("Click event on Category");
-                    _showBottomSheet(FilterCategoriesNew(
-                      selectedCategoryId: selectedCategoryId,
-                    ));
-                  },
-                ),
-                if (widget.tabController.index == 0 ||
-                    widget.tabController.index == 1) ...[
-                  const SizedBox(width: 8),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
                   _buildFilterButton(
-                    icon: Icons.monetization_on_rounded,
-                    label: 'Price',
+                    icon: Icons.sort_rounded,
+                    label: 'Sort',
                     onTap: () {
-                      log("Click event on Price");
-                      _showBottomSheet(PriceRangeNew(
-                        initialMinPrice: minPrice,
-                        initialMaxPrice: maxPrice,
+                      _showBottomSheet(SortingNew(
+                        tabIndex: widget.tabController.index,
+                        currentSortBy: sortBy,
+                        currentSortOrder: sortOrder,
                       ));
                     },
                   ),
+                  const SizedBox(width: 8),
+                  _buildFilterButton(
+                    icon: Icons.filter_list_rounded,
+                    label: 'Category',
+                    onTap: () {
+                      _showBottomSheet(FilterCategoriesNew(
+                        selectedCategoryId: selectedCategoryId,
+                      ));
+                    },
+                  ),
+                  if (widget.tabController.index == 0 ||
+                      widget.tabController.index == 1) ...[
+                    const SizedBox(width: 8),
+                    _buildFilterButton(
+                      icon: Icons.monetization_on_rounded,
+                      label: 'Price',
+                      onTap: () {
+                        _showBottomSheet(PriceRangeNew(
+                          initialMinPrice: minPrice,
+                          initialMaxPrice: maxPrice,
+                        ));
+                      },
+                    ),
+                  ],
+                  if (widget.tabController.index == 0 ||
+                      widget.tabController.index == 2) ...[
+                    const SizedBox(width: 8),
+                    _buildFilterButton(
+                      icon: Icons.wc,
+                      label: 'Gender',
+                      onTap: () {
+                        _showBottomSheet(GenderFilterNew(
+                          selectedGender: selectedGender,
+                        ));
+                      },
+                    ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
           // Filter chips in a separate row

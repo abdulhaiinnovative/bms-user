@@ -1,8 +1,9 @@
-import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import 'package:app/data/repositories/bookings_repository.dart';
 import 'package:app/models/MyBookingResponse.dart';
 import 'package:intl/intl.dart';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
 
 /// ViewModel for Bookings Screen
 /// Manages state for user bookings with pagination and filtering
@@ -39,6 +40,11 @@ class BookingsViewModel extends BaseViewModel {
 
   /// Load bookings list
   Future<void> loadBookings({bool refresh = false}) async {
+    if (kDebugMode) {
+      developer.log(
+          'BookingsViewModel.loadBookings called | refresh=$refresh | page=$_currentPage',
+          name: 'bookings.viewModel');
+    }
     if (refresh) {
       _isRefreshing = true;
       _currentPage = 1;
@@ -49,33 +55,27 @@ class BookingsViewModel extends BaseViewModel {
 
     await executeAsync(
       operation: () async {
-        log('📅 Loading bookings - Page: $_currentPage');
-
         final response = await _repository.getBookingsList(
           page: _currentPage,
           url: _nextPageUrl,
         );
 
-        log('📅 Bookings response received');
-        log('📅 Response type: ${response.runtimeType}');
-        log('📅 Response status: ${response.status}');
-        log('📅 Has response data: ${response.response != null}');
-        log('📅 Has booking data: ${response.response?.data != null}');
-
         if (response.status == true && response.response?.data != null) {
           final bookingData = response.response!.data!;
           final newBookings = bookingData.data ?? [];
 
-          log('📅 New bookings count: ${newBookings.length}');
+          if (kDebugMode) {
+            developer.log(
+                'BookingsViewModel: API returned ${newBookings.length} bookings | currentPage=${bookingData.currentPage} | total=${bookingData.total}',
+                name: 'bookings.viewModel');
+          }
 
           if (!refresh) {
             if (newBookings.isNotEmpty) {
               _allBookings.addAll(newBookings);
-              log('📅 Added ${newBookings.length} bookings to existing list');
             }
           } else {
             _allBookings = newBookings;
-            log('📅 Replaced bookings list with ${newBookings.length} bookings');
           }
 
           _currentPage = bookingData.currentPage ?? 1;
@@ -83,16 +83,8 @@ class BookingsViewModel extends BaseViewModel {
           _totalBookings = bookingData.total ?? 0;
           _nextPageUrl = bookingData.nextPageUrl;
 
-          log('📅 Bookings loaded successfully');
-          log('📅 Total: $totalBookings, Current Page: $currentPage, Last Page: $lastPage');
-          log('📅 All bookings count: ${_allBookings.length}');
-          log('📅 Next page URL: $_nextPageUrl');
-
           // Filter bookings into upcoming and past
           _filterBookings();
-        } else {
-          log('❌ Invalid response structure or no data');
-          log('❌ Status: ${response.status}, Response: ${response.response}, Data: ${response.response?.data}');
         }
 
         notifyListeners();
@@ -100,7 +92,6 @@ class BookingsViewModel extends BaseViewModel {
       onError: (error) {
         // Handle 404 error as empty bookings instead of showing error
         if (error.contains('404')) {
-          log('404 error detected - treating as no bookings found');
           _allBookings = [];
           _upcomingBookings.clear();
           _pastBookings.clear();
@@ -121,14 +112,12 @@ class BookingsViewModel extends BaseViewModel {
   /// Filter bookings into upcoming and past
   void _filterBookings() {
     final now = DateTime.now();
-    log('Filtering bookings, current time: $now');
 
     _upcomingBookings.clear();
     _pastBookings.clear();
 
     for (var booking in _allBookings) {
       if (booking.date == null) {
-        log('Skipping booking ID ${booking.id} with null date');
         continue;
       }
 
@@ -136,7 +125,6 @@ class BookingsViewModel extends BaseViewModel {
       try {
         final date = DateTime.tryParse(booking.date!);
         if (date == null) {
-          log('Invalid date for booking ID ${booking.id}: ${booking.date}');
           continue;
         }
 
@@ -151,27 +139,19 @@ class BookingsViewModel extends BaseViewModel {
           time.hour,
           time.minute,
         );
-
-        log('Booking ID ${booking.id} dateTime: $bookingDateTime, isBefore now: ${bookingDateTime.isBefore(now)}');
-      } catch (e, stackTrace) {
-        log('Error parsing date/time for booking ID ${booking.id}: $e\nStack: $stackTrace');
+      } catch (e) {
         continue;
       }
 
       // Upcoming: status is 'booked' and time is in the future
       if (booking.status == 'booked' && !bookingDateTime.isBefore(now)) {
         _upcomingBookings.add(booking);
-        log('Added booking ID ${booking.id} to upcomingBookings');
       }
       // Past: not booked or time is in the past
       else if (booking.status != 'booked' || bookingDateTime.isBefore(now)) {
         _pastBookings.add(booking);
-        log('Added booking ID ${booking.id} to pastBookings');
       }
     }
-
-    log('Upcoming bookings: ${_upcomingBookings.length}');
-    log('Past bookings: ${_pastBookings.length}');
 
     // Sort bookings by date descending
     _sortBookingsList(_allBookings);
@@ -201,7 +181,6 @@ class BookingsViewModel extends BaseViewModel {
   Future<void> loadNextPage() async {
     if (!hasMorePages || isLoading || _isLoadingMore) return;
 
-    log('Loading next page of bookings');
     _isLoadingMore = true;
     notifyListeners();
 

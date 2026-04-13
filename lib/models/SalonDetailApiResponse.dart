@@ -58,13 +58,11 @@ class SalonData {
   final String? minBookingTime;
   final String? maxBookingTime;
 
-  // TODO: FAVOURITES MODEL - Backend favourite status
-  // This field comes from API response (is_favourite)
-  // Used to initialize UI favourite state in salon detail screen
   final bool? isFavourite;
   final List<Section>? sections;
   final Location? location;
   final List<SalonActiveDay>? activeDays;
+  final List<Category>? categories;
 
   SalonData({
     required this.name,
@@ -89,13 +87,14 @@ class SalonData {
     required this.sections,
     required this.location,
     this.activeDays,
+    this.categories,
   });
 
   factory SalonData.fromJson(Map<String, dynamic> json) {
     return SalonData(
       name: json['name'],
       id: json['id'],
-      images: List<String>.from(json['images']),
+      images: List<String>.from(json['images'] ?? []),
       createdAt: json['created_at'],
       gender: json['gender'],
       logo: json['logo'],
@@ -117,16 +116,51 @@ class SalonData {
 
       // TODO: FAVOURITES PARSING - Parse is_favourite from API
       isFavourite: json['is_favourite'],
-      sections:
-          (json['sections'] as List).map((e) => Section.fromJson(e)).toList(),
-      location: Location.fromJson(json['location']),
+      sections: json['sections'] != null
+          ? (json['sections'] as List? ?? [])
+              .map((e) => Section.fromJson(e))
+              .toList()
+          : null,
+      location:
+          json['location'] != null ? Location.fromJson(json['location']) : null,
       activeDays: json['active_days'] != null
-          ? (json['active_days'] as List)
+          ? (json['active_days'] as List? ?? [])
               .map((e) => SalonActiveDay.fromJson(e))
+              .toList()
+          : null,
+      categories: json['categories'] != null
+          ? (json['categories'] as List? ?? [])
+              .map((e) => Category.fromJson(e))
               .toList()
           : null,
     );
   }
+}
+
+class Category {
+  final int id;
+  final String name;
+  final String? description;
+  final int? status;
+
+  Category(
+      {required this.id, required this.name, this.description, this.status});
+
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['id'],
+      name: json['name'] ?? '',
+      description: json['description'],
+      status: json['status'],
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'name': name,
+        'description': description,
+        'status': status,
+      };
 }
 
 class Section {
@@ -140,24 +174,39 @@ class Section {
     dynamic parsedData;
     switch (json['type']) {
       case "2": // Services
-        parsedData =
-            (json['data'] as List).map((e) => Service.fromJson(e)).toList();
+        parsedData = json['data'] != null
+            ? (json['data'] as List? ?? [])
+                .map((e) => Service.fromJson(e))
+                .toList()
+            : <Service>[];
         break;
       case "3": // Reviews
-        parsedData =
-            (json['data'] as List).map((e) => Review.fromJson(e)).toList();
+        parsedData = json['data'] != null
+            ? (json['data'] as List? ?? [])
+                .map((e) => Review.fromJson(e))
+                .toList()
+            : <Review>[];
         break;
       case "4": // Staff
-        parsedData =
-            (json['data'] as List).map((e) => Staff.fromJson(e)).toList();
+        parsedData = json['data'] != null
+            ? (json['data'] as List? ?? [])
+                .map((e) => Staff.fromJson(e))
+                .toList()
+            : <Staff>[];
         break;
       case "5": // About
-        parsedData =
-            (json['data'] as List).map((e) => About.fromJson(e)).toList();
+        parsedData = json['data'] != null
+            ? (json['data'] as List? ?? [])
+                .map((e) => About.fromJson(e))
+                .toList()
+            : <About>[];
         break;
       case "6": // Deals
-        parsedData =
-            (json['data'] as List).map((e) => Deal.fromJson(e)).toList();
+        parsedData = json['data'] != null
+            ? (json['data'] as List? ?? [])
+                .map((e) => Deal.fromJson(e))
+                .toList()
+            : <Deal>[];
         break;
       default:
         parsedData = json['data'];
@@ -527,7 +576,7 @@ class About {
   factory About.fromJson(Map<String, dynamic> json) {
     return About(
       desc: json['desc'],
-      openingTimings: (json['opening_timings'] as List)
+      openingTimings: (json['opening_timings'] as List? ?? [])
           .map((e) => OpeningTiming.fromJson(e))
           .toList(),
       address: json['address'],

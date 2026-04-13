@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../../../../../constants.dart';
 import 'components/complete_profile_form.dart';
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
 import '../../../data/models/social_auth_response.dart';
@@ -12,7 +11,7 @@ class CompleteProfileScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Get arguments - can be UserIsAlreadyRegisteredModel or Map for social auth
-    final args = ModalRoute.of(context)!.settings.arguments;
+    final args = ModalRoute.of(context)?.settings.arguments;
 
     // Check if this is social auth or regular registration
     bool isSocialAuth = false;
@@ -31,41 +30,86 @@ class CompleteProfileScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Complete Profile", style: headingStyle),
-      ),
+      backgroundColor: Colors.white,
       body: GestureDetector(
         onTap: () {
           FocusScope.of(context).unfocus();
         },
         child: SafeArea(
-          child: SizedBox(
-            width: double.infinity,
+          child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    const Text(
-                      "Complete your details and continue",
-                      textAlign: TextAlign.center,
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  const SizedBox(height: 20),
+
+                  // Top button - same styling as AuthScreen
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
+                        backgroundColor: Colors.grey[50],
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: Text(
+                        'Back',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                          letterSpacing: 0.3,
+                        ),
+                      ),
                     ),
-                    const SizedBox(height: 16),
-                    CompleteProfileForm(
-                      user: regularUser,
-                      isSocialAuth: isSocialAuth,
-                      socialUser: socialUser,
-                      email: email,
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Header Text - match AuthScreen typography
+                  const Text(
+                    "Almost There",
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.black87,
+                      letterSpacing: -0.5,
+                      height: 1.2,
                     ),
-                    const SizedBox(height: 30),
-                    Text(
-                      "By continuing you confirm that you agree \nwith our Terms and Conditions",
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  Text(
+                    "Complete your profile to continue",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w400,
+                      letterSpacing: 0.2,
                     ),
-                  ],
-                ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // Form
+                  CompleteProfileForm(
+                    user: regularUser,
+                    isSocialAuth: isSocialAuth,
+                    socialUser: socialUser,
+                    email: email,
+                  ),
+
+                  const SizedBox(height: 30),
+                ],
               ),
             ),
           ),

@@ -105,7 +105,12 @@ class DetailsScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: ElevatedButton(
               onPressed: () {
-                Navigator.pushNamed(context, CartScreen.routeName);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CartScreen(),
+                  ),
+                );
               },
               child: const Text("Add To Cart"),
             ),

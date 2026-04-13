@@ -1,6 +1,6 @@
 import 'package:app/core/base/base_repository.dart';
 import '../services/home_screen_api.dart';
-import '../../../../models/HomePageResponse.dart';
+import 'package:app/models/HomePageResponse.dart';
 
 /// Repository for home screen data operations
 /// Handles data fetching and caching for the home screen

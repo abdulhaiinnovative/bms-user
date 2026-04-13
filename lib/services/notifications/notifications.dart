@@ -73,7 +73,7 @@ export 'notification_config.dart';
 //    ```dart
 //    NotificationService.registerNotificationCallback(
 //      'custom_type',
-//      () => print('Custom notification tapped'),
+//      () => {/* custom callback */},
 //    );
 //    ```
 //

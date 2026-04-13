@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../../../../api_services/deals_api.dart';
 import '../../../../models/deals_response.dart';
-import '../../../../models/HomePageResponse.dart';
+import 'package:app/models/HomePageResponse.dart'
+    as HomePage; // Deal from old model
 
 class DealsViewModel extends ChangeNotifier {
   final DealsApi _dealsApi = DealsApi();
@@ -15,7 +15,7 @@ class DealsViewModel extends ChangeNotifier {
   String? _errorMessage;
 
   // Data
-  List<Deal> _deals = [];
+  List<HomePage.Deal> _deals = [];
   DealsPaginatedData? _paginationData;
 
   // Getters
@@ -24,7 +24,7 @@ class DealsViewModel extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMoreData => _hasMoreData;
   String? get errorMessage => _errorMessage;
-  List<Deal> get deals => _deals;
+  List<HomePage.Deal> get deals => _deals;
   int get totalDeals => _paginationData?.total ?? 0;
   int get lastPage => _paginationData?.lastPage ?? 1;
 
@@ -44,10 +44,8 @@ class DealsViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _deals = response.response.data.data;
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${_deals.length} deals (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load deals. Please try again.';
-      log('❌ Error loading deals: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -69,11 +67,9 @@ class DealsViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _deals.addAll(response.response.data.data);
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${response.response.data.data.length} more deals (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load more deals.';
       _currentPage--; // Revert page increment on failure
-      log('❌ Error loading more deals: $e');
     } finally {
       _isLoadingMore = false;
       notifyListeners();

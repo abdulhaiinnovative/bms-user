@@ -1,11 +1,13 @@
+import 'dart:developer';
+
 import 'package:app/models/SalonServicesCategorizedResponse.dart';
-import 'package:app/models/HomePageResponse.dart';
-import 'package:app/models/SalonDetailApiResponse.dart';
-import 'package:app/screens/test_scroll/select_professionals.dart';
+import 'package:app/models/salon_detail_models.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/cart_provider.dart';
 import '../../api_services/salon_services_categorized_api.dart';
 import '../../constants.dart';
-import 'CartSummarySection.dart';
+import '../../components/cart_bottom_bar.dart';
 
 // TODO: [FEATURE] Add service search functionality within categories
 // TODO: [FEATURE] Implement service comparison feature
@@ -30,29 +32,126 @@ class SalonCategoryAndServicesList extends StatefulWidget {
 
 class _SalonCategoryAndServicesListState
     extends State<SalonCategoryAndServicesList> {
-  final Map<dynamic, int> _cartItems = {};
-
-  double _totalAmount = 0.0;
+  // Removed local _cartItems and _totalAmount. Use CartProvider directly.
+  // Modal state is handled by `CartModal` via `CartProvider` now.
 
   void _handleAddToCart(dynamic item) {
     if (!mounted) return; // Check if widget is still mounted
 
-    setState(() {
-      if (_cartItems.containsKey(item)) {
-        _cartItems.remove(item);
-      } else {
-        _cartItems[item] = 1;
-      }
+    // Use Consumer<CartProvider> for all provider access
 
-      _totalAmount = _cartItems.entries.fold(
-          0.0, (sum, entry) => sum + (_getItemPrice(entry.key) * entry.value));
-    });
+    // Get salon ID from the item being added
+    int? itemSalonId;
+    if (item is Service) {
+      itemSalonId = mSalonData?.id ?? item.salonId;
+      // TODO: booking.flow - Adding service to cart (log removed)
+    } else if (item is Deal) {
+      itemSalonId = mSalonData?.id ?? item.salonId;
+      // TODO: booking.flow - Adding deal to cart (log removed)
+    }
+
+    // Get cart's current salon ID
+    // Use Consumer for all provider access
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Consumer<CartProvider>(
+          builder: (context, cartProvider, _) {
+            int? cartSalonId = cartProvider.salonId;
+            if (cartSalonId != null &&
+                itemSalonId != null &&
+                cartSalonId != itemSalonId &&
+                cartProvider.items.isNotEmpty) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                title: const Row(
+                  children: [
+                    Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    SizedBox(width: 12),
+                    Text('Replace Cart Items?'),
+                  ],
+                ),
+                content: Text(
+                  'Your cart contains items from ${cartProvider.salonName}. Do you want to clear the cart and add items from this salon?',
+                  style: const TextStyle(fontSize: 15),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      cartProvider.clearCart();
+                      cartProvider.setSalonInfo(itemSalonId, mSalonName);
+                      cartProvider.addItem(item, quantity: 1);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: kPrimaryColor,
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Replace'),
+                  ),
+                ],
+              );
+            } else {
+              // If not replacing, just add/toggle item
+              cartProvider.toggleItem(item);
+              Navigator.pop(context);
+              return const SizedBox.shrink();
+            }
+          },
+        );
+      },
+    );
+    // No direct provider access
   }
 
-  double _getItemPrice(dynamic item) {
-    if (item is Service) return (item.price ?? 0).toDouble();
-    if (item is Deal) return (item.totalPrice ?? 0).toDouble();
-    return 0.0;
+  // Removed unused _increaseQuantity
+
+  // Removed unused _decreaseQuantity
+
+  // Removed unused _removeItem
+
+  void _loadExistingCartItems() {
+    if (!mounted) return;
+    // Use Consumer for provider access
+    // ...existing code...
+    // No local snapshot needed; UI will update from provider.
+  }
+
+  // Sync cart items with newly loaded data from API
+  // This replaces old cart item instances with new ones from the API that have matching IDs
+  void _syncCartWithLoadedData() {
+    // No local cart to sync; rely on provider.
+  }
+
+  // Helper method to check if an item is in cart by ID
+  bool _isItemInCart(dynamic item) {
+    final items = context.watch<CartProvider>().items;
+    if (item is Service && item.id != null) {
+      return items.keys
+          .any((cartItem) => cartItem is Service && cartItem.id == item.id);
+    } else if (item is Deal && item.id != null) {
+      return items.keys
+          .any((cartItem) => cartItem is Deal && cartItem.id == item.id);
+    }
+    return items.containsKey(item);
+  }
+
+  // Helper method to get the actual cart item by ID
+  // Removed unused _getCartItem
+
+  // Removed unused _getItemPrice
+
+  void _proceedToCheckout() {
+    // TODO: booking.flow - Proceed to checkout clicked (log removed)
+
+    // Use Consumer for provider access
+    // ...existing code...
   }
 
   Widget _buildCartWidget() {
@@ -60,89 +159,10 @@ class _SalonCategoryAndServicesListState
       bottom: 0,
       left: 0,
       right: 0,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black54,
-              blurRadius: 15,
-              spreadRadius: 2,
-            )
-          ],
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: CartSummarySection(
-          totalItems: _cartItems.length,
-          totalAmount: _totalAmount,
-          buttonColor: kPrimaryDarkColor,
-          onContinue: () {
-            if (_cartItems.isNotEmpty) {
-              // Convert SalonData to Salon object for navigation
-              Salon? salonObject;
-              if (mSalonData != null) {
-                // Convert SalonActiveDay to ActiveDay
-                List<ActiveDay>? activeDays;
-                if (mSalonData!.activeDays != null) {
-                  activeDays = mSalonData!.activeDays!.map((sad) {
-                    return ActiveDay(
-                      id: sad.id,
-                      salonId: sad.salonId,
-                      day: sad.day,
-                      openingTime: sad.openingTime,
-                      closingTime: sad.closingTime,
-                      status: sad.status,
-                    );
-                  }).toList();
-                }
-
-                // Create a Salon object from SalonData
-                salonObject = Salon(
-                  id: mSalonData!.id,
-                  name: mSalonData!.name,
-                  logo: mSalonData!.logo,
-                  image: (mSalonData!.images.isNotEmpty)
-                      ? mSalonData!.images.first
-                      : null,
-                  address: mSalonData!.location?.address,
-                  latitude: mSalonData!.location?.lat,
-                  longitude: mSalonData!.location?.long,
-                  minBookingTime: mSalonData!.minBookingTime,
-                  maxBookingTime: mSalonData!.maxBookingTime,
-                  type: mSalonData!.type,
-                  facebook: mSalonData!.fackebook,
-                  instagram: mSalonData!.instagram,
-                  twitter: mSalonData!.twitter,
-                  linkedin: mSalonData!.linkedin,
-                  salonFor: mSalonData!.gender,
-                  salonPolicy: mSalonData!.policy,
-                  about: mSalonData!.about,
-                  averageRating: mSalonData!.star,
-                  reviewCount: mSalonData!.review_count,
-                  isFavourite: mSalonData!.isFavourite,
-                  activeDays: activeDays,
-                );
-              } else {
-                salonObject = mDeal?.salon ?? mSericve?.salon;
-              }
-
-              Navigator.pushNamed(
-                context,
-                SelectProfessionals.routeName,
-                arguments: {
-                  'cartItems': _cartItems,
-                  'salonName': mSalonName,
-                  'salonImage': mSalonImage,
-                  'salonAddress': mSalonAddess,
-                  'salon': salonObject,
-                  'salonId':
-                      mSalonData?.id ?? mDeal?.salon?.id ?? mSericve?.salon?.id,
-                },
-              );
-            }
-          },
-        ),
+      child: CartBottomBar(
+        onProceed: _proceedToCheckout,
+        proceedButtonText: 'Proceed',
+        buttonColor: kPrimaryDarkColor,
       ),
     );
   }
@@ -167,10 +187,24 @@ class _SalonCategoryAndServicesListState
   void initState() {
     scrollController = ScrollController();
 
+    // TODO: booking.flow - initState called (log removed)
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return; // Check if widget is still mounted
 
+      // Load existing cart items from CartProvider
+      _loadExistingCartItems();
+      log("Salon detail view");
+      log("Salon detail view1");
+      log("Salon detail view2");
+      log("Salon detail view3");
+      log("Salon detail view4");
+      log("Salon detail view5");
+      log("Salon detail view6");
+
       final arguments = ModalRoute.of(context)?.settings.arguments;
+
+      // TODO: booking.flow - Arguments received (log removed)
 
       // New format: {item: service/deal, salonDetailsss: SalonData}
       if (arguments != null && arguments is Map<String, dynamic>) {
@@ -180,42 +214,36 @@ class _SalonCategoryAndServicesListState
         if (item is Service) {
           setState(() {
             mSericve = item;
-            mSalonName = mSalonData?.name ?? mSericve?.salon?.name;
-            mSalonImage = mSalonData?.logo ?? mSericve?.salon?.image;
-            mSalonAddess =
-                mSalonData?.location?.address ?? mSericve?.salon?.address;
+            mSalonName = mSalonData?.name;
+            mSalonImage = mSalonData?.logo;
+            mSalonAddess = mSalonData?.location?.address;
+
+            // Sync salon info to CartProvider
+            context.read<CartProvider>().setSalonInfo(
+                  mSalonData?.id,
+                  mSalonName,
+                );
 
             _handleAddToCart(mSericve);
           });
         } else if (item is Deal) {
           setState(() {
             mDeal = item;
-            mSalonName = mSalonData?.name ?? mDeal?.salon?.name;
-            mSalonImage = mSalonData?.logo ?? mDeal?.salon?.image;
-            mSalonAddess =
-                mSalonData?.location?.address ?? mDeal?.salon?.address;
+            mSalonName = mSalonData?.name;
+            mSalonImage = mSalonData?.logo;
+            mSalonAddess = mSalonData?.location?.address;
+
+            // Sync salon info to CartProvider
+            context.read<CartProvider>().setSalonInfo(
+                  mSalonData?.id,
+                  mSalonName,
+                );
 
             _handleAddToCart(mDeal);
           });
         }
       }
-      // Old format for backward compatibility
-      else if (arguments != null && arguments is Service) {
-        setState(() {
-          mSericve = arguments;
-          mSalonName = mSericve?.salon?.name;
-          mSalonImage = mSericve?.salon?.image;
-          mSalonAddess = mSericve?.salon?.address;
-
-          _handleAddToCart(mSericve);
-        });
-      } else if (arguments != null && arguments is Deal) {
-        mDeal = arguments;
-        mSalonName = mDeal?.salon?.name;
-        mSalonImage = mDeal?.salon?.image;
-        mSalonAddess = mDeal?.salon?.address;
-        _handleAddToCart(mDeal);
-      }
+      // Old format removed - only use new format with salonDetailsss parameter
 
       loadData();
     });
@@ -234,39 +262,73 @@ class _SalonCategoryAndServicesListState
   Future<void> loadData() async {
     if (!mounted) return; // Check if widget is still mounted
 
-    setState(() {
-      scrollController = ScrollController();
-      scrollController.addListener(animateToTab);
-    });
-
-    SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
-
-    // Use mSalonData if available, otherwise fall back to service/deal salon
-    int salonId =
-        mSalonData?.id ?? mDeal?.salon?.id ?? mSericve?.salon?.id ?? 0;
-
-    responseData = await api.fetchAllServicesAndDealsCategorizedData(salonId);
-
-    if (responseData != null && mounted) {
+    try {
       setState(() {
-        responseData?.response?.data?.forEach((category) {
-          // Add category name to tabNames
-          tabNames.add(category.name ?? "NA");
-          // Create a new list for this category's services
-          List<dynamic> categoryServices = [];
-          // Add services to the category's list
-          category.items?.forEach((item) {
-            if (item is Service) {
-              categoryServices.add(item);
-            } else {
-              categoryServices.add(item);
-            }
-          });
-          // Add the category's service list to serviceItem
-          serviceItem.add(categoryServices);
-          salonCategories.add(GlobalKey());
-        });
+        scrollController = ScrollController();
+        scrollController.addListener(animateToTab);
       });
+
+      SalonServicesCategorizedAPI api = SalonServicesCategorizedAPI();
+
+      // Use mSalonData if available, otherwise fall back to service/deal salonId
+      int salonId = mSalonData?.id ?? mDeal?.salonId ?? mSericve?.salonId ?? 0;
+
+      responseData = await api.fetchAllServicesAndDealsCategorizedData(salonId);
+
+      if (responseData != null && mounted) {
+        setState(() {
+          responseData?.response?.data?.forEach((category) {
+            // Add category name to tabNames
+            tabNames.add(category.name ?? "NA");
+            // Create a new list for this category's services
+            List<dynamic> categoryServices = [];
+            // Add services to the category's list
+            category.items?.forEach((item) {
+              if (item is Service) {
+                categoryServices.add(item);
+              } else {
+                categoryServices.add(item);
+              }
+            });
+            // Add the category's service list to serviceItem
+            serviceItem.add(categoryServices);
+            salonCategories.add(GlobalKey());
+          });
+
+          // Sync cart items with newly loaded data
+          _syncCartWithLoadedData();
+        });
+        // TODO: booking.flow - services loaded (log removed)
+      }
+    } catch (error) {
+      // Handle errors gracefully - show error message to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    'Unable to load services. ${error.toString().contains('401') ? 'Please login to continue.' : 'Please try again later.'}',
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.red.shade600,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'Dismiss',
+              textColor: Colors.white,
+              onPressed: () {},
+            ),
+          ),
+        );
+      }
+      // TODO: booking.flow - error loading salon data (log removed)
     }
   }
 
@@ -399,60 +461,6 @@ class _SalonCategoryAndServicesListState
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  // const SizedBox(height: 4),
-                  // Row(
-                  //   children: [
-                  //     Container(
-                  //       padding: const EdgeInsets.symmetric(
-                  //         horizontal: 8,
-                  //         vertical: 3,
-                  //       ),
-                  //       decoration: BoxDecoration(
-                  //         color: kPrimaryColor.withOpacity(0.15),
-                  //         borderRadius: BorderRadius.circular(6),
-                  //       ),
-                  //       child: Row(
-                  //         mainAxisSize: MainAxisSize.min,
-                  //         children: [
-                  //           const Icon(
-                  //             Icons.shopping_bag_outlined,
-                  //             size: 13,
-                  //             color: kPrimaryColor,
-                  //           ),
-                  //           const SizedBox(width: 4),
-                  //           Text(
-                  //             '${_cartItems.length} items',
-                  //             style: const TextStyle(
-                  //               color: kPrimaryColor,
-                  //               fontSize: 12,
-                  //               fontWeight: FontWeight.w700,
-                  //             ),
-                  //           ),
-                  //         ],
-                  //       ),
-                  //     ),
-                  //     const SizedBox(width: 8),
-                  //     if (_totalAmount > 0)
-                  //       Container(
-                  //         padding: const EdgeInsets.symmetric(
-                  //           horizontal: 8,
-                  //           vertical: 3,
-                  //         ),
-                  //         decoration: BoxDecoration(
-                  //           color: const Color(0xFF4CAF50).withOpacity(0.15),
-                  //           borderRadius: BorderRadius.circular(6),
-                  //         ),
-                  //         child: Text(
-                  //           'PKR ${_totalAmount.toStringAsFixed(0)}',
-                  //           style: const TextStyle(
-                  //             color: Color(0xFF4CAF50),
-                  //             fontSize: 12,
-                  //             fontWeight: FontWeight.w700,
-                  //           ),
-                  //         ),
-                  //       ),
-                  //   ],
-                  // ),
                 ],
               ),
             ),
@@ -578,35 +586,53 @@ class _SalonCategoryAndServicesListState
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Service name and description
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Row(
                   children: [
-                    Text(
-                      item.name ?? "",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.black,
-                        height: 1.3,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (item.description != null &&
-                        item.description!.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: Text(
-                          item.description!,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                            height: 1.4,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.name ?? "",
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black,
+                              height: 1.3,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                          if (item.description != null &&
+                              item.description!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 6),
+                              child: Text(
+                                item.description!,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey.shade600,
+                                  height: 1.4,
+                                ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                        ],
                       ),
+                    ),
+                    // Info button
+                    IconButton(
+                      icon: Icon(
+                        Icons.info_outline,
+                        color: kPrimaryColor,
+                        size: 24,
+                      ),
+                      onPressed: () => _showServiceDetailBottomSheet(item),
+                      tooltip: 'View Details',
+                      padding: EdgeInsets.zero,
+                      constraints: BoxConstraints(),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 12),
@@ -661,7 +687,7 @@ class _SalonCategoryAndServicesListState
                             vertical: 8,
                           ),
                           decoration: BoxDecoration(
-                            color: _cartItems.containsKey(item)
+                            color: _isItemInCart(item)
                                 ? kPrimaryDarkColor
                                 : kScreenBg,
                             borderRadius: BorderRadius.circular(30),
@@ -674,9 +700,9 @@ class _SalonCategoryAndServicesListState
                             ],
                           ),
                           child: Text(
-                            _cartItems.containsKey(item) ? 'Added' : 'Book Now',
+                            _isItemInCart(item) ? 'Added' : 'Book Now',
                             style: TextStyle(
-                              color: _cartItems.containsKey(item)
+                              color: _isItemInCart(item)
                                   ? Colors.white
                                   : kPrimaryDarkColor,
                               fontWeight: FontWeight.w700,
@@ -694,6 +720,243 @@ class _SalonCategoryAndServicesListState
         ),
         const SizedBox(height: 4),
       ],
+    );
+  }
+
+  /// Show Service Detail Bottom Sheet
+  void _showServiceDetailBottomSheet(Service service) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          height: MediaQuery.of(context).size.height * 0.75,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(25),
+              topRight: Radius.circular(25),
+            ),
+          ),
+          child: Column(
+            children: [
+              // Handle bar
+              Container(
+                margin: const EdgeInsets.only(top: 12),
+                width: 50,
+                height: 5,
+                decoration: BoxDecoration(
+                  color: Colors.grey[300],
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              // Service details content
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Service Name
+                      Text(
+                        service.name ?? 'Service',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: kTextColor,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      // Price and Duration Cards
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildInfoCard(
+                              icon: Icons.attach_money,
+                              label: 'Price',
+                              value: 'PKR ${service.price}',
+                              color: kPrimaryColor,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _buildInfoCard(
+                              icon: Icons.access_time,
+                              label: 'Duration',
+                              value: service.duration != null ? '${service.duration} min' : 'N/A',
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                      if (service.oldPrice != null && service.oldPrice! > 0) ...[
+                        const SizedBox(height: 12),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.orange.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.orange.withOpacity(0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.local_offer, color: Colors.orange, size: 20),
+                              const SizedBox(width: 8),
+                              Text(
+                                'Original Price: ',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                              Text(
+                                'PKR ${service.oldPrice}',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
+                              const Spacer(),
+                              Container(
+                                padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(
+                                  '${(((service.oldPrice! - service.price!) / service.oldPrice!) * 100).round()}% OFF',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 20),
+                      // Description
+                      if (service.description != null && service.description!.isNotEmpty) ...[
+                        Text(
+                          'Description',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                            color: kTextColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          service.description!,
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: kSecondaryColor,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              // Bottom Action Button
+              Container(
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 10,
+                      offset: Offset(0, -5),
+                    ),
+                  ],
+                ),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _isItemInCart(service) ? kPrimaryDarkColor : kPrimaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _handleAddToCart(service);
+                    },
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          _isItemInCart(service) ? Icons.check_circle : Icons.add_circle,
+                          color: Colors.white,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isItemInCart(service) ? 'Added to Cart' : 'Add to Cart',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  /// Info card widget for bottom sheet
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[600],
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -928,16 +1191,13 @@ class _SalonCategoryAndServicesListState
                                 vertical: 9,
                               ),
                               decoration: BoxDecoration(
-                                color: _cartItems.containsKey(item)
-                                    ? const Color(0xFF4CAF50)
+                                color: _isItemInCart(item)
+                                    ? Colors.grey.shade400
                                     : kPrimaryColor,
                                 borderRadius: BorderRadius.circular(10),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: (_cartItems.containsKey(item)
-                                            ? const Color(0xFF4CAF50)
-                                            : kPrimaryColor)
-                                        .withOpacity(0.3),
+                                    color: (kPrimaryColor).withOpacity(0.3),
                                     blurRadius: 6,
                                     offset: const Offset(0, 3),
                                   ),
@@ -947,7 +1207,7 @@ class _SalonCategoryAndServicesListState
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
                                   Icon(
-                                    _cartItems.containsKey(item)
+                                    _isItemInCart(item)
                                         ? Icons.check_circle_outline
                                         : Icons.add_rounded,
                                     color: Colors.white,
@@ -955,9 +1215,7 @@ class _SalonCategoryAndServicesListState
                                   ),
                                   const SizedBox(width: 6),
                                   Text(
-                                    _cartItems.containsKey(item)
-                                        ? 'Added'
-                                        : 'Add',
+                                    _isItemInCart(item) ? 'Added' : 'Add',
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,

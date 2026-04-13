@@ -1,16 +1,28 @@
 import 'package:flutter/material.dart';
-import '../../../../models/HomePageResponse.dart';
+import 'package:app/models/HomePageResponse.dart'
+    as HomePage; // Search API returns these types
+import 'package:app/models/salon_detail_models.dart'
+    as SalonDetail; // New model types
 import '../../../../api_services/search_api_service.dart';
+import '../../data/services/search_cache_service.dart';
 
 class SearchProviderNew with ChangeNotifier {
-  List<Service> _services = [];
-  List<Salon> _salons = [];
-  List<Deal> _deals = [];
+  List<HomePage.Service> _services = [];
+  List<HomePage.Salon> _salons = [];
+  List<HomePage.Deal> _deals = [];
   bool _isLoading = false;
   String? _error;
   int _currentPage = 1;
   int _totalPages = 1;
   String? _currentType;
+
+  // Track if user has performed a search
+  bool _hasSearched = false;
+
+  // Counts for each type (from unified search)
+  int _salonsCount = 0;
+  int _servicesCount = 0;
+  int _dealsCount = 0;
 
   // Store last search parameters for pagination
   String? _lastKeyword;
@@ -23,15 +35,134 @@ class SearchProviderNew with ChangeNotifier {
   String? _lastSortBy;
   String? _lastTimeSlot;
 
-  List<Service> get services => _services;
-  List<Salon> get salons => _salons;
-  List<Deal> get deals => _deals;
+  List<HomePage.Service> get services => _services;
+  List<HomePage.Salon> get salons => _salons;
+  List<HomePage.Deal> get deals => _deals;
   bool get isLoading => _isLoading;
   String? get error => _error;
   String? get currentType => _currentType;
   int get currentPage => _currentPage;
   int get totalPages => _totalPages;
   bool get hasMorePages => _currentPage < _totalPages;
+
+  // Whether user has performed at least one search
+  bool get hasSearched => _hasSearched;
+
+  // Count getters
+  int get salonsCount => _salonsCount;
+  int get servicesCount => _servicesCount;
+  int get dealsCount => _dealsCount;
+
+  /// Unified search method - fetches salons, services, and deals in one API call
+  /// Updates all three tabs simultaneously
+  /// Uses caching to avoid redundant API calls
+  Future<void> searchAll({
+    String? keyword,
+    String? location,
+    String? area,
+    String? type,
+    int? categoryId,
+    List<int>? categories,
+    double? minPrice,
+    double? maxPrice,
+    List<String>? gender,
+    String sortBy = 'relevance',
+    int perPage = 12,
+  }) async {
+    _isLoading = true;
+    _error = null;
+    _currentType = 'all';
+    _hasSearched = true; // Mark that user has searched
+
+    // Save search parameters
+    _lastKeyword = keyword;
+    _lastCategoryId = categoryId;
+    _lastCategories = categories;
+    _lastMinPrice = minPrice;
+    _lastMaxPrice = maxPrice;
+    _lastLocation = location;
+    _lastSortBy = sortBy;
+
+    notifyListeners();
+
+    try {
+      // Build categories list
+      List<int>? categoryList = categories;
+      if (categoryList == null && categoryId != null) {
+        categoryList = [categoryId];
+      }
+
+      // Check cache first
+      final cachedResponse = SearchCacheService.getCached(
+        keyword: keyword,
+        location: location,
+        area: area,
+        type: type,
+        filterType: ['salon', 'service', 'deal'],
+        categories: categoryList,
+        minPrice: minPrice,
+        maxPrice: maxPrice,
+        gender: gender,
+        sortBy: sortBy,
+        perPage: perPage,
+      );
+
+      SearchResponse response;
+      if (cachedResponse != null) {
+        response = cachedResponse;
+      } else {
+        response = await SearchApiService.searchAll(
+          keyword: keyword,
+          location: location,
+          area: area,
+          type: type,
+          categories: categoryList,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          gender: gender,
+          sortBy: sortBy,
+          perPage: perPage,
+        );
+
+        // Store in cache
+        SearchCacheService.setCache(
+          response: response,
+          keyword: keyword,
+          location: location,
+          area: area,
+          type: type,
+          filterType: ['salon', 'service', 'deal'],
+          categories: categoryList,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          gender: gender,
+          sortBy: sortBy,
+          perPage: perPage,
+        );
+      }
+
+      // Update all three lists from unified response
+      _salons = response.data.getSalonsList();
+      _services = response.data.getServicesList();
+      _deals = response.data.getDealsList();
+
+      // Update counts
+      _salonsCount = response.data.salonsCount;
+      _servicesCount = response.data.servicesCount;
+      _dealsCount = response.data.dealsCount;
+
+      // For unified search, pagination is not available (arrays returned)
+      _currentPage = 1;
+      _totalPages = 1;
+
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _isLoading = false;
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
 
   Future<void> searchServices(String query,
       {int? categoryId,
@@ -45,6 +176,7 @@ class SearchProviderNew with ChangeNotifier {
     _isLoading = true;
     _error = null;
     _currentType = 'service';
+    _hasSearched = true; // Mark that user has searched
 
     if (!loadMore) {
       _currentPage = 1;
@@ -56,6 +188,11 @@ class SearchProviderNew with ChangeNotifier {
       _lastGender = gender;
       _lastSortBy = sortBy;
       _lastTimeSlot = timeSlot;
+      // Clear other lists when starting new search
+      _salons = [];
+      _deals = [];
+      _salonsCount = 0;
+      _dealsCount = 0;
     }
 
     notifyListeners();
@@ -73,16 +210,54 @@ class SearchProviderNew with ChangeNotifier {
       // Use trimmed query - API will handle empty keyword with filter_type
       final trimmedQuery = query.trim();
 
-      final response = await SearchApiService.searchServices(
-        keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
-        categories: categoryList,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        gender: genderList,
-        sortBy: sortBy ?? 'relevance',
-        perPage: 12,
-        page: _currentPage,
-      );
+      // Check cache first (only for initial load, not loadMore)
+      SearchResponse? response;
+      if (!loadMore) {
+        final cachedResponse = SearchCacheService.getCached(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          filterType: ['service'],
+          categories: categoryList,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          gender: genderList,
+          sortBy: sortBy ?? 'relevance',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        if (cachedResponse != null) {
+          response = cachedResponse;
+        }
+      }
+
+      if (response == null) {
+        response = await SearchApiService.searchServices(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          categories: categoryList,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          gender: genderList,
+          sortBy: sortBy ?? 'relevance',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        // Store in cache (only for initial load)
+        if (!loadMore) {
+          SearchCacheService.setCache(
+            response: response,
+            keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+            filterType: ['service'],
+            categories: categoryList,
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            gender: genderList,
+            sortBy: sortBy ?? 'relevance',
+            perPage: 12,
+            page: _currentPage,
+          );
+        }
+      }
 
       // Extract services from response
       final servicesList = response.data.getServicesList();
@@ -124,6 +299,7 @@ class SearchProviderNew with ChangeNotifier {
     _isLoading = true;
     _error = null;
     _currentType = 'salon';
+    _hasSearched = true; // Mark that user has searched
 
     if (!loadMore) {
       _currentPage = 1;
@@ -131,6 +307,11 @@ class SearchProviderNew with ChangeNotifier {
       _lastLocation = location;
       _lastSortBy = sortBy;
       _lastTimeSlot = timeSlot;
+      // Clear other lists when starting new search
+      _services = [];
+      _deals = [];
+      _servicesCount = 0;
+      _dealsCount = 0;
     }
 
     notifyListeners();
@@ -139,17 +320,57 @@ class SearchProviderNew with ChangeNotifier {
       // Use trimmed query - API will handle empty keyword with filter_type
       final trimmedQuery = query.trim();
 
-      final response = await SearchApiService.searchSalons(
-        keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
-        location: location,
-        area: area,
-        type: type,
-        gender: gender,
-        timeSlot: timeSlot,
-        sortBy: sortBy ?? 'rating',
-        perPage: 12,
-        page: _currentPage,
-      );
+      // Check cache first (only for initial load, not loadMore)
+      SearchResponse? response;
+      if (!loadMore) {
+        final cachedResponse = SearchCacheService.getCached(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          location: location,
+          area: area,
+          type: type,
+          filterType: ['salon'],
+          gender: gender,
+          timeSlot: timeSlot,
+          sortBy: sortBy ?? 'rating',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        if (cachedResponse != null) {
+          response = cachedResponse;
+        }
+      }
+
+      if (response == null) {
+        response = await SearchApiService.searchSalons(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          location: location,
+          area: area,
+          type: type,
+          gender: gender,
+          timeSlot: timeSlot,
+          sortBy: sortBy ?? 'rating',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        // Store in cache (only for initial load)
+        if (!loadMore) {
+          SearchCacheService.setCache(
+            response: response,
+            keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+            location: location,
+            area: area,
+            type: type,
+            filterType: ['salon'],
+            gender: gender,
+            timeSlot: timeSlot,
+            sortBy: sortBy ?? 'rating',
+            perPage: 12,
+            page: _currentPage,
+          );
+        }
+      }
 
       // Extract salons from response
       final salonsList = response.data.getSalonsList();
@@ -190,6 +411,7 @@ class SearchProviderNew with ChangeNotifier {
     _isLoading = true;
     _error = null;
     _currentType = 'deal';
+    _hasSearched = true; // Mark that user has searched
 
     if (!loadMore) {
       _currentPage = 1;
@@ -199,6 +421,11 @@ class SearchProviderNew with ChangeNotifier {
       _lastMinPrice = minPrice;
       _lastMaxPrice = maxPrice;
       _lastSortBy = sortBy;
+      // Clear other lists when starting new search
+      _services = [];
+      _salons = [];
+      _servicesCount = 0;
+      _salonsCount = 0;
     }
 
     notifyListeners();
@@ -213,14 +440,48 @@ class SearchProviderNew with ChangeNotifier {
       // Use trimmed query - API will handle empty keyword with filter_type
       final trimmedQuery = query.trim();
 
-      final response = await SearchApiService.searchDeals(
-        keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
-        minPrice: minPrice,
-        maxPrice: maxPrice,
-        sortBy: sortBy ?? 'price_low',
-        perPage: 12,
-        page: _currentPage,
-      );
+      // Check cache first (only for initial load, not loadMore)
+      SearchResponse? response;
+      if (!loadMore) {
+        final cachedResponse = SearchCacheService.getCached(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          filterType: ['deal'],
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          sortBy: sortBy ?? 'price_low',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        if (cachedResponse != null) {
+          response = cachedResponse;
+        }
+      }
+
+      if (response == null) {
+        response = await SearchApiService.searchDeals(
+          keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+          minPrice: minPrice,
+          maxPrice: maxPrice,
+          sortBy: sortBy ?? 'price_low',
+          perPage: 12,
+          page: _currentPage,
+        );
+
+        // Store in cache (only for initial load)
+        if (!loadMore) {
+          SearchCacheService.setCache(
+            response: response,
+            keyword: trimmedQuery.isEmpty ? null : trimmedQuery,
+            filterType: ['deal'],
+            minPrice: minPrice,
+            maxPrice: maxPrice,
+            sortBy: sortBy ?? 'price_low',
+            perPage: 12,
+            page: _currentPage,
+          );
+        }
+      }
 
       // Extract deals from response
       final dealsList = response.data.getDealsList();
@@ -289,6 +550,57 @@ class SearchProviderNew with ChangeNotifier {
     }
   }
 
+  /// Search by specific filter type (called when tab changes)
+  /// Uses the last search parameters but with a specific filter_type
+  /// @param filterType - 'service', 'deal', or 'salon'
+  Future<void> searchByFilterType(String filterType) async {
+    if (!_hasSearched) return;
+
+    switch (filterType) {
+      case 'service':
+        await searchServices(
+          _lastKeyword ?? '',
+          categoryId: _lastCategoryId,
+          categories: _lastCategories,
+          minPrice: _lastMinPrice,
+          maxPrice: _lastMaxPrice,
+          gender: _lastGender,
+          sortBy: _lastSortBy,
+          timeSlot: _lastTimeSlot,
+        );
+        break;
+      case 'deal':
+        await searchDeals(
+          _lastKeyword ?? '',
+          categoryId: _lastCategoryId,
+          categories: _lastCategories,
+          minPrice: _lastMinPrice,
+          maxPrice: _lastMaxPrice,
+          sortBy: _lastSortBy,
+        );
+        break;
+      case 'salon':
+        await searchSalons(
+          _lastKeyword ?? '',
+          location: _lastLocation,
+          sortBy: _lastSortBy,
+          timeSlot: _lastTimeSlot,
+        );
+        break;
+      default:
+        // Default to unified search
+        await searchAll(
+          keyword: _lastKeyword,
+          location: _lastLocation,
+          categoryId: _lastCategoryId,
+          categories: _lastCategories,
+          minPrice: _lastMinPrice,
+          maxPrice: _lastMaxPrice,
+          sortBy: _lastSortBy ?? 'relevance',
+        );
+    }
+  }
+
   void clearFilters() {
     _services = [];
     _salons = [];
@@ -297,6 +609,7 @@ class SearchProviderNew with ChangeNotifier {
     _currentPage = 1;
     _totalPages = 1;
     _currentType = null;
+    _hasSearched = false; // Reset search state
     _lastKeyword = null;
     _lastCategoryId = null;
     _lastCategories = null;
@@ -307,5 +620,54 @@ class SearchProviderNew with ChangeNotifier {
     _lastSortBy = null;
     _lastTimeSlot = null;
     notifyListeners();
+  }
+
+  /// Refresh the current search results (pull-to-refresh)
+  /// Re-executes the last search with the same parameters
+  Future<void> refreshCurrentSearch() async {
+    if (!_hasSearched) return;
+
+    // Clear cached results for this search
+    SearchCacheService.clearCache();
+
+    // Re-execute search based on the current type
+    if (_currentType == 'all' || _currentType == null) {
+      await searchAll(
+        keyword: _lastKeyword,
+        location: _lastLocation,
+        categoryId: _lastCategoryId,
+        categories: _lastCategories,
+        minPrice: _lastMinPrice,
+        maxPrice: _lastMaxPrice,
+        sortBy: _lastSortBy ?? 'relevance',
+      );
+    } else if (_currentType == 'service') {
+      await searchServices(
+        _lastKeyword ?? '',
+        categoryId: _lastCategoryId,
+        categories: _lastCategories,
+        minPrice: _lastMinPrice,
+        maxPrice: _lastMaxPrice,
+        gender: _lastGender,
+        sortBy: _lastSortBy,
+        timeSlot: _lastTimeSlot,
+      );
+    } else if (_currentType == 'salon') {
+      await searchSalons(
+        _lastKeyword ?? '',
+        location: _lastLocation,
+        sortBy: _lastSortBy,
+        timeSlot: _lastTimeSlot,
+      );
+    } else if (_currentType == 'deal') {
+      await searchDeals(
+        _lastKeyword ?? '',
+        categoryId: _lastCategoryId,
+        categories: _lastCategories,
+        minPrice: _lastMinPrice,
+        maxPrice: _lastMaxPrice,
+        sortBy: _lastSortBy,
+      );
+    }
   }
 }

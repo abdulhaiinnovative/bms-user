@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:app/features/home/presentation/screens/init_screen.dart';
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +11,7 @@ import '../../../constants.dart';
 import 'package:app/features/auth/data/models/social_auth_response.dart';
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
 import '../../../services/fcm_token_service.dart';
+
 class CompleteProfileForm extends StatefulWidget {
   final UserIsAlreadyRegisteredModel? user;
   final bool isSocialAuth;
@@ -61,11 +60,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
       firstName = widget.socialUser?.firstName;
       lastName = widget.socialUser?.lastName;
       email = widget.email ?? widget.socialUser?.email;
-
-      print('📝 CompleteProfileForm: Pre-filled social auth data');
-      print('   Email: $email');
-      print('   First Name: $firstName');
-      print('   Last Name: $lastName');
     } else if (widget.user != null) {
       // Pre-fill from regular registration
       emailController.text = widget.user?.email ?? "";
@@ -381,22 +375,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                       const Center(child: CircularProgressIndicator()),
                 );
 
-                log('firstName::: $firstName');
-                log('lastName::: $lastName');
-                log('email::: $email');
-                log('phoneNumber::: $phoneNumber');
-                log('gender::: $gender');
-                log('country::: $country');
-                log('state::: $state');
-                log('city::: $city');
-                log('address::: $address');
-
                 try {
                   if (widget.isSocialAuth && widget.socialUser != null) {
-                    // Handle social auth profile completion
-                    print(
-                        '🔵 CompleteProfileForm: Completing social auth profile...');
-
                     final authProvider =
                         Provider.of<AuthProvider>(context, listen: false);
                     final fcmToken = await FCMTokenService.getFCMToken();
@@ -417,17 +397,17 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                     if (!mounted) return;
 
                     if (success) {
-                      print(
-                          '✅ CompleteProfileForm: Social profile completed successfully');
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text("Profile completed successfully")),
                       );
-                      Navigator.pushReplacementNamed(
-                          context, InitScreen.routeName);
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const InitScreen(),
+                        ),
+                      );
                     } else {
-                      print(
-                          '❌ CompleteProfileForm: Failed to complete social profile');
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(authProvider.errorMessage ??
@@ -438,8 +418,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                     }
                   } else {
                     // Handle regular profile update
-                    print(
-                        '🔵 CompleteProfileForm: Updating regular profile...');
                     final response = await ProfileUpdateAPI.updateUserProfile({
                       "first_name": firstName,
                       "last_name": lastName,
@@ -462,16 +440,18 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
                     Navigator.pop(context); // Close loading dialog
 
-                    log("Profile updated: lastname ${response.response?.data?.lastName}");
-
                     if (response.status == true) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                             content: Text("Profile updated successfully")),
                       );
-                      Navigator.pushNamed(context, InitScreen.routeName);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const InitScreen(),
+                        ),
+                      );
                     } else {
-                      log("Profile update failed: ${response.message}");
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                             content:
@@ -481,7 +461,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                   }
                 } catch (e) {
                   Navigator.pop(context); // Close the loading spinner
-                  log("Profile completion/update failed: $e");
 
                   if (!mounted) return;
 

@@ -7,7 +7,7 @@ class Type2 {
   factory Type2.fromJson(Map<String, dynamic> json) {
     return Type2(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Type2Data.fromJson(item))
           .toList(),
     );
@@ -45,4 +45,3 @@ class Type2Data {
     );
   }
 }
-

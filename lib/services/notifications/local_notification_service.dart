@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'notification_models.dart';
@@ -51,14 +50,11 @@ class LocalNotificationService {
         await _createNotificationChannels();
         await _requestPermissions();
         _isInitialized = true;
-        log('LocalNotificationService: Initialized successfully');
         return true;
       } else {
-        log('LocalNotificationService: Initialization failed');
         return false;
       }
     } catch (e) {
-      log('LocalNotificationService: Initialization error - $e');
       return false;
     }
   }
@@ -130,10 +126,8 @@ class LocalNotificationService {
           .resolvePlatformSpecificImplementation<
               AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(systemChannel);
-
-      log('LocalNotificationService: Notification channels created');
     } catch (e) {
-      log('LocalNotificationService: Error creating channels - $e');
+      // ignore
     }
   }
 
@@ -155,17 +149,14 @@ class LocalNotificationService {
             badge: true,
             sound: true,
           );
-
-      log('LocalNotificationService: Permissions requested');
     } catch (e) {
-      log('LocalNotificationService: Error requesting permissions - $e');
+      // ignore
     }
   }
 
   /// Show immediate notification
   Future<void> showNotification(LocalNotificationModel notification) async {
     if (!_isInitialized) {
-      log('LocalNotificationService: Service not initialized');
       return;
     }
 
@@ -177,10 +168,8 @@ class LocalNotificationService {
         _getNotificationDetails(notification),
         payload: notification.payload,
       );
-
-      log('LocalNotificationService: Notification shown - ${notification.title}');
     } catch (e) {
-      log('LocalNotificationService: Error showing notification - $e');
+      // ignore
     }
   }
 
@@ -188,7 +177,6 @@ class LocalNotificationService {
   Future<void> scheduleNotification(
       ScheduledNotificationModel notification) async {
     if (!_isInitialized) {
-      log('LocalNotificationService: Service not initialized');
       return;
     }
 
@@ -202,10 +190,8 @@ class LocalNotificationService {
         payload: notification.payload,
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
       );
-
-      log('LocalNotificationService: Notification scheduled - ${notification.title}');
     } catch (e) {
-      log('LocalNotificationService: Error scheduling notification - $e');
+      // ignore
     }
   }
 
@@ -213,9 +199,8 @@ class LocalNotificationService {
   Future<void> cancelNotification(int id) async {
     try {
       await _flutterLocalNotificationsPlugin.cancel(id);
-      log('LocalNotificationService: Notification cancelled - $id');
     } catch (e) {
-      log('LocalNotificationService: Error cancelling notification - $e');
+      // ignore
     }
   }
 
@@ -223,9 +208,8 @@ class LocalNotificationService {
   Future<void> cancelAllNotifications() async {
     try {
       await _flutterLocalNotificationsPlugin.cancelAll();
-      log('LocalNotificationService: All notifications cancelled');
     } catch (e) {
-      log('LocalNotificationService: Error cancelling all notifications - $e');
+      // ignore
     }
   }
 
@@ -235,7 +219,6 @@ class LocalNotificationService {
       final status = await Permission.notification.status;
       return status.isGranted;
     } catch (e) {
-      log('LocalNotificationService: Error checking permissions - $e');
       return false;
     }
   }
@@ -246,7 +229,6 @@ class LocalNotificationService {
       final status = await Permission.notification.request();
       return status.isGranted;
     } catch (e) {
-      log('LocalNotificationService: Error requesting permissions - $e');
       return false;
     }
   }
@@ -375,7 +357,6 @@ class LocalNotificationService {
 
   /// Handle notification tap
   static void _onDidReceiveNotificationResponse(NotificationResponse response) {
-    log('LocalNotificationService: Notification tapped - ${response.payload}');
     NotificationHandler.handleNotificationTap(response);
   }
 

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../components/custom_surfix_icon.dart';
@@ -37,8 +36,6 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
       try {
         final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-        log('📧 ForgotPassword: Requesting reset code for ${_emailController.text.trim()}');
-
         final success =
             await authProvider.forgotPassword(_emailController.text.trim());
 
@@ -49,8 +46,6 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
         });
 
         if (success) {
-          log('✅ ForgotPassword: Reset code sent successfully');
-
           // Show success message
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -61,16 +56,19 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
           );
 
           // Navigate to verification screen
-          Navigator.pushNamed(
+          Navigator.push(
             context,
-            VerificationScreen.routeName,
-            arguments: {
-              'email': _emailController.text.trim(),
-              'verificationType': 'password_reset',
-            },
+            MaterialPageRoute(
+              builder: (context) => const VerificationScreen(),
+              settings: RouteSettings(
+                arguments: {
+                  'email': _emailController.text.trim(),
+                  'verificationType': 'password_reset',
+                },
+              ),
+            ),
           );
         } else {
-          log('❌ ForgotPassword: Failed to send reset code');
           setState(() {
             if (!errors.contains(
                 authProvider.errorMessage ?? 'Failed to send reset code')) {
@@ -80,7 +78,6 @@ class _ForgotPassFormState extends State<ForgotPassForm> {
           });
         }
       } catch (e) {
-        log('💥 ForgotPassword: Error - $e');
         if (mounted) {
           setState(() {
             _isLoading = false;

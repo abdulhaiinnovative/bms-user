@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:dio/dio.dart';
 import '../../../../constants.dart';
 import '../models/login_model.dart';
@@ -39,16 +38,11 @@ class AuthServiceAPI {
   /// Returns AuthResponse containing user data and token on success
   Future<AuthResponse> login(LoginModel loginData) async {
     try {
-      log('AuthServiceAPI: Attempting login for email: ${loginData.email}');
-
       final response = await AuthInterceptor.post(
         loginEndpoint,
         data: loginData.toJson(),
         requiresAuth: false, // Login doesn't require existing auth
       );
-
-      log('AuthServiceAPI: Login response status: ${response.statusCode}');
-      log('AuthServiceAPI: Login response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData =
@@ -58,10 +52,8 @@ class AuthServiceAPI {
         final authResponse = AuthResponse.fromJson(responseData);
 
         if (authResponse.success) {
-          log('AuthServiceAPI: Login successful for user: ${authResponse.data?.user?.email}');
           return authResponse;
         } else {
-          log('AuthServiceAPI: Login failed - ${authResponse.message}');
           return authResponse;
         }
       } else if (response.statusCode == 400) {
@@ -90,34 +82,40 @@ class AuthServiceAPI {
         throw Exception(
             'Login failed with status code: ${response.statusCode}');
       }
-    } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Login DioError - ${dioError.message}');
-      log('AuthServiceAPI: Login error type: ${dioError.type}');
-      log('AuthServiceAPI: Login Stack Trace:\n$stackTrace');
-
+    } on DioException catch (dioError) {
       if (dioError.type == DioExceptionType.connectionTimeout ||
           dioError.type == DioExceptionType.receiveTimeout ||
           dioError.type == DioExceptionType.sendTimeout) {
-        log('AuthServiceAPI: Login timeout detected');
         throw Exception(
             'Request timeout: Please check your internet connection');
       } else if (dioError.type == DioExceptionType.connectionError) {
-        log('AuthServiceAPI: Login connection error detected');
         throw Exception('Network error: Please check your internet connection');
       } else if (dioError.response != null) {
+        // Dio may throw for non-2xx due to validateStatus. Convert the response
+        // body into AuthResponse so UI can show the real API message.
         final statusCode = dioError.response!.statusCode ?? 500;
-        log('AuthServiceAPI: Login server error - Status Code: $statusCode');
-        log('AuthServiceAPI: Login error response: ${dioError.response!.data}');
-        throw Exception('Server error: HTTP $statusCode');
+        try {
+          final Map<String, dynamic> responseData =
+              dioError.response!.data is Map<String, dynamic>
+                  ? Map<String, dynamic>.from(dioError.response!.data)
+                  : Map<String, dynamic>.from(
+                      jsonDecode(dioError.response!.data.toString()),
+                    );
+
+          responseData.putIfAbsent('statusCode', () => statusCode);
+          return AuthResponse.fromJson(responseData);
+        } catch (_) {
+          return AuthResponse(
+            statusCode: statusCode,
+            success: false,
+            message: 'Request failed (HTTP $statusCode)',
+          );
+        }
       } else {
-        log('AuthServiceAPI: Login unknown error');
         throw Exception('Network error: ${dioError.message}');
       }
-    } catch (e, stackTrace) {
-      log('AuthServiceAPI: Login error - $e');
-      log('AuthServiceAPI: Login Stack Trace:\n$stackTrace');
+    } catch (e) {
       if (e is FormatException) {
-        log('AuthServiceAPI: Login format exception detected');
         throw Exception('Invalid response format from server');
       } else {
         throw Exception('Login failed: ${e.toString()}');
@@ -129,16 +127,11 @@ class AuthServiceAPI {
   /// Returns AuthResponse containing user data and token on success
   Future<AuthResponse> register(SignupModel signupData) async {
     try {
-      log('AuthServiceAPI: Attempting registration for email: ${signupData.email}');
-
       final response = await AuthInterceptor.post(
         registerEndpoint,
         data: signupData.toJson(),
         requiresAuth: false, // Registration doesn't require existing auth
       );
-
-      log('AuthServiceAPI: Registration response status: ${response.statusCode}');
-      log('AuthServiceAPI: Registration response data: ${response.data}');
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData =
@@ -148,10 +141,8 @@ class AuthServiceAPI {
         final authResponse = AuthResponse.fromJson(responseData);
 
         if (authResponse.success) {
-          log('AuthServiceAPI: Registration successful for user: ${authResponse.data?.user?.email}');
           return authResponse;
         } else {
-          log('AuthServiceAPI: Registration failed - ${authResponse.message}');
           return authResponse;
         }
       } else if (response.statusCode == 400) {
@@ -180,34 +171,40 @@ class AuthServiceAPI {
         throw Exception(
             'Registration failed with status code: ${response.statusCode}');
       }
-    } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Registration DioError - ${dioError.message}');
-      log('AuthServiceAPI: Registration error type: ${dioError.type}');
-      log('AuthServiceAPI: Registration Stack Trace:\n$stackTrace');
-
+    } on DioException catch (dioError) {
       if (dioError.type == DioExceptionType.connectionTimeout ||
           dioError.type == DioExceptionType.receiveTimeout ||
           dioError.type == DioExceptionType.sendTimeout) {
-        log('AuthServiceAPI: Registration timeout detected');
         throw Exception(
             'Request timeout: Please check your internet connection');
       } else if (dioError.type == DioExceptionType.connectionError) {
-        log('AuthServiceAPI: Registration connection error detected');
         throw Exception('Network error: Please check your internet connection');
       } else if (dioError.response != null) {
+        // Dio may throw for non-2xx due to validateStatus. Convert the response
+        // body into AuthResponse so UI can show validation errors.
         final statusCode = dioError.response!.statusCode ?? 500;
-        log('AuthServiceAPI: Registration server error - Status Code: $statusCode');
-        log('AuthServiceAPI: Registration error response: ${dioError.response!.data}');
-        throw Exception('Server error: HTTP $statusCode');
+        try {
+          final Map<String, dynamic> responseData =
+              dioError.response!.data is Map<String, dynamic>
+                  ? Map<String, dynamic>.from(dioError.response!.data)
+                  : Map<String, dynamic>.from(
+                      jsonDecode(dioError.response!.data.toString()),
+                    );
+
+          responseData.putIfAbsent('statusCode', () => statusCode);
+          return AuthResponse.fromJson(responseData);
+        } catch (_) {
+          return AuthResponse(
+            statusCode: statusCode,
+            success: false,
+            message: 'Request failed (HTTP $statusCode)',
+          );
+        }
       } else {
-        log('AuthServiceAPI: Registration unknown error');
         throw Exception('Network error: ${dioError.message}');
       }
-    } catch (e, stackTrace) {
-      log('AuthServiceAPI: Registration error - $e');
-      log('AuthServiceAPI: Registration Stack Trace:\n$stackTrace');
+    } catch (e) {
       if (e is FormatException) {
-        log('AuthServiceAPI: Registration format exception detected');
         throw Exception('Invalid response format from server');
       } else {
         throw Exception('Registration failed: ${e.toString()}');
@@ -230,8 +227,6 @@ class AuthServiceAPI {
     String? fcmToken,
   }) async {
     try {
-      log('AuthServiceAPI: Attempting social login with $provider');
-
       final body = {
         'email': email.toLowerCase(),
         'provider': provider,
@@ -260,10 +255,8 @@ class AuthServiceAPI {
         final authResponse = AuthResponse.fromJson(responseData);
 
         if (authResponse.success) {
-          log('AuthServiceAPI: Social login successful');
           return authResponse;
         } else {
-          log('AuthServiceAPI: Social login failed - ${authResponse.message}');
           return authResponse;
         }
       } else {
@@ -271,12 +264,8 @@ class AuthServiceAPI {
             'Social login failed with status code: ${response.statusCode}');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Social login DioError - ${dioError.message}');
-      log('AuthServiceAPI: Social login Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'socialLogin');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Social login error - $e');
-      log('AuthServiceAPI: Social login Stack Trace:\n$stackTrace');
       throw Exception('Social login failed: ${e.toString()}');
     }
   }
@@ -293,8 +282,6 @@ class AuthServiceAPI {
     String? fcmToken,
   }) async {
     try {
-      log('AuthServiceAPI: Attempting Apple login');
-
       final body = {
         'apple_unique_id': appleUniqueId,
       };
@@ -321,10 +308,8 @@ class AuthServiceAPI {
         final authResponse = AuthResponse.fromJson(responseData);
 
         if (authResponse.success) {
-          log('AuthServiceAPI: Apple login successful');
           return authResponse;
         } else {
-          log('AuthServiceAPI: Apple login failed - ${authResponse.message}');
           return authResponse;
         }
       } else {
@@ -332,12 +317,8 @@ class AuthServiceAPI {
             'Apple login failed with status code: ${response.statusCode}');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Apple login DioError - ${dioError.message}');
-      log('AuthServiceAPI: Apple login Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'appleLogin');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Apple login error - $e');
-      log('AuthServiceAPI: Apple login Stack Trace:\n$stackTrace');
       throw Exception('Apple login failed: ${e.toString()}');
     }
   }
@@ -345,8 +326,6 @@ class AuthServiceAPI {
   /// Forgot Password - Send reset code to email
   Future<Map<String, dynamic>> forgotPassword({required String email}) async {
     try {
-      log('AuthServiceAPI: Requesting password reset for email: $email');
-
       final response = await AuthInterceptor.post(
         forgotPasswordEndpoint,
         data: {'email': email},
@@ -359,18 +338,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Password reset code sent successfully');
         return responseData;
       } else {
         throw Exception('Failed to send reset code');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Forgot password DioError - ${dioError.message}');
-      log('AuthServiceAPI: Forgot password Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'forgotPassword');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Forgot password error - $e');
-      log('AuthServiceAPI: Forgot password Stack Trace:\n$stackTrace');
       throw Exception('Failed to send reset code: ${e.toString()}');
     }
   }
@@ -383,8 +357,6 @@ class AuthServiceAPI {
     required String confirmPassword,
   }) async {
     try {
-      log('AuthServiceAPI: Resetting password for email: $email');
-
       final response = await AuthInterceptor.post(
         resetPasswordEndpoint,
         data: {
@@ -402,18 +374,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Password reset successful');
         return responseData;
       } else {
         throw Exception('Password reset failed');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Reset password DioError - ${dioError.message}');
-      log('AuthServiceAPI: Reset password Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'resetPassword');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Reset password error - $e');
-      log('AuthServiceAPI: Reset password Stack Trace:\n$stackTrace');
       throw Exception('Password reset failed: ${e.toString()}');
     }
   }
@@ -421,8 +388,6 @@ class AuthServiceAPI {
   /// Resend password reset code
   Future<Map<String, dynamic>> resendResetCode({required String email}) async {
     try {
-      log('AuthServiceAPI: Resending reset code for email: $email');
-
       final response = await AuthInterceptor.post(
         resendEmailEndpoint,
         data: {'email': email},
@@ -435,18 +400,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Reset code resent successfully');
         return responseData;
       } else {
         throw Exception('Failed to resend reset code');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Resend reset code DioError - ${dioError.message}');
-      log('AuthServiceAPI: Resend reset code Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'resendResetCode');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Resend reset code error - $e');
-      log('AuthServiceAPI: Resend reset code Stack Trace:\n$stackTrace');
       throw Exception('Failed to resend reset code: ${e.toString()}');
     }
   }
@@ -457,8 +417,6 @@ class AuthServiceAPI {
     required String code,
   }) async {
     try {
-      log('AuthServiceAPI: Verifying email: $email');
-
       final response = await AuthInterceptor.post(
         verificationEndpoint,
         data: {
@@ -474,18 +432,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Email verified successfully');
         return responseData;
       } else {
         throw Exception('Email verification failed');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Verify email DioError - ${dioError.message}');
-      log('AuthServiceAPI: Verify email Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'verifyEmail');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Verify email error - $e');
-      log('AuthServiceAPI: Verify email Stack Trace:\n$stackTrace');
       throw Exception('Email verification failed: ${e.toString()}');
     }
   }
@@ -494,8 +447,6 @@ class AuthServiceAPI {
   Future<Map<String, dynamic>> resendVerificationCode(
       {required String email}) async {
     try {
-      log('AuthServiceAPI: Resending verification code for email: $email');
-
       final response = await AuthInterceptor.post(
         resendVerificationEndpoint,
         data: {'email': email},
@@ -508,18 +459,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Verification code resent successfully');
         return responseData;
       } else {
         throw Exception('Failed to resend verification code');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Resend verification code DioError - ${dioError.message}');
-      log('AuthServiceAPI: Resend verification code Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'resendVerificationCode');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Resend verification code error - $e');
-      log('AuthServiceAPI: Resend verification code Stack Trace:\n$stackTrace');
       throw Exception('Failed to resend verification code: ${e.toString()}');
     }
   }
@@ -533,8 +479,6 @@ class AuthServiceAPI {
     String? fcmToken,
   }) async {
     try {
-      log('AuthServiceAPI: Checking user registration for email: $email');
-
       final body = {
         'email': email,
         'name': name,
@@ -556,18 +500,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: User registration check complete');
         return responseData;
       } else {
         throw Exception('Failed to check user registration');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Check user registration DioError - ${dioError.message}');
-      log('AuthServiceAPI: Check user registration Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'checkUserRegistration');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Check user registration error - $e');
-      log('AuthServiceAPI: Check user registration Stack Trace:\n$stackTrace');
       throw Exception('Failed to check user registration: ${e.toString()}');
     }
   }
@@ -597,8 +536,6 @@ class AuthServiceAPI {
     String? fcmToken,
   }) async {
     try {
-      log('AuthServiceAPI: Completing/updating profile for email: $email');
-
       final body = <String, dynamic>{'email': email};
 
       if (firstName != null) body['first_name'] = firstName;
@@ -638,10 +575,8 @@ class AuthServiceAPI {
         final authResponse = AuthResponse.fromJson(responseData);
 
         if (authResponse.success) {
-          log('AuthServiceAPI: Profile update successful');
           return authResponse;
         } else {
-          log('AuthServiceAPI: Profile update failed - ${authResponse.message}');
           return authResponse;
         }
       } else {
@@ -649,12 +584,8 @@ class AuthServiceAPI {
             'Profile update failed with status code: ${response.statusCode}');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Complete profile DioError - ${dioError.message}');
-      log('AuthServiceAPI: Complete profile Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'completeProfile');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Complete profile error - $e');
-      log('AuthServiceAPI: Complete profile Stack Trace:\n$stackTrace');
       throw Exception('Profile update failed: ${e.toString()}');
     }
   }
@@ -662,8 +593,6 @@ class AuthServiceAPI {
   /// Logout user
   Future<Map<String, dynamic>> logout() async {
     try {
-      log('AuthServiceAPI: Logging out user');
-
       final response = await AuthInterceptor.post(
         logoutEndpoint,
         data: {},
@@ -676,18 +605,13 @@ class AuthServiceAPI {
                 ? response.data
                 : jsonDecode(response.data.toString());
 
-        log('AuthServiceAPI: Logout successful');
         return responseData;
       } else {
         throw Exception('Logout failed');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Logout DioError - ${dioError.message}');
-      log('AuthServiceAPI: Logout Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'logout');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Logout error - $e');
-      log('AuthServiceAPI: Logout Stack Trace:\n$stackTrace');
       throw Exception('Logout failed: ${e.toString()}');
     }
   }
@@ -695,8 +619,6 @@ class AuthServiceAPI {
   /// Get current authenticated user
   Future<AuthResponse> getCurrentUser() async {
     try {
-      log('AuthServiceAPI: Fetching current user');
-
       final response = await AuthInterceptor.get(
         getUserEndpoint,
         requiresAuth: true,
@@ -709,70 +631,26 @@ class AuthServiceAPI {
                 : jsonDecode(response.data.toString());
         final authResponse = AuthResponse.fromJson(responseData);
 
-        log('AuthServiceAPI: Current user fetched successfully');
         return authResponse;
       } else {
         throw Exception('Failed to fetch user');
       }
     } on DioException catch (dioError, stackTrace) {
-      log('AuthServiceAPI: Get current user DioError - ${dioError.message}');
-      log('AuthServiceAPI: Get current user Stack Trace:\n$stackTrace');
       throw _handleDioError(dioError, context: 'getCurrentUser');
     } catch (e, stackTrace) {
-      log('AuthServiceAPI: Get current user error - $e');
-      log('AuthServiceAPI: Get current user Stack Trace:\n$stackTrace');
       throw Exception('Failed to fetch user: ${e.toString()}');
     }
   }
 
   /// Handle Dio errors uniformly with comprehensive logging
   Exception _handleDioError(DioException dioError, {String? context}) {
-    final logPrefix =
-        context != null ? 'AuthServiceAPI [$context]' : 'AuthServiceAPI';
-
-    // Log error type
-    log('$logPrefix: DioException occurred');
-    log('$logPrefix: Error Type: ${dioError.type}');
-    log('$logPrefix: Error Message: ${dioError.message}');
-
-    // Log request information
-    if (dioError.requestOptions.path.isNotEmpty) {
-      log('$logPrefix: Request URL: ${dioError.requestOptions.uri}');
-      log('$logPrefix: Request Method: ${dioError.requestOptions.method}');
-
-      // Log request data (excluding sensitive info)
-      if (dioError.requestOptions.data != null) {
-        final requestData = dioError.requestOptions.data;
-        if (requestData is Map) {
-          final sanitizedData = Map.from(requestData);
-          // Remove sensitive fields before logging
-          sanitizedData.remove('password');
-          sanitizedData.remove('confirm_password');
-          log('$logPrefix: Request Data (sanitized): $sanitizedData');
-        }
-      }
-    }
-
-    // Log response information if available
-    if (dioError.response != null) {
-      final statusCode = dioError.response!.statusCode ?? 500;
-      log('$logPrefix: Response Status Code: $statusCode');
-      log('$logPrefix: Response Data: ${dioError.response!.data}');
-      log('$logPrefix: Response Headers: ${dioError.response!.headers}');
-    }
-
-    // Log stack trace for debugging
-    log('$logPrefix: Stack Trace:\n${dioError.stackTrace}');
-
     // Return appropriate exception based on error type
     if (dioError.type == DioExceptionType.connectionTimeout ||
         dioError.type == DioExceptionType.receiveTimeout ||
         dioError.type == DioExceptionType.sendTimeout) {
-      log('$logPrefix: Timeout error detected');
       return Exception(
           'Request timeout: Please check your internet connection');
     } else if (dioError.type == DioExceptionType.connectionError) {
-      log('$logPrefix: Connection error detected');
       return Exception('Network error: Please check your internet connection');
     } else if (dioError.response != null) {
       final statusCode = dioError.response!.statusCode ?? 500;
@@ -782,15 +660,12 @@ class AuthServiceAPI {
       String errorMessage = 'Server error: HTTP $statusCode';
       if (responseData is Map && responseData.containsKey('message')) {
         errorMessage = responseData['message'];
-        log('$logPrefix: Server error message: $errorMessage');
       } else if (responseData is String) {
         errorMessage = responseData;
-        log('$logPrefix: Server error string: $errorMessage');
       }
 
       return Exception(errorMessage);
     } else {
-      log('$logPrefix: Unknown network error');
       return Exception('Network error: ${dioError.message}');
     }
   }

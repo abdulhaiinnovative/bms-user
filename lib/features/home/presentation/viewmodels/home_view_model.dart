@@ -1,7 +1,6 @@
-import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import '../../data/repositories/home_repository.dart';
-import '../../../../models/HomePageResponse.dart';
+import 'package:app/models/HomePageResponse.dart';
 
 /// ViewModel for the Home Screen
 /// Manages state and business logic for home page data
@@ -33,7 +32,6 @@ class HomeViewModel extends BaseViewModel {
   Future<void> loadHomeData() async {
     await executeAsync(
       operation: () async {
-        log('HomeViewModel: Loading home page data');
         final response = await _homeRepository.fetchHomePageData();
 
         // Update data
@@ -43,42 +41,10 @@ class HomeViewModel extends BaseViewModel {
         _type4 = response.response.data.type4;
         _type5 = response.response.data.type5;
 
-        // Log data for debugging
-        log('type1 (sliders): ${_type1?.length ?? 0} ${_type1?.isNotEmpty == true ? _type1![0].heading : 'null'} ${_type1?.isNotEmpty == true ? _type1![0].data.length : 0}');
-        log('type2 (categories): ${_type2?.length ?? 0} ${_type2?.isNotEmpty == true ? _type2![0].heading : 'null'} ${_type2?.isNotEmpty == true ? _type2![0].data.length : 0}');
-        log('type3 (salons): ${_type3?.length ?? 0} ${_type3?.isNotEmpty == true ? _type3![0].heading : 'null'} ${_type3?.isNotEmpty == true ? _type3![0].data.length : 0}');
-        log('type4 (deals): ${_type4?.length ?? 0}');
-        log('type5 (services): ${_type5?.length ?? 0}');
-
-        // Log slider details
-        if (_type1?.isNotEmpty == true) {
-          for (int i = 0; i < _type1![0].data.length; i++) {
-            log('type1 url: ${_type1![0].data[i].url}');
-            log('type1 image: ${_type1![0].data[i].image}');
-          }
-        }
-
-        // Log category details
-        if (_type2?.isNotEmpty == true) {
-          log('type2 heading: ${_type2![0].heading}');
-          for (int i = 0; i < _type2![0].data.length; i++) {
-            log('type2 name: ${_type2![0].data[i].name}');
-          }
-        }
-
-        // Log salon details
-        if (_type3?.isNotEmpty == true) {
-          log('type3 heading: ${_type3![0].heading}');
-          for (int i = 0; i < _type3![0].data.length; i++) {
-            log('type3 name: ${_type3![0].data[i].name}');
-          }
-        }
-
-        log('HomeViewModel: Data loaded successfully');
         return response;
       },
       onError: (error) {
-        log('HomeViewModel: Failed to load data - $error');
+        // Error handled by caller/executor
       },
     );
   }

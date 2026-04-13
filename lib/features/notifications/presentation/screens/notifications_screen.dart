@@ -4,6 +4,8 @@ import 'package:app/models/notification/notification_model.dart';
 import 'package:app/constants.dart';
 import '../viewmodels/notifications_view_model.dart';
 import '../widgets/notification_card.dart';
+import '../../../auth/presentation/screens/auth/auth_screen.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NotificationsScreen extends StatefulWidget {
   static String routeName = "/notifications";
@@ -123,6 +125,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Error state
     if (viewModel.isError && viewModel.notifications.isEmpty) {
+      final errorMessage =
+          viewModel.errorMessage ?? 'Failed to load notifications';
+      final isAuthError = errorMessage.contains('login') ||
+          errorMessage.contains('Unauthorized');
+
       return Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -130,13 +137,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.error_outline,
+                isAuthError ? Icons.lock_outline : Icons.error_outline,
                 size: 64,
                 color: Colors.grey[400],
               ),
               const SizedBox(height: 16),
               Text(
-                'Oops! Something went wrong',
+                isAuthError
+                    ? 'Authentication Required'
+                    : 'Oops! Something went wrong',
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
@@ -145,7 +154,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 8),
               Text(
-                viewModel.errorMessage ?? 'Failed to load notifications',
+                errorMessage,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14,
@@ -154,9 +163,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
-                onPressed: () => viewModel.refresh(),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Try Again'),
+                onPressed: () {
+                  if (isAuthError) {
+                    // Navigate to login screen
+                    Navigator.of(context).pushAndRemoveUntil(
+                      MaterialPageRoute(
+                          builder: (context) => const AuthScreen()),
+                      (route) => false,
+                    );
+                  } else {
+                    // Try again
+                    viewModel.refresh();
+                  }
+                },
+                icon: Icon(isAuthError ? Icons.login : Icons.refresh),
+                label: Text(isAuthError ? 'Login' : 'Try Again'),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kPrimaryColor,
                   foregroundColor: Colors.white,
@@ -260,20 +281,39 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
     // Handle navigation based on notification data
     if (notification.appRoute != null && notification.appRoute!.isNotEmpty) {
-      // Navigate to app route
-      Navigator.pushNamed(
-        context,
-        notification.appRoute!,
-        arguments: notification.routeId,
-      );
-    } else if (notification.url != null && notification.url!.isNotEmpty) {
-      // Open external URL (you can implement this with url_launcher package)
+      // Navigate to app route based on route name
+      // For now, handle common routes directly. Extend as needed.
+      if (notification.appRoute == '/notifications') {
+        // Already on notifications screen, do nothing
+        return;
+      }
+
+      // For other routes, show a message or implement specific navigation
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Opening: ${notification.url}'),
+          content: Text('Navigating to: ${notification.appRoute}'),
           duration: const Duration(seconds: 2),
         ),
       );
+    } else if (notification.url != null && notification.url!.isNotEmpty) {
+      // Launch external URL
+      final Uri url = Uri.parse(notification.url!);
+      try {
+        await launchUrl(
+          url,
+          mode: LaunchMode.platformDefault,
+        );
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error opening URL: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
     }
   }
 }

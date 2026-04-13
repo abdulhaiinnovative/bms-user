@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:app/constants.dart';
@@ -27,14 +26,11 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
 
   Future<void> fetchCategories() async {
     try {
-      log('FilterCategoriesNew: Fetching categories');
-
       final response = await http.get(
         Uri.parse('$BASE_URL/get-categories'),
         headers: {'Content-Type': 'application/json'},
       );
 
-      // Check if widget is still mounted before calling setState
       if (!mounted) return;
 
       if (response.statusCode == 200) {
@@ -45,26 +41,21 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
                 List<Map<String, dynamic>>.from(data['response']['data']);
             isLoading = false;
           });
-          log('✅ FilterCategoriesNew: Loaded ${categories.length} categories');
         } else {
           setState(() {
             error = data['message'] ?? 'Failed to load categories';
             isLoading = false;
           });
-          log('❌ FilterCategoriesNew: ${data['message']}');
         }
       } else {
         setState(() {
           error = 'Failed to fetch categories: ${response.statusCode}';
           isLoading = false;
         });
-        log('❌ FilterCategoriesNew: Status code ${response.statusCode}');
       }
     } catch (e) {
-      // Check if widget is still mounted before calling setState
       if (!mounted) return;
 
-      log('❌ FilterCategoriesNew: Unexpected error - $e');
       setState(() {
         error = 'Error fetching categories: $e';
         isLoading = false;
@@ -85,7 +76,6 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Drag handle
           Container(
             width: 40,
             height: 4,

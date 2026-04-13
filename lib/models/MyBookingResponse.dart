@@ -1,4 +1,3 @@
-import 'dart:developer';
 
 class MyBookingResponse {
   final bool? status;
@@ -30,7 +29,6 @@ class ResponseData {
 
     // Check if data is a List (empty bookings case) or Map (paginated data)
     if (json['data'] is List) {
-      log('ResponseData: data is a List, wrapping in BookingData structure');
       // Wrap the list in the expected BookingData structure
       final list = json['data'] as List<dynamic>;
       final wrappedData = {
@@ -135,6 +133,7 @@ class Booking {
   final String? status;
   final int? usedLoyaltyPoints;
   final Salon? salon;
+  final List<BookingService>? services;
 
   Booking({
     this.id,
@@ -152,6 +151,7 @@ class Booking {
     this.status,
     this.usedLoyaltyPoints,
     this.salon,
+    this.services,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -174,6 +174,11 @@ class Booking {
           : null,
       salon: json['salon'] != null
           ? Salon.fromJson(json['salon'] as Map<String, dynamic>)
+          : null,
+      services: json['services'] != null
+          ? (json['services'] as List<dynamic>)
+              .map((e) => BookingService.fromJson(e as Map<String, dynamic>))
+              .toList()
           : null,
     );
   }
@@ -308,5 +313,67 @@ class Link {
       label: json['label']?.toString(),
       active: json['active'] is bool ? json['active'] as bool? : null,
     );
+  }
+}
+
+class BookingService {
+  final int? id;
+  final String? name;
+  final BookingProfessional? selectedProfessional;
+
+  BookingService({
+    this.id,
+    this.name,
+    this.selectedProfessional,
+  });
+
+  factory BookingService.fromJson(Map<String, dynamic> json) {
+    return BookingService(
+      id: json['id'] is int ? json['id'] as int? : null,
+      name: json['name']?.toString(),
+      selectedProfessional: json['staff'] != null
+          ? BookingProfessional.fromJson(
+              json['staff'] as Map<String, dynamic>)
+          : (json['selected_professional'] != null
+              ? BookingProfessional.fromJson(
+                  json['selected_professional'] as Map<String, dynamic>)
+              : null),
+    );
+  }
+}
+
+class BookingProfessional {
+  final int? id;
+  final String? firstName;
+  final String? lastName;
+  final String? name;
+  final String? image;
+  final String? phone;
+
+  BookingProfessional({
+    this.id,
+    this.firstName,
+    this.lastName,
+    this.name,
+    this.image,
+    this.phone,
+  });
+
+  factory BookingProfessional.fromJson(Map<String, dynamic> json) {
+    return BookingProfessional(
+      id: json['id'] is int ? json['id'] as int? : null,
+      firstName: json['first_name']?.toString(),
+      lastName: json['last_name']?.toString(),
+      name: json['name']?.toString(),
+      image: json['image']?.toString(),
+      phone: json['phone']?.toString(),
+    );
+  }
+
+  String get displayName {
+    final fullName = '$firstName $lastName'.trim();
+    if (fullName.isNotEmpty) return fullName;
+    if (name != null && name!.isNotEmpty) return name!;
+    return 'Professional';
   }
 }

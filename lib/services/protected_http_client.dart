@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../features/auth/utils/auth_manager.dart';
 import '../constants.dart';
@@ -19,15 +19,12 @@ class ProtectedHttpClient {
     );
 
     final url = _buildUrl(endpoint);
-    log('🌐 GET Request: $url');
-    log('🔑 Requires Auth: $requiresAuth');
 
     try {
       final response = await http.get(Uri.parse(url), headers: headers);
       await _handleResponse(response, url);
       return response;
     } catch (e) {
-      log('❌ GET Request Failed: $e');
       rethrow;
     }
   }
@@ -45,10 +42,33 @@ class ProtectedHttpClient {
     );
 
     final url = _buildUrl(endpoint);
-    log('🌐 POST Request: $url');
-    log('🔑 Requires Auth: $requiresAuth');
-    if (body != null) {
-      log('📦 Request Body: $body');
+
+    if (kDebugMode && endpoint.contains('create-booking')) {
+      print('═══════════════════════════════════════════════════════════════');
+      print('🔐 PROTECTED HTTP CLIENT - POST REQUEST');
+      print('═══════════════════════════════════════════════════════════════');
+      print('URL: $url');
+      print('Endpoint: $endpoint');
+      print('Requires Auth: $requiresAuth');
+      print('');
+      print('📋 HEADERS:');
+      headers.forEach((key, value) {
+        if (key.toLowerCase() == 'authorization') {
+          final tokenPreview =
+              value.length > 20 ? '${value.substring(0, 20)}...' : value;
+          print('  ├─ $key: $tokenPreview');
+        } else {
+          print('  ├─ $key: $value');
+        }
+      });
+      print('');
+      print('📦 REQUEST BODY (RAW):');
+      if (body != null) {
+        print(jsonEncode(body));
+      } else {
+        print('  └─ (null)');
+      }
+      print('═══════════════════════════════════════════════════════════════');
     }
 
     try {
@@ -57,10 +77,40 @@ class ProtectedHttpClient {
         headers: headers,
         body: body != null ? jsonEncode(body) : null,
       );
+
+      if (kDebugMode && endpoint.contains('create-booking')) {
+        print('');
+        print(
+            '═══════════════════════════════════════════════════════════════');
+        print('📥 HTTP RESPONSE RECEIVED');
+        print(
+            '═══════════════════════════════════════════════════════════════');
+        print('Status Code: ${response.statusCode}');
+        print('Reason Phrase: ${response.reasonPhrase}');
+        print('');
+        print('📋 RESPONSE HEADERS:');
+        response.headers.forEach((key, value) {
+          print('  ├─ $key: $value');
+        });
+        print('');
+        print('📄 RESPONSE BODY:');
+        print(response.body);
+        print(
+            '═══════════════════════════════════════════════════════════════');
+      }
+
       await _handleResponse(response, url);
       return response;
     } catch (e) {
-      log('❌ POST Request Failed: $e');
+      if (kDebugMode && endpoint.contains('create-booking')) {
+        print('');
+        print('💥 EXCEPTION IN HTTP CLIENT');
+        print(
+            '═══════════════════════════════════════════════════════════════');
+        print('Exception: $e');
+        print(
+            '═══════════════════════════════════════════════════════════════');
+      }
       rethrow;
     }
   }
@@ -78,8 +128,6 @@ class ProtectedHttpClient {
     );
 
     final url = _buildUrl(endpoint);
-    log('🌐 PUT Request: $url');
-    log('🔑 Requires Auth: $requiresAuth');
 
     try {
       final response = await http.put(
@@ -90,7 +138,6 @@ class ProtectedHttpClient {
       await _handleResponse(response, url);
       return response;
     } catch (e) {
-      log('❌ PUT Request Failed: $e');
       rethrow;
     }
   }
@@ -107,15 +154,12 @@ class ProtectedHttpClient {
     );
 
     final url = _buildUrl(endpoint);
-    log('🌐 DELETE Request: $url');
-    log('🔑 Requires Auth: $requiresAuth');
 
     try {
       final response = await http.delete(Uri.parse(url), headers: headers);
       await _handleResponse(response, url);
       return response;
     } catch (e) {
-      log('❌ DELETE Request Failed: $e');
       rethrow;
     }
   }
@@ -137,13 +181,18 @@ class ProtectedHttpClient {
 
     // Add authentication token if required
     if (requiresAuth) {
+      if (kDebugMode) {
+        // Building headers with auth requirement (debug log)
+      }
       final token = await AuthManager.getToken();
       if (token != null && token.isNotEmpty) {
+        if (kDebugMode) {
+          // Token found, adding to headers (debug log)
+        }
         headers['Authorization'] = 'Bearer $token';
-        log('✅ Auth token added to request');
       } else {
-        log('⚠️ No auth token found - Request may fail');
-        throw UnauthorizedException('No authentication token found');
+        // No token found; throw UnauthorizedException
+        throw UnauthorizedException('Please login to continue');
       }
     }
 
@@ -167,22 +216,43 @@ class ProtectedHttpClient {
   /// Handle response and check for auth errors
   static Future<void> _handleResponse(
       http.Response response, String url) async {
-    log('📥 Response Status: ${response.statusCode}');
+    if (kDebugMode) {
+      // Response status ${response.statusCode} for $url (debug log)
+    }
 
     if (response.statusCode == 401) {
-      log('🚫 Unauthorized - Token may be expired or invalid');
-      // Clear auth data and throw exception
+      // Don't clear auth for login/register/signup endpoints
+      if (url.contains('/auth/login') ||
+          url.contains('/auth/register') ||
+          url.contains('/auth/signup')) {
+        // 401 on auth endpoint; not clearing auth data (debug log removed)
+        throw UnauthorizedException(
+            'Invalid credentials. Please check your email and password.');
+      }
+
+      // For other endpoints, check if token exists before clearing
+      final token = await AuthManager.getToken();
+      if (token == null || token.isEmpty) {
+        // 401 but no token exists; already logged out
+        throw UnauthorizedException('Please login to continue.');
+      }
+
+      // Token exists but got 401 - session expired
+      if (kDebugMode) {
+        // Session expired (401 with valid token), clearing auth data (debug log)
+      }
       await AuthManager.clearAuthData();
       throw UnauthorizedException('Session expired. Please login again.');
     } else if (response.statusCode == 403) {
-      log('🚫 Forbidden - Insufficient permissions');
       throw ForbiddenException(
           'You don\'t have permission to access this resource');
+    } else if (response.statusCode == 422) {
+      // Don't throw exception for 422 - let the calling service handle it
+      // 422 is a validation error with structured error messages
+      return;
     } else if (response.statusCode >= 500) {
-      log('💥 Server Error: ${response.statusCode}');
       throw ServerException('Server error occurred. Please try again later.');
     } else if (response.statusCode >= 400) {
-      log('⚠️ Client Error: ${response.statusCode}');
       try {
         final errorBody = jsonDecode(response.body);
         final message = errorBody['message'] ?? 'Request failed';
@@ -192,8 +262,6 @@ class ProtectedHttpClient {
             response.statusCode);
       }
     }
-
-    log('✅ Request completed successfully');
   }
 
   /// Check if user is authenticated

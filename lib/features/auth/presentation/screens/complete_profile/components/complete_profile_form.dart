@@ -1,12 +1,9 @@
-import 'dart:developer';
-
 import 'package:app/models/UserIsAlreadyRegisteredModel.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import '../../../../../../api_services/ProfileUpdateAPI.dart';
-import '../../../../../../components/custom_surfix_icon.dart';
 import '../../../../../../components/form_error.dart';
 import '../../../../../../constants.dart';
 import '../../../../data/models/social_auth_response.dart';
@@ -49,6 +46,58 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   TextEditingController firstNameController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
 
+  InputDecoration _buildInputDecoration({
+    required String label,
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      labelStyle: TextStyle(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: Colors.grey[700],
+        letterSpacing: 0.2,
+      ),
+      hintStyle: TextStyle(
+        fontSize: 14,
+        color: Colors.grey[400],
+      ),
+      prefixIcon: Icon(
+        icon,
+        color: Colors.grey[600],
+        size: 22,
+      ),
+      suffixIcon: suffixIcon,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey[200]!),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.grey[200]!, width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(16),
+        borderSide: const BorderSide(color: Colors.red, width: 2),
+      ),
+      filled: true,
+      fillColor: Colors.grey[50],
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -62,11 +111,6 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
       firstName = widget.socialUser?.firstName;
       lastName = widget.socialUser?.lastName;
       email = widget.email ?? widget.socialUser?.email;
-
-      print('📝 CompleteProfileForm: Pre-filled social auth data');
-      print('   Email: $email');
-      print('   First Name: $firstName');
-      print('   Last Name: $lastName');
     } else if (widget.user != null) {
       // Pre-fill from regular registration
       emailController.text = widget.user?.email ?? "";
@@ -84,6 +128,8 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+
     return Form(
       key: _formKey,
       child: Column(
@@ -106,16 +152,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "First Name",
-              hintText: "Enter your first name",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  const CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-              // Show indicator for pre-filled social auth fields
-              helperText:
-                  widget.isSocialAuth ? "From your Google account" : null,
-              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
+            decoration: _buildInputDecoration(
+              label: "First Name",
+              hint: "Enter your first name",
+              icon: Icons.person_outline,
             ),
           ),
           const SizedBox(height: 20),
@@ -137,15 +177,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Last Name",
-              hintText: "Enter your last name",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  const CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
-              helperText:
-                  widget.isSocialAuth ? "From your Google account" : null,
-              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
+            decoration: _buildInputDecoration(
+              label: "Last Name",
+              hint: "Enter your last name",
+              icon: Icons.person_outline,
             ),
           ),
           const SizedBox(height: 20),
@@ -167,25 +202,62 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: InputDecoration(
-              labelText: "Email",
-              hintText: "Enter your email address",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  const CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
-              helperText:
-                  widget.isSocialAuth ? "From your Google account" : null,
-              helperStyle: const TextStyle(fontSize: 12, color: Colors.blue),
+            decoration: _buildInputDecoration(
+              label: "Email",
+              hint: "Enter your email address",
+              icon: Icons.email_outlined,
             ),
           ),
           const SizedBox(height: 20),
           //phone
           IntlPhoneField(
-            decoration: const InputDecoration(
+            style: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            dropdownTextStyle: const TextStyle(
+              fontSize: 15,
+              fontWeight: FontWeight.w500,
+            ),
+            decoration: InputDecoration(
               labelText: "Phone Number",
               hintText: "Enter your phone number",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              border: OutlineInputBorder(),
+              labelStyle: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+                letterSpacing: 0.2,
+              ),
+              hintStyle: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[400],
+              ),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!, width: 1.5),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide:
+                    BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
+              ),
+              focusedErrorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
+              ),
+              filled: true,
+              fillColor: Colors.grey[50],
             ),
             initialCountryCode: 'PK', // Pakistan as default
             onChanged: (phone) {
@@ -211,7 +283,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           // gender
           DropdownButtonFormField<String>(
             initialValue: gender,
-            icon: const SizedBox.shrink(), // Hides the default dropdown icon
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.grey[600],
+            ),
             onChanged: (newValue) {
               setState(() {
                 gender = newValue;
@@ -230,11 +305,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Gender",
-              hintText: "Select your gender",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
+            decoration: _buildInputDecoration(
+              label: "Gender",
+              hint: "Select your gender",
+              icon: Icons.wc_outlined,
             ),
             items: const [
               DropdownMenuItem(value: "male", child: Text("Male")),
@@ -245,7 +319,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           // country
           DropdownButtonFormField<String>(
             initialValue: country,
-            icon: const SizedBox.shrink(), // Hides the default dropdown icon
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.grey[600],
+            ),
             onChanged: (newValue) {
               setState(() {
                 country = newValue;
@@ -264,12 +341,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Country",
-              hintText: "Select your country",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+            decoration: _buildInputDecoration(
+              label: "Country",
+              hint: "Select your country",
+              icon: Icons.public,
             ),
             items: const [
               DropdownMenuItem(value: "pakistan", child: Text("Pakistan")),
@@ -279,7 +354,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           // state
           DropdownButtonFormField<String>(
             initialValue: state,
-            icon: const SizedBox.shrink(), // Hides the default dropdown icon
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.grey[600],
+            ),
             onChanged: (newValue) {
               setState(() {
                 state = newValue;
@@ -298,12 +376,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "State",
-              hintText: "Select your state",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+            decoration: _buildInputDecoration(
+              label: "State",
+              hint: "Select your state",
+              icon: Icons.location_on_outlined,
             ),
             items: const [
               DropdownMenuItem(value: "sindh", child: Text("Sindh")),
@@ -313,7 +389,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           // city
           DropdownButtonFormField<String>(
             initialValue: city,
-            icon: const SizedBox.shrink(), // Hides the default dropdown icon
+            icon: Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: Colors.grey[600],
+            ),
             onChanged: (newValue) {
               setState(() {
                 city = newValue;
@@ -332,12 +411,10 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "City",
-              hintText: "Select your city",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+            decoration: _buildInputDecoration(
+              label: "City",
+              hint: "Select your city",
+              icon: Icons.location_city_outlined,
             ),
             items: const [
               DropdownMenuItem(value: "karachi", child: Text("Karachi")),
@@ -360,142 +437,154 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               }
               return null;
             },
-            decoration: const InputDecoration(
-              labelText: "Address",
-              hintText: "Enter your address",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon:
-                  CustomSurffixIcon(svgIcon: "assets/icons/Location point.svg"),
+            decoration: _buildInputDecoration(
+              label: "Address",
+              hint: "Enter your address",
+              icon: Icons.home_outlined,
             ),
           ),
           const SizedBox(height: 20),
           FormError(errors: errors),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () async {
-              _formKey.currentState!.save();
-              if (_formKey.currentState!.validate()) {
-                showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (_) =>
-                      const Center(child: CircularProgressIndicator()),
-                );
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () async {
+                _formKey.currentState!.save();
+                if (_formKey.currentState!.validate()) {
+                  showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (_) =>
+                        const Center(child: CircularProgressIndicator()),
+                  );
 
-                log('firstName::: $firstName');
-                log('lastName::: $lastName');
-                log('email::: $email');
-                log('phoneNumber::: $phoneNumber');
-                log('gender::: $gender');
-                log('country::: $country');
-                log('state::: $state');
-                log('city::: $city');
-                log('address::: $address');
+                  try {
+                    if (widget.isSocialAuth && widget.socialUser != null) {
+                      final authProvider =
+                          Provider.of<AuthProvider>(context, listen: false);
+                      final fcmToken = await FCMTokenService.getFCMToken();
 
-                try {
-                  if (widget.isSocialAuth && widget.socialUser != null) {
-                    // Handle social auth profile completion
-                    print(
-                        '🔵 CompleteProfileForm: Completing social auth profile...');
+                      final success = await authProvider.completeSocialProfile(
+                        email: email!,
+                        phone: phoneNumber,
+                        gender: gender,
+                        country: country,
+                        state: state,
+                        city: city,
+                        address: address,
+                        fcmToken: fcmToken,
+                      );
 
-                    final authProvider =
-                        Provider.of<AuthProvider>(context, listen: false);
-                    final fcmToken = await FCMTokenService.getFCMToken();
+                      Navigator.pop(context); // Close loading dialog
 
-                    final success = await authProvider.completeSocialProfile(
-                      email: email!,
-                      phone: phoneNumber,
-                      gender: gender,
-                      country: country,
-                      state: state,
-                      city: city,
-                      address: address,
-                      fcmToken: fcmToken,
-                    );
+                      if (!mounted) return;
 
-                    Navigator.pop(context); // Close loading dialog
+                      if (success) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Profile completed successfully")),
+                        );
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InitScreen()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(authProvider.errorMessage ??
+                                "Failed to complete profile"),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    } else {
+                      final response =
+                          await ProfileUpdateAPI.updateUserProfile({
+                        "first_name": firstName,
+                        "last_name": lastName,
+                        "name": "$firstName $lastName",
+                        "email": email,
+                        "device_id": "device-123",
+                        "provider": "google",
+                        "provider_id": "117038108082662535502",
+                        "image": "",
+                        "phone": phoneNumber,
+                        "dob": "2000-01-01",
+                        "gender": gender,
+                        "country": country,
+                        "state": state,
+                        "city": city,
+                        "latitude": "24.8607",
+                        "longitude": "67.0011",
+                        "address": address
+                      });
+
+                      Navigator.pop(context); // Close loading dialog
+
+                      if (response.status == true) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text("Profile updated successfully")),
+                        );
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const InitScreen()),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                              content: Text(
+                                  "Error: ${response.message.toString()}")),
+                        );
+                      }
+                    }
+                  } catch (e) {
+                    Navigator.pop(context); // Close the loading spinner
 
                     if (!mounted) return;
 
-                    if (success) {
-                      print(
-                          '✅ CompleteProfileForm: Social profile completed successfully');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Profile completed successfully")),
-                      );
-                      Navigator.pushReplacementNamed(
-                          context, InitScreen.routeName);
-                    } else {
-                      print(
-                          '❌ CompleteProfileForm: Failed to complete social profile');
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(authProvider.errorMessage ??
-                              "Failed to complete profile"),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                    }
-                  } else {
-                    // Handle regular profile update
-                    print(
-                        '🔵 CompleteProfileForm: Updating regular profile...');
-                    final response = await ProfileUpdateAPI.updateUserProfile({
-                      "first_name": firstName,
-                      "last_name": lastName,
-                      "name": "$firstName $lastName",
-                      "email": email,
-                      "device_id": "device-123",
-                      "provider": "google",
-                      "provider_id": "117038108082662535502",
-                      "image": "",
-                      "phone": phoneNumber,
-                      "dob": "2000-01-01",
-                      "gender": gender,
-                      "country": country,
-                      "state": state,
-                      "city": city,
-                      "latitude": "24.8607",
-                      "longitude": "67.0011",
-                      "address": address
-                    });
-
-                    Navigator.pop(context); // Close loading dialog
-
-                    log("Profile updated: lastname ${response.response?.data?.lastName}");
-
-                    if (response.status == true) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                            content: Text("Profile updated successfully")),
-                      );
-                      Navigator.pushNamed(context, InitScreen.routeName);
-                    } else {
-                      log("Profile update failed: ${response.message}");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                            content:
-                                Text("Error: ${response.message.toString()}")),
-                      );
-                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Error: ${e.toString()}"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
-                } catch (e) {
-                  Navigator.pop(context); // Close the loading spinner
-                  log("Profile completion/update failed: $e");
-
-                  if (!mounted) return;
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text("Error: ${e.toString()}"),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
                 }
-              }
-            },
-            child: const Text("Continue"),
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: kPrimaryColor,
+                foregroundColor: Colors.white,
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                disabledBackgroundColor: Colors.grey[300],
+              ),
+              child: authProvider.isLoading
+                  ? const SizedBox(
+                      height: 22,
+                      width: 22,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2.5,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : const Text(
+                      "Continue",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),

@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
 import 'package:app/models/HomePageResponse.dart';
@@ -16,62 +14,59 @@ class CategoriesDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: type2.map((section) {
-        return Container(
-          height: 100, // Adjust height if needed
-          margin: const EdgeInsets.only(bottom: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                child: SectionTitle(
-                  title: section.heading,
-                  press: () => _showAllCategoriesModal(context, section),
-                ),
-              ),
-              //const SizedBox(height: 8),
-              Expanded(
-                child: ListView.builder(
-                  scrollDirection: Axis.horizontal,
-                  itemCount: section.data.length,
-                  itemBuilder: (BuildContext context, int index) {
-                    final item = section.data[index];
-                    return CategoryCard(
-                      title: item.name ?? '',
-                      image: logo,
-                      desc: '',
-                      press: () {
-                        /// Navigator.pushNamed(context, ServicesScreen.routeName);
-                        ///
-                        Navigator.pushNamed(
-                          context,
-                          SearchServiceScreenNew.routeName,
-                          arguments: {
-                            'categoryName': item.name,
-                            'categoryId': item.id,
-                            'isFromBottomNav': true,
-                          },
-                        );
+    if (type2.isEmpty) {
+      return const SizedBox.shrink();
+    }
 
-                        log('Category tapped: ${item.name}');
-                      },
+    final section = type2[0];
+    return Container(
+      height: 100, // Adjust height if needed
+      margin: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+            child: SectionTitle(
+              title: section.heading,
+              press: () => _showAllCategoriesModal(context, section),
+            ),
+          ),
+          //const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: section.data.length,
+              itemBuilder: (BuildContext context, int index) {
+                final item = section.data[index];
+                return CategoryCard(
+                  title: item.name ?? '',
+                  image: logo,
+                  desc: '',
+                  press: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SearchServiceScreenNew(),
+                        settings: RouteSettings(arguments: {
+                          'categoryName': item.name,
+                          'categoryId': item.id,
+                          'isFromBottomNav': true,
+                        }),
+                      ),
                     );
                   },
-                ),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      }).toList(),
+        ],
+      ),
     );
   }
 
   /// Show bottom modal with all categories
   void _showAllCategoriesModal(BuildContext context, CategorySection section) {
-    log('📋 Showing all categories modal for: ${section.heading}');
-
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -182,16 +177,18 @@ class CategoriesDashboard extends StatelessWidget {
                                 color: Colors.transparent,
                                 child: InkWell(
                                   onTap: () {
-                                    log('Category selected from modal: ${item.name}');
                                     Navigator.pop(context); // Close modal
-                                    Navigator.pushNamed(
+                                    Navigator.push(
                                       context,
-                                      SearchServiceScreenNew.routeName,
-                                      arguments: {
-                                        'categoryName': item.name,
-                                        'categoryId': item.id,
-                                        'isFromBottomNav': true,
-                                      },
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const SearchServiceScreenNew(),
+                                        settings: RouteSettings(arguments: {
+                                          'categoryName': item.name,
+                                          'categoryId': item.id,
+                                          'isFromBottomNav': true,
+                                        }),
+                                      ),
                                     );
                                   },
                                   borderRadius: BorderRadius.circular(12),

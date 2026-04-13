@@ -1,8 +1,8 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../../../../api_services/services_api.dart';
 import '../../../../models/services_response.dart';
-import '../../../../models/HomePageResponse.dart';
+import 'package:app/models/HomePageResponse.dart'
+    as HomePage; // Service from old model
 
 enum ServiceGender { men, women }
 
@@ -18,7 +18,7 @@ class ServicesViewModel extends ChangeNotifier {
   String? _errorMessage;
 
   // Data
-  List<Service> _services = [];
+  List<HomePage.Service> _services = [];
   ServicesPaginatedData? _paginationData;
 
   // Getters
@@ -27,7 +27,7 @@ class ServicesViewModel extends ChangeNotifier {
   bool get isLoadingMore => _isLoadingMore;
   bool get hasMoreData => _hasMoreData;
   String? get errorMessage => _errorMessage;
-  List<Service> get services => _services;
+  List<HomePage.Service> get services => _services;
   int get totalServices => _paginationData?.total ?? 0;
   int get lastPage => _paginationData?.lastPage ?? 1;
   String get title =>
@@ -53,10 +53,8 @@ class ServicesViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _services = response.response.data.data;
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${_services.length} ${gender == ServiceGender.men ? "men" : "women"} services (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load services. Please try again.';
-      log('❌ Error loading services: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -80,11 +78,9 @@ class ServicesViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _services.addAll(response.response.data.data);
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${response.response.data.data.length} more ${gender == ServiceGender.men ? "men" : "women"} services (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load more services.';
       _currentPage--; // Revert page increment on failure
-      log('❌ Error loading more services: $e');
     } finally {
       _isLoadingMore = false;
       notifyListeners();

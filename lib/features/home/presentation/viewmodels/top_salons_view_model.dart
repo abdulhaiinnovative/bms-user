@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import '../../../../api_services/top_salons_api.dart';
 import '../../../../models/top_salons_response.dart';
@@ -44,10 +43,8 @@ class TopSalonsViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _salons = response.response.data.data;
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${_salons.length} salons (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load salons. Please try again.';
-      log('❌ Error loading salons: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -70,11 +67,9 @@ class TopSalonsViewModel extends ChangeNotifier {
       _paginationData = response.response.data;
       _salons.addAll(response.response.data.data);
       _hasMoreData = response.response.data.nextPageUrl != null;
-      log('✅ Loaded ${response.response.data.data.length} more salons (Page $_currentPage of ${_paginationData?.lastPage})');
     } catch (e) {
       _errorMessage = 'Failed to load more salons.';
       _currentPage--; // Revert page increment on failure
-      log('❌ Error loading more salons: $e');
     } finally {
       _isLoadingMore = false;
       notifyListeners();

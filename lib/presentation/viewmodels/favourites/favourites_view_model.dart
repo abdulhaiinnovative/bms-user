@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import 'package:app/data/repositories/favourites_repository.dart';
 import 'package:app/models/FavouritesListResponse.dart';
@@ -39,44 +38,45 @@ class FavouritesViewModel extends BaseViewModel {
 
     await executeAsync(
       operation: () async {
-        log('FavouritesViewModel: Loading page $_currentPage');
+        try {
+          final result =
+              await _repository.getFavouritesList(page: _currentPage);
 
-        final result = await _repository.getFavouritesList(page: _currentPage);
+          if (result['success'] == true) {
+            final response = FavouritesListResponse.fromJson(result['data']);
+            final paginatedData = response.response.data;
 
-        if (result['success'] == true) {
-          final response = FavouritesListResponse.fromJson(result['data']);
-          final paginatedData = response.response.data;
+            if (refresh) {
+              _favouriteSalons = paginatedData.data;
+            } else {
+              _favouriteSalons.addAll(paginatedData.data);
+            }
 
-          log('FavouritesViewModel: Loaded ${paginatedData.data.length} favourites');
-          log('Pagination: Page $_currentPage of ${paginatedData.lastPage}, Total: ${paginatedData.total}');
+            _currentPage = paginatedData.currentPage;
+            _lastPage = paginatedData.lastPage;
+            _totalFavourites = paginatedData.total;
+            _isRefreshing = false;
 
-          if (refresh) {
-            _favouriteSalons = paginatedData.data;
+            return response;
           } else {
-            _favouriteSalons.addAll(paginatedData.data);
+            throw Exception(result['message'] ?? 'Failed to load favourites');
           }
-
-          _currentPage = paginatedData.currentPage;
-          _lastPage = paginatedData.lastPage;
-          _totalFavourites = paginatedData.total;
-          _isRefreshing = false;
-
-          return response;
-        } else {
-          throw Exception(result['message'] ?? 'Failed to load favourites');
+        } catch (e) {
+          rethrow;
         }
       },
       setLoadingState: !refresh, // Don't show loading spinner when refreshing
       onError: (error) {
         _isRefreshing = false;
-        log('FavouritesViewModel: Error loading favourites - $error');
       },
     );
   }
 
   /// Load next page
   Future<void> loadNextPage() async {
-    if (!hasMorePages || isLoading) return;
+    if (!hasMorePages || isLoading) {
+      return;
+    }
 
     _currentPage++;
     await loadFavourites();
@@ -94,29 +94,28 @@ class FavouritesViewModel extends BaseViewModel {
   }) async {
     final result = await executeAsyncSilent(
       operation: () async {
-        log('FavouritesViewModel: Toggling favourite for salon $salonId');
+        try {
+          final result = await _repository.toggleFavourite(
+            shareId: salonId,
+            shareType: 'salon',
+          );
 
-        final result = await _repository.toggleFavourite(
-          shareId: salonId,
-          shareType: 'salon',
-        );
-
-        if (result['success'] == true) {
-          // Remove from list if unfavourited
-          if (result['isFavourite'] == false) {
-            _favouriteSalons.removeAt(index);
-            _totalFavourites--;
-            notifyListeners();
-            log('FavouritesViewModel: Removed salon from favourites');
+          if (result['success'] == true) {
+            // Remove from list if unfavourited
+            if (result['isFavourite'] == false) {
+              _favouriteSalons.removeAt(index);
+              _totalFavourites--;
+              notifyListeners();
+            }
+            return result['isFavourite'];
+          } else {
+            throw Exception(result['message'] ?? 'Failed to toggle favourite');
           }
-          return result['isFavourite'];
-        } else {
-          throw Exception(result['message'] ?? 'Failed to toggle favourite');
+        } catch (e) {
+          rethrow;
         }
       },
-      onError: (error) {
-        log('FavouritesViewModel: Error toggling favourite - $error');
-      },
+      onError: (error) {},
     );
 
     return result ?? false;

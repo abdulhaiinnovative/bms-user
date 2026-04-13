@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:google_sign_in/google_sign_in.dart';
 
 /// Google Sign-In Result Model
@@ -76,23 +75,15 @@ class GoogleSignInService {
   /// Returns GoogleSignInResult with account data and tokens
   Future<GoogleSignInResult> signInWithGoogle() async {
     try {
-      log('🔵 GoogleSignInService: Starting Google Sign-In...');
-
       // Check if platform supports authenticate method
       if (_googleSignIn.supportsAuthenticate()) {
         final account = await _googleSignIn.authenticate();
-
-        log('✅ GoogleSignInService: Authentication successful');
-        log('   Email: ${account.email}');
-        log('   Display Name: ${account.displayName}');
-        log('   ID: ${account.id}');
 
         // Get authorization for email and profile scopes
         final authorization = await account.authorizationClient
             .authorizationForScopes(['email', 'profile']);
 
         if (authorization == null) {
-          log('❌ GoogleSignInService: Failed to get authorization');
           return GoogleSignInResult.error('Failed to get authorization');
         }
 
@@ -112,26 +103,20 @@ class GoogleSignInService {
           'lastName': lastName,
         };
 
-        log('✅ GoogleSignInService: Got access token');
-
         return GoogleSignInResult.success(
           accountData: accountData,
           idToken: account.id,
           accessToken: authorization.accessToken,
         );
       } else {
-        log('❌ GoogleSignInService: authenticate() not supported on this platform');
         return GoogleSignInResult.error(
           'Google Sign-In not supported on this platform',
         );
       }
     } catch (e) {
-      log('❌ GoogleSignInService: Sign-In error - $e');
-
       // Check if user cancelled
       if (e.toString().contains('sign_in_canceled') ||
           e.toString().contains('cancelled')) {
-        log('⚠️ GoogleSignInService: Sign-In cancelled by user');
         return GoogleSignInResult.cancelled();
       }
 
@@ -142,22 +127,18 @@ class GoogleSignInService {
   /// Sign out from Google
   Future<void> signOut() async {
     try {
-      log('🔵 GoogleSignInService: Signing out...');
       await _googleSignIn.signOut();
-      log('✅ GoogleSignInService: Sign-Out successful');
     } catch (e) {
-      log('❌ GoogleSignInService: Sign-Out error - $e');
+      // Handle sign-out error
     }
   }
 
   /// Disconnect Google account (revoke access)
   Future<void> disconnect() async {
     try {
-      log('🔵 GoogleSignInService: Disconnecting...');
       await _googleSignIn.disconnect();
-      log('✅ GoogleSignInService: Disconnect successful');
     } catch (e) {
-      log('❌ GoogleSignInService: Disconnect error - $e');
+      // Handle disconnect error
     }
   }
 
@@ -165,7 +146,6 @@ class GoogleSignInService {
   /// Use this to extract user information from GoogleSignInResult
   Map<String, String> getUserInfoFromResult(GoogleSignInResult result) {
     if (!result.isSuccess || result.accountData == null) {
-      log('⚠️ GoogleSignInService: No account data available');
       return {};
     }
 
@@ -186,7 +166,6 @@ class GoogleSignInService {
   /// Deprecated: This won't work with the new authenticate() API
   @Deprecated('Use getUserInfoFromResult() with GoogleSignInResult instead')
   Map<String, String> getUserInfo() {
-    log('⚠️ GoogleSignInService: getUserInfo() is deprecated');
     return {};
   }
 }

@@ -42,20 +42,20 @@ class HomeContentData {
 
   factory HomeContentData.fromJson(Map<String, dynamic> json) {
     return HomeContentData(
-      type1: (json['type_1'] as List<dynamic>)
+      type1: (json['type_1'] as List<dynamic>? ?? [])
           .map((item) => Type1.fromJson(item))
           .toList(),
 
-      type2: (json['type_2'] as List)
+      type2: (json['type_2'] as List? ?? [])
           .map((item) => CategorySection.fromJson(item))
           .toList(),
-      type3: (json['type_3'] as List)
+      type3: (json['type_3'] as List? ?? [])
           .map((item) => TopSalonSection.fromJson(item))
           .toList(),
-      type4: (json['type_4'] as List)
+      type4: (json['type_4'] as List? ?? [])
           .map((item) => DealSection.fromJson(item))
           .toList(), // Parsing DealSection
-      type5: (json['type_5'] as List) // Parsing type_5
+      type5: (json['type_5'] as List? ?? []) // Parsing type_5
           .map((item) => ServiceSection.fromJson(item))
           .toList(),
     );
@@ -71,7 +71,9 @@ class DealSection5 {
   factory DealSection5.fromJson(Map<String, dynamic> json) {
     return DealSection5(
       heading: json['heading'],
-      data: (json['data'] as List).map((item) => Deal.fromJson(item)).toList(),
+      data: (json['data'] as List? ?? [])
+          .map((item) => Deal.fromJson(item))
+          .toList(),
     );
   }
 }
@@ -85,7 +87,9 @@ class DealSection {
   factory DealSection.fromJson(Map<String, dynamic> json) {
     return DealSection(
       heading: json['heading'],
-      data: (json['data'] as List).map((item) => Deal.fromJson(item)).toList(),
+      data: (json['data'] as List? ?? [])
+          .map((item) => Deal.fromJson(item))
+          .toList(),
     );
   }
 }
@@ -154,8 +158,9 @@ class Deal {
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       salon: json['salon'] != null ? Salon.fromJson(json['salon']) : null,
-      services:
-          (json['services'] as List?)?.map((e) => Service.fromJson(e)).toList(),
+      services: (json['services'] as List? ?? [])
+          .map((e) => Service.fromJson(e))
+          .toList(),
     );
   }
 }
@@ -169,8 +174,9 @@ class ServiceSection {
   factory ServiceSection.fromJson(Map<String, dynamic> json) {
     return ServiceSection(
       heading: json['heading'],
-      data:
-          (json['data'] as List).map((item) => Service.fromJson(item)).toList(),
+      data: (json['data'] as List? ?? [])
+          .map((item) => Service.fromJson(item))
+          .toList(),
     );
   }
 }
@@ -290,7 +296,7 @@ class CategorySection {
   factory CategorySection.fromJson(Map<String, dynamic> json) {
     return CategorySection(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Category.fromJson(item))
           .toList(),
     );
@@ -306,7 +312,7 @@ class Type2 {
   factory Type2.fromJson(Map<String, dynamic> json) {
     return Type2(
       heading: json['heading'],
-      data: (json['data'] as List)
+      data: (json['data'] as List? ?? [])
           .map((item) => Category.fromJson(item))
           .toList(),
     );
@@ -382,7 +388,9 @@ class TopSalonSection {
   factory TopSalonSection.fromJson(Map<String, dynamic> json) {
     return TopSalonSection(
       heading: json['heading'],
-      data: (json['data'] as List).map((item) => Salon.fromJson(item)).toList(),
+      data: (json['data'] as List? ?? [])
+          .map((item) => Salon.fromJson(item))
+          .toList(),
     );
   }
 }
@@ -506,7 +514,7 @@ class Salon {
           : (json['review_count'] as num?)?.toInt(),
       isFavourite: json['is_favourite'],
       activeDays: json['active_days'] != null
-          ? (json['active_days'] as List)
+          ? (json['active_days'] as List? ?? [])
               .map((e) => ActiveDay.fromJson(e))
               .toList()
           : null,

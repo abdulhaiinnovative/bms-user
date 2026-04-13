@@ -76,16 +76,18 @@ abstract class BaseViewModel extends ChangeNotifier {
 
       return result;
     } catch (e) {
-      final errorMsg = e.toString();
+      // Clean up error message - remove "Exception: " prefix if present
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.substring('Exception: '.length);
+      }
       setError(errorMsg);
 
       if (onError != null) {
         onError(errorMsg);
       }
 
-      if (kDebugMode) {
-        print('ViewModel Error: $errorMsg');
-      }
+      // ViewModel error logging removed
 
       return null;
     }
@@ -100,15 +102,17 @@ abstract class BaseViewModel extends ChangeNotifier {
     try {
       return await operation();
     } catch (e) {
-      final errorMsg = e.toString();
+      // Clean up error message - remove "Exception: " prefix if present
+      String errorMsg = e.toString();
+      if (errorMsg.startsWith('Exception: ')) {
+        errorMsg = errorMsg.substring('Exception: '.length);
+      }
 
       if (onError != null) {
         onError(errorMsg);
       }
 
-      if (kDebugMode) {
-        print('ViewModel Silent Error: $errorMsg');
-      }
+      // ViewModel silent error logging removed
 
       return null;
     }

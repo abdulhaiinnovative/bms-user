@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -98,25 +97,25 @@ class _VerificationScreenState extends State<VerificationScreen> {
       bool success = false;
 
       if (_verificationType == 'password_reset') {
-        log('🔐 Verification: Verifying reset code');
         // For password reset, we just navigate to reset password screen with the code
         // The actual verification happens when resetting the password
         setState(() {
           _isLoading = false;
         });
 
-        Navigator.pushReplacementNamed(
+        Navigator.pushReplacement(
           context,
-          ResetPasswordScreen.routeName,
-          arguments: {
-            'email': _email,
-            'code': _codeController.text,
-          },
+          MaterialPageRoute(
+            builder: (context) => const ResetPasswordScreen(),
+            settings: RouteSettings(arguments: {
+              'email': _email,
+              'code': _codeController.text,
+            }),
+          ),
         );
         return;
       } else {
         // For email verification
-        log('📧 Verification: Verifying email');
         success = await authProvider.verifyEmail(
           email: _email!,
           code: _codeController.text,
@@ -130,8 +129,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
       });
 
       if (success) {
-        log('✅ Verification: Success');
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Verification successful!'),
@@ -142,7 +139,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
         // Navigate to appropriate screen
         Navigator.of(context).popUntil((route) => route.isFirst);
       } else {
-        log('❌ Verification: Failed');
         setState(() {
           _hasError = true;
         });
@@ -155,7 +151,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
         );
       }
     } catch (e) {
-      log('💥 Verification: Error - $e');
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -184,10 +179,8 @@ class _VerificationScreenState extends State<VerificationScreen> {
       bool success = false;
 
       if (_verificationType == 'password_reset') {
-        log('🔄 Verification: Resending reset code');
         success = await authProvider.resendResetCode(_email!);
       } else {
-        log('🔄 Verification: Resending verification code');
         success = await authProvider.resendVerificationCode(_email!);
       }
 
@@ -198,7 +191,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
       });
 
       if (success) {
-        log('✅ Verification: Code resent');
         _startResendTimer();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -208,7 +200,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
           ),
         );
       } else {
-        log('❌ Verification: Failed to resend code');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(authProvider.errorMessage ?? 'Failed to resend code'),
@@ -217,7 +208,6 @@ class _VerificationScreenState extends State<VerificationScreen> {
         );
       }
     } catch (e) {
-      log('💥 Verification: Resend error - $e');
       if (mounted) {
         setState(() {
           _isLoading = false;

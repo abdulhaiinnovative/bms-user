@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'local_notification_service.dart';
@@ -16,13 +15,10 @@ class NotificationService {
     GlobalKey<NavigatorState>? navigatorKey,
   }) async {
     if (_isInitialized) {
-      log('NotificationService: Already initialized');
       return;
     }
 
     try {
-      log('NotificationService: Initializing...');
-
       // Store navigator key for navigation
       if (navigatorKey != null) {
         NotificationHandler.setNavigatorKey(navigatorKey);
@@ -30,19 +26,15 @@ class NotificationService {
 
       // Initialize local notification service
       await LocalNotificationService.staticInitialize();
-      log('NotificationService: Local notifications initialized');
 
       // Initialize push notification service
       await PushNotificationService.initialize();
-      log('NotificationService: Push notifications initialized');
 
       // Register default notification callbacks
       _registerDefaultCallbacks();
 
       _isInitialized = true;
-      log('NotificationService: Initialization complete');
     } catch (e) {
-      log('NotificationService: Initialization error - $e');
       rethrow;
     }
   }
@@ -52,19 +44,19 @@ class NotificationService {
     // Register appointment notification callback
     NotificationHandler.registerNotificationCallback(
       NotificationConfig.appointmentNotificationType,
-      () => log('NotificationService: Appointment notification tapped'),
+      () {},
     );
 
     // Register promotion notification callback
     NotificationHandler.registerNotificationCallback(
       NotificationConfig.promoNotificationType,
-      () => log('NotificationService: Promotion notification tapped'),
+      () {},
     );
 
     // Register system notification callback
     NotificationHandler.registerNotificationCallback(
       NotificationConfig.systemNotificationType,
-      () => log('NotificationService: System notification tapped'),
+      () {},
     );
 
     // Register data callbacks for detailed handling
@@ -81,8 +73,6 @@ class NotificationService {
 
   /// Handle appointment notification data
   static void _handleAppointmentData(Map<String, dynamic> data) {
-    log('NotificationService: Handling appointment data - $data');
-
     final String? appointmentId = data['appointmentId'];
     final String? action = data['action'];
 
@@ -90,13 +80,10 @@ class NotificationService {
       // Handle specific appointment actions
       switch (action) {
         case 'reminder':
-          log('NotificationService: Appointment reminder for $appointmentId');
           break;
         case 'confirmation':
-          log('NotificationService: Appointment confirmation for $appointmentId');
           break;
         case 'cancellation':
-          log('NotificationService: Appointment cancellation for $appointmentId');
           break;
       }
     }
@@ -104,14 +91,10 @@ class NotificationService {
 
   /// Handle promotion notification data
   static void _handlePromotionData(Map<String, dynamic> data) {
-    log('NotificationService: Handling promotion data - $data');
-
     final String? promoId = data['promoId'];
     final String? discountPercentage = data['discountPercentage'];
 
-    if (promoId != null) {
-      log('NotificationService: Promotion $promoId with ${discountPercentage ?? 0}% discount');
-    }
+    if (promoId != null) {}
   }
 
   /// Show a simple notification
@@ -123,7 +106,6 @@ class NotificationService {
     NotificationCategory category = NotificationCategory.general,
   }) async {
     if (!_isInitialized) {
-      log('NotificationService: Service not initialized');
       return;
     }
 
@@ -220,7 +202,6 @@ class NotificationService {
 
     // Don't schedule if the reminder time is in the past
     if (reminderTime.isBefore(DateTime.now())) {
-      log('NotificationService: Reminder time is in the past, not scheduling');
       return;
     }
 
@@ -327,10 +308,7 @@ class NotificationService {
       await PushNotificationService.reset();
       NotificationHandler.clearCallbacks();
       _isInitialized = false;
-      log('NotificationService: Reset complete');
-    } catch (e) {
-      log('NotificationService: Reset error - $e');
-    }
+    } catch (e) {}
   }
 
   /// Check if service is initialized

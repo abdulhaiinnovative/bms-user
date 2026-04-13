@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'package:app/core/base/base_view_model.dart';
 import 'package:app/data/repositories/salon_repository.dart';
 import 'package:app/models/SalonDetailApiResponse.dart';
@@ -44,24 +43,14 @@ class SalonViewModel extends BaseViewModel {
 
   /// Load salon details by ID
   Future<void> loadSalonDetails(String salonId) async {
-    log('SalonViewModel: Loading salon details for ID: $salonId');
-
     await executeAsync(
       operation: () async {
         final response = await _repository.getSalonDetails(salonId);
 
-        log('SalonViewModel: Response received');
-
         if (response != null) {
           _response = response;
           _salonData = response.response.data;
-
-          log('SalonViewModel: Salon loaded successfully');
-          log('  - Name: ${_salonData?.name}');
-          log('  - Sections: ${_salonData?.sections?.length ?? 0}');
-          log('  - Is Favourite: ${_salonData?.isFavourite}');
         } else {
-          log('SalonViewModel: Load failed - No response');
           throw Exception('Failed to load salon details');
         }
 
@@ -72,7 +61,6 @@ class SalonViewModel extends BaseViewModel {
 
   /// Refresh salon details
   Future<void> refresh(String salonId) async {
-    log('SalonViewModel: Refreshing salon details');
     await loadSalonDetails(salonId);
   }
 

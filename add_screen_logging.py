@@ -63,7 +63,6 @@ for i, (name, path, widget_type) in enumerate(screens, 1):
 print("\n" + "=" * 80)
 print("IMPORT STATEMENT (add at top of each file if not present):")
 print("=" * 80)
-print("import 'dart:developer';")
 
 print("\n" + "=" * 80)
 print("SUMMARY")

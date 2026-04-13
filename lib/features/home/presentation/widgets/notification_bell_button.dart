@@ -36,7 +36,12 @@ class _NotificationBellButtonState extends State<NotificationBellButton> {
             final viewModel =
                 Provider.of<NotificationsViewModel>(context, listen: false);
 
-            await Navigator.pushNamed(context, NotificationsScreen.routeName);
+            await Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => const NotificationsScreen(),
+              ),
+            );
 
             // Refresh unread count when returning from notifications screen
             if (mounted) {

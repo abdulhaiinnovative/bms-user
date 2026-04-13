@@ -1,59 +1,13 @@
-/// ═══════════════════════════════════════════════════════════════════════════
-/// SELECT PROFESSIONALS SCREEN - REDESIGNED PROFESSIONAL FILTER
-/// ═══════════════════════════════════════════════════════════════════════════
-///
-/// Purpose: Allows users to select professionals for their booked services
-///
-/// Key Features:
-/// ✅ Auto-selects "Any Professional" for all services (hidden from user)
-/// ✅ Professional availability validation before navigation
-/// ✅ Blocks navigation if any professional has zero working days
-/// ✅ Comprehensive logging for debugging
-/// ✅ Clean UI with cart summary
-///
-/// Professional Filter Logic:
-/// • Checks each professional's weekday flags (monday, tuesday, etc.)
-/// • A professional is "available" if ANY day flag == 1
-/// • Blocks booking if professional has all days == 0
-/// • "Any" professional selection always passes validation
-///
-/// Validation Rules:
-/// 1. If "Any" selected → Always valid ✅
-/// 2. If specific professional → Must have at least 1 working day ✅
-/// 3. If professional not found → Skip validation (treat as "Any") ⚠️
-/// 4. If no professionals list → Treat as "Any" ⚠️
-///
-/// TODO: [FEATURE] Add visual indicators for professional availability (busy/free)
-/// TODO: [FEATURE] Implement professional rating/review display
-/// TODO: [FEATURE] Add filter by professional specialty/skills
-/// TODO: [FEATURE] Show professional working hours preview
-/// TODO: [FEATURE] Add "Recommend Professional" feature based on service type
-/// TODO: [FEATURE] Add professional profile view (bio, experience, photos)
-/// TODO: [ENHANCEMENT] Show professional's average rating badge
-/// TODO: [ENHANCEMENT] Display professional's years of experience
-/// TODO: [UX] Add ability to request specific professional
-/// TODO: [UX] Show professional's next available slot
-/// TODO: [OPTIMIZATION] Cache professional availability data
-///
-/// Dependencies:
-/// • Cart items with services/deals
-/// • Salon object with basic info
-/// • Professional data from services
-///
-/// Navigation Flow:
-/// Previous: salon_category_and_services_list.dart
-/// Next: SelectDateScreen.dart
-///
-/// ═══════════════════════════════════════════════════════════════════════════
-
-import 'dart:developer';
-
-import 'package:app/models/HomePageResponse.dart';
+import 'dart:developer' as developer;
+import 'package:flutter/foundation.dart';
+import 'package:app/models/salon_detail_models.dart' as salon_models;
+import 'package:app/models/HomePageResponse.dart' as home_models;
 import 'package:app/models/home/Professional.dart';
 import 'package:flutter/material.dart';
-// import 'package:app/screens/test_scroll/jewellery_repository.dart';
+import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
+import 'package:app/features/auth/utils/auth_manager.dart';
 import '../../constants.dart';
-import 'CartSummarySection.dart';
+import '../../components/cart_bottom_bar.dart';
 import 'SelectDateScreen.dart';
 
 class SelectProfessionals extends StatefulWidget {
@@ -66,74 +20,106 @@ class SelectProfessionals extends StatefulWidget {
 }
 
 class _SelectProfessionalsState extends State<SelectProfessionals> {
-  Map<dynamic, String?> selectedProfessionals = {};
   Map<dynamic, int>? cartItems;
+  final Map<dynamic, String?> selectedProfessionals = {};
+
   String? salonName;
-  String? salonImage;
   String? salonAddress;
-  Salon? salon; // Add salon object
+  String? salonImage;
+  salon_models.SalonData? salon;
 
-  @override
-  void initState() {
-    super.initState();
+  bool _didLoadArgs = false;
+  bool _didCheckAuth = false;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final arguments = ModalRoute.of(context)?.settings.arguments;
-      if (arguments != null && arguments is Map) {
-        setState(() {
-          cartItems = arguments['cartItems'] as Map<dynamic, int>? ?? {};
-          salonName = arguments['salonName'] as String?;
-          salonImage = arguments['salonImage'] as String?;
-          salonAddress = arguments['salonAddress'] as String?;
-          salon = arguments['salon'] as Salon?; // Receive salon object
+  Future<void> _ensureAuthenticated() async {
+    if (_didCheckAuth) return;
+    _didCheckAuth = true;
 
-          log('════════════════════════════════════════');
-          log('👨‍⚕️ SELECT PROFESSIONALS SCREEN - INIT');
-          log('════════════════════════════════════════');
-          log('Cart Items Count: ${cartItems?.length ?? 0}');
-          log('Salon Name: $salonName');
-          log('Salon ID: ${salon?.id}');
-          log('Salon Image: $salonImage');
-          log('Salon Address: $salonAddress');
-          log('Salon Active Days: ${salon?.activeDays?.length ?? 0} days configured');
-          if (salon?.activeDays != null) {
-            for (var day in salon!.activeDays!) {
-              log('   ${day.day}: status=${day.status} (${day.openingTime}-${day.closingTime})');
-            }
-          }
-          log('Cart Items:');
-          cartItems?.forEach((key, value) {
-            if (key is Service) {
-              log('  - Service: ${key.name} (ID: ${key.id})');
-              log('    Professionals: ${key.professionals?.map((p) => p.name).toList() ?? [
-                    "None"
-                  ]}');
-            } else if (key is Deal) {
-              log('  - Deal: ${key.name} (ID: ${key.id})');
-            }
-          });
-          log('════════════════════════════════════════');
+    final isLoggedIn = await AuthManager.isLoggedIn();
+    if (isLoggedIn || !mounted) return;
 
-          // Initialize selectedProfessionals with "Any" for all services
-          // Professional names are hidden, so always use "Any"
-          cartItems?.forEach((service, _) {
-            selectedProfessionals[service] = 'Any';
-          });
+    final shouldSignIn = await showDialog<bool>(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Sign in required'),
+          content: const Text('Please sign in to continue booking.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Not now'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Sign in'),
+            ),
+          ],
+        );
+      },
+    );
 
-          log('Auto-selected "Any" for all ${cartItems?.length ?? 0} services');
-          log('════════════════════════════════════════');
-        });
-      } else {
-        log('⚠️ No valid arguments passed to SelectProfessionals');
-        setState(() {
-          cartItems = {};
-        });
-      }
-    });
+    if (!mounted) return;
+
+    if (shouldSignIn == true) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+      );
+    } else {
+      Navigator.of(context).pop();
+    }
   }
 
-  Widget _buildProfessionalSelector(Service service) {
-    final professionals = service.professionals ?? [];
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+
+    // Guard: don't allow access when not signed in.
+    _ensureAuthenticated();
+
+    if (_didLoadArgs) return;
+    _didLoadArgs = true;
+
+    final arguments = ModalRoute.of(context)?.settings.arguments;
+    if (arguments is Map) {
+      final args = Map<String, dynamic>.from(arguments);
+      final rawCartItems = args['cartItems'];
+      if (rawCartItems is Map) {
+        cartItems = rawCartItems.map(
+          (key, value) => MapEntry(key, (value as num).toInt()),
+        );
+      } else {
+        cartItems = {};
+      }
+
+      salonName = args['salonName'] as String?;
+      salonImage = args['salonImage'] as String?;
+      salonAddress = args['salonAddress'] as String?;
+      salon = args['salon'] as salon_models.SalonData?;
+    } else {
+      cartItems = {};
+    }
+
+    selectedProfessionals.clear();
+    cartItems?.forEach((item, _) {
+      if (item is salon_models.Service || item is home_models.Service) {
+        selectedProfessionals[item] = 'Any';
+      }
+    });
+
+    if (kDebugMode) {
+      developer.log(
+        'SelectProfessionals: Loaded args | cartSize=${cartItems?.length ?? 0} | services=${selectedProfessionals.length}',
+        name: 'booking.flow',
+      );
+    }
+  }
+
+  Widget _buildProfessionalSelector(dynamic service) {
+    final professionals =
+        (service is salon_models.Service || service is home_models.Service)
+            ? (service.professionals as List<Professional>? ?? <Professional>[])
+            : <Professional>[];
 
     return Container(
       width: double.infinity,
@@ -153,9 +139,8 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Service name
           Text(
-            service.name ?? 'Service',
+            (service.name as String?) ?? 'Service',
             style: const TextStyle(
               fontSize: 17,
               fontWeight: FontWeight.w800,
@@ -163,15 +148,17 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
             ),
           ),
           const SizedBox(height: 12),
-
-          // Professional selection chips
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              // "Any Professional" option
               GestureDetector(
                 onTap: () {
+                  if (kDebugMode) {
+                    developer.log(
+                        'SelectProfessionals: Selected "Any" professional for service="${service.name}"',
+                        name: 'booking.flow');
+                  }
                   setState(() {
                     selectedProfessionals[service] = 'Any';
                   });
@@ -215,17 +202,33 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                   ),
                 ),
               ),
-
-              // Individual professional chips
               ...professionals.map((professional) {
                 final isSelected =
                     selectedProfessionals[service] == professional.name;
                 return GestureDetector(
                   onTap: () {
+                    if (kDebugMode) {
+                      final weekdayNames = [
+                        'Monday',
+                        'Tuesday',
+                        'Wednesday',
+                        'Thursday',
+                        'Friday',
+                        'Saturday',
+                        'Sunday'
+                      ];
+                      final todayName =
+                          weekdayNames[DateTime.now().weekday - 1];
+                      developer.log(
+                        'SelectProfessionals: [$todayName] Selected professional="${professional.name}" for service="${service.name}" '
+                        'Availability: Mon=${professional.monday}, Tue=${professional.tuesday}, Wed=${professional.wednesday}, '
+                        'Thu=${professional.thursday}, Fri=${professional.friday}, Sat=${professional.saturday}, Sun=${professional.sunday}',
+                        name: 'booking.flow',
+                      );
+                    }
                     setState(() {
                       selectedProfessionals[service] = professional.name;
                     });
-                    log('Selected professional: ${professional.name} for service: ${service.name}');
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -272,54 +275,272 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
     );
   }
 
-  Widget _buildDealItem(dynamic deal) {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(right: 12, left: 12, top: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 1, vertical: 8),
-      height: 120,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(kRadius),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              deal.name ?? 'Deal',
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const Spacer(),
-          Container(
-            margin: const EdgeInsets.only(left: 10),
-            child: RawChip(
-              label: const Text(
-                'Any',
-                style: TextStyle(color: Colors.white),
-              ),
-              selected: true,
-              selectedColor: kPrimaryDarkColor,
-              avatar: const Icon(
-                Icons.check,
-                color: Colors.white,
-                size: 18,
-              ),
-              shape: const StadiumBorder(),
-              onSelected: (_) {},
-            ),
-          )
-        ],
-      ),
-    );
+  /// Logs all selected services and deals with their full attributes
+  /// in a structured, human-readable format to the console.
+  void _logSelectedItemsWithAttributes() {
+    if (cartItems == null || cartItems!.isEmpty) {
+      developer.log(
+          "═══════════════════════════════════════════════════════════════",
+          name: "Selected Items");
+      developer.log("❌ No items selected in cart", name: "Selected Items");
+      developer.log(
+          "═══════════════════════════════════════════════════════════════",
+          name: "Selected Items");
+      return;
+    }
+
+    final services = cartItems!.keys
+        .where(
+          (item) => item is salon_models.Service || item is home_models.Service,
+        )
+        .toList();
+    final deals = cartItems!.keys
+        .where(
+          (item) => item is salon_models.Deal || item is home_models.Deal,
+        )
+        .toList();
+
+    developer.log(
+        "═══════════════════════════════════════════════════════════════",
+        name: "Selected Items");
+    developer.log("📋 SELECTED SERVICES & DEALS - FULL ATTRIBUTES",
+        name: "Selected Items");
+    developer.log(
+        "═══════════════════════════════════════════════════════════════",
+        name: "Selected Items");
+    developer.log(
+        "Total Services: ${services.length} | Total Deals: ${deals.length}",
+        name: "Selected Items");
+    developer.log(
+        "───────────────────────────────────────────────────────────────",
+        name: "Selected Items");
+
+    // Log Salon Schedule Information
+    if (salon != null) {
+      developer.log("\n🏢 SALON SCHEDULE:", name: "Selected Items");
+      developer.log("  ┌─ Salon: ${salon!.name ?? 'Unknown'}",
+          name: "Selected Items");
+      developer.log("  ├─ ID: ${salon!.id ?? 'N/A'}", name: "Selected Items");
+      developer.log("  ├─ Address: ${salon!.address ?? 'N/A'}",
+          name: "Selected Items");
+      developer.log("  ├─ Booking Window:", name: "Selected Items");
+      developer.log(
+          "  │  ├─ Min Booking Time: ${salon!.minBookingTime ?? 'N/A'} hours",
+          name: "Selected Items");
+      developer.log(
+          "  │  └─ Max Booking Time: ${salon!.maxBookingTime ?? 'N/A'} hours",
+          name: "Selected Items");
+      developer.log(
+          "  ├─ Min Cancellation Time: ${salon!.minCancellationTime ?? 'N/A'} hours",
+          name: "Selected Items");
+
+      if (salon!.activeDays != null && salon!.activeDays!.isNotEmpty) {
+        developer.log("  ├─ Active Days (${salon!.activeDays!.length}):",
+            name: "Selected Items");
+        for (int i = 0; i < salon!.activeDays!.length; i++) {
+          final activeDay = salon!.activeDays![i];
+          final statusIcon = activeDay.status == 1 ? '✓' : '✗';
+          final statusText = activeDay.status == 1 ? 'Open' : 'Closed';
+          developer.log(
+              "  │  ├─ ${activeDay.day ?? 'Unknown'}: $statusIcon $statusText | ${activeDay.openingTime ?? 'N/A'} - ${activeDay.closingTime ?? 'N/A'}",
+              name: "Selected Items");
+        }
+      } else {
+        developer.log("  ├─ Active Days: Not configured",
+            name: "Selected Items");
+      }
+
+      developer.log("  └─ Salon Policy: ${salon!.salonPolicy ?? 'N/A'}",
+          name: "Selected Items");
+      developer.log(
+          "───────────────────────────────────────────────────────────────",
+          name: "Selected Items");
+    }
+
+    // Log Services
+    if (services.isNotEmpty) {
+      developer.log("\n🔧 SERVICES (${services.length}):",
+          name: "Selected Items");
+      for (int i = 0; i < services.length; i++) {
+        final service = services[i];
+        developer.log("\n  ┌─ Service #${i + 1}: ${service.name ?? 'Unknown'}",
+            name: "Selected Items");
+        developer.log("  │", name: "Selected Items");
+        developer.log("  ├─ ID: ${service.id ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Salon ID: ${service.salonId ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Price: ${service.price ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Old Price: ${service.oldPrice ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Duration: ${service.duration ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Extra Time: ${service.extraTime ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Gender: ${service.gender ?? 'Any'}",
+            name: "Selected Items");
+        developer.log(
+            "  ├─ Short Description: ${service.shortDescription ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Description: ${service.description ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Category ID: ${service.categoryId ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Subcategory ID: ${service.subcategoryId ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Discount Type: ${service.discountType ?? 'None'}",
+            name: "Selected Items");
+        developer.log(
+            "  ├─ Percentage Discount: ${service.percentageDiscount ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log(
+            "  ├─ Discount Amount: ${service.discountAmount ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Price Discount: ${service.priceDiscount ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Is Feature: ${service.isFeature ?? 'No'}",
+            name: "Selected Items");
+        developer.log("  ├─ Status: ${service.status ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Quantity: ${cartItems![service] ?? 1}",
+            name: "Selected Items");
+        developer.log(
+            "  ├─ Professionals Count: ${service.professionals?.length ?? 0}",
+            name: "Selected Items");
+
+        if (service.professionals != null &&
+            service.professionals!.isNotEmpty) {
+          developer.log(
+              "  ├─ Professionals (${service.professionals!.length}):",
+              name: "Selected Items");
+          for (int j = 0; j < service.professionals!.length; j++) {
+            final prof = service.professionals![j];
+            developer.log(
+                "  │  ┌─ Professional #${j + 1}: ${prof.name ?? 'Unknown'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ ID: ${prof.id ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Salon ID: ${prof.salon_id ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ First Name: ${prof.first_name ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Last Name: ${prof.last_name ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Email: ${prof.email ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Phone: ${prof.phone ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Image: ${prof.image ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Experience: ${prof.experience ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  ├─ Booking Accept: ${prof.booking_accept ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Availability:", name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Monday: ${prof.monday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Tuesday: ${prof.tuesday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Wednesday: ${prof.wednesday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Thursday: ${prof.thursday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Friday: ${prof.friday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  ├─ Saturday: ${prof.saturday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  │  └─ Sunday: ${prof.sunday == 1 ? '✓ Available' : '✗ Not Available'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Start Date: ${prof.start_date ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ End Date: ${prof.end_date ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Status: ${prof.status ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log("  │  ├─ Note: ${prof.note ?? 'N/A'}",
+                name: "Selected Items");
+            developer.log(
+                "  │  └─ Selected: ${selectedProfessionals[service] == prof.name ? '✓ YES' : '✗ No'}",
+                name: "Selected Items");
+          }
+        }
+
+        developer.log("  ├─ Created: ${service.createdAt ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Updated: ${service.updatedAt ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  └─ Deleted: ${service.deletedAt ?? 'Active'}",
+            name: "Selected Items");
+      }
+    }
+
+    // Log Deals
+    if (deals.isNotEmpty) {
+      developer.log("\n\n🎁 DEALS (${deals.length}):", name: "Selected Items");
+      for (int i = 0; i < deals.length; i++) {
+        final deal = deals[i];
+        developer.log("\n  ┌─ Deal #${i + 1}: ${deal.name ?? 'Unknown'}",
+            name: "Selected Items");
+        developer.log("  │", name: "Selected Items");
+        developer.log("  ├─ ID: ${deal.id ?? 'N/A'}", name: "Selected Items");
+        developer.log("  ├─ Salon ID: ${deal.salonId ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Price: ${deal.price ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Total Price: ${deal.totalPrice ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Discount Type: ${deal.discountType ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Discount Value: ${deal.discountValue ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Start Date: ${deal.startDate ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ End Date: ${deal.endDate ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Status: ${deal.status ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Quantity: ${cartItems![deal] ?? 1}",
+            name: "Selected Items");
+        developer.log("  ├─ Services in Deal: ${deal.services?.length ?? 0}",
+            name: "Selected Items");
+
+        if (deal.services != null && deal.services!.isNotEmpty) {
+          developer.log("  ├─ Included Services:", name: "Selected Items");
+          for (int j = 0; j < deal.services!.length; j++) {
+            final svc = deal.services![j];
+            developer.log(
+                "  │  └─ ${j + 1}. ${svc.name ?? 'Unknown'} (ID: ${svc.id}, Price: ${svc.price})",
+                name: "Selected Items");
+          }
+        }
+
+        developer.log("  ├─ Created: ${deal.createdAt ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  ├─ Updated: ${deal.updatedAt ?? 'N/A'}",
+            name: "Selected Items");
+        developer.log("  └─ Deleted: ${deal.deletedAt ?? 'Active'}",
+            name: "Selected Items");
+      }
+    }
+
+    developer.log(
+        "\n═══════════════════════════════════════════════════════════════",
+        name: "Selected Items");
+    developer.log("✅ Log Complete", name: "Selected Items");
+    developer.log(
+        "═══════════════════════════════════════════════════════════════\n",
+        name: "Selected Items");
   }
 
-  /// AppBar - Modern redesigned to match salon category screen
   AppBar _buildAppBar() {
     return AppBar(
       automaticallyImplyLeading: false,
@@ -342,7 +563,6 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
         padding: const EdgeInsets.only(top: 8),
         child: Row(
           children: [
-            // Modern back button
             GestureDetector(
               onTap: () => Navigator.of(context).pop(),
               child: Container(
@@ -364,7 +584,6 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
               ),
             ),
             const SizedBox(width: 14),
-            // Salon info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -385,7 +604,6 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                 ],
               ),
             ),
-            // Salon image
             if (salonImage != null && salonImage!.isNotEmpty)
               Container(
                 width: 48,
@@ -428,9 +646,8 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
 
   @override
   Widget build(BuildContext context) {
-    bool canProceed = selectedProfessionals.entries
-        .where((entry) => entry.key is Service)
-        .every((entry) => entry.value != null);
+    final canProceed =
+        selectedProfessionals.values.every((value) => value != null);
 
     return Scaffold(
       appBar: _buildAppBar(),
@@ -455,13 +672,13 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                         ),
                       )
                     else
-                      ...cartItems!.keys.map((item) {
-                        if (item is Service) {
-                          return _buildProfessionalSelector(item);
-                        } else {
-                          return _buildDealItem(item);
-                        }
-                      }).toList(),
+                      // Only show services, not deals (deals don't need professional selection)
+                      ...cartItems!.keys
+                          .where((item) =>
+                              item is salon_models.Service ||
+                              item is home_models.Service)
+                          .map((item) => _buildProfessionalSelector(item))
+                          .toList(),
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -472,201 +689,195 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
             bottom: 0,
             left: 0,
             right: 0,
-            child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black12,
-                      blurRadius: 10,
-                      spreadRadius: 2,
-                    ),
-                  ],
-                  borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                ),
-                child: CartSummarySection(
-                  totalItems: cartItems?.length ?? 0,
-                  totalAmount: cartItems?.entries.fold<double>(
-                        0.0,
-                        (sum, entry) {
-                          final item = entry.key;
-                          final quantity = entry.value;
-                          final price = _getItemPrice(item);
-                          return sum + (price * quantity);
-                        },
-                      ) ??
+            child: IgnorePointer(
+              ignoring: !canProceed,
+              child: CartBottomBar(
+                totalItemsOverride: cartItems?.length ?? 0,
+                totalAmountOverride: cartItems?.entries.fold<double>(
                       0.0,
-                  buttonColor: canProceed ? kPrimaryDarkColor : Colors.grey,
-                  onContinue: () {
-                    if (canProceed) {
-                      // Validate if selected professionals have any available days
-                      bool hasAvailableDays =
-                          _validateProfessionalAvailability();
+                      (sum, entry) {
+                        final item = entry.key;
+                        final quantity = entry.value;
+                        final price = _getItemPrice(item);
+                        return sum + (price * quantity);
+                      },
+                    ) ??
+                    0.0,
+                buttonColor: canProceed ? kPrimaryDarkColor : Colors.grey,
+                buttonText: 'Continue',
+                onTap: () {
+                  if (canProceed) {
+                    // Log all selected items with full attributes
+                    _logSelectedItemsWithAttributes();
 
-                      if (!hasAvailableDays) {
-                        // Show error dialog
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return AlertDialog(
-                              title: const Text('❌ No Available Dates'),
-                              content: const Text(
-                                'The selected professional(s) have no available working days set in their schedule. '
-                                'Please contact the salon or select a different professional.',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: const Text('OK'),
-                                ),
-                              ],
-                            );
-                          },
-                        );
+                    if (kDebugMode) {
+                      developer.log(
+                          'SelectProfessionals: Continue button pressed | validating availability',
+                          name: 'booking.flow');
+                    }
 
-                        log('⚠️ Navigation blocked: No available dates for selected professionals');
-                        return;
+                    bool hasAvailableDays = _validateProfessionalAvailability();
+
+                    if (!hasAvailableDays) {
+                      if (kDebugMode) {
+                        developer.log(
+                            'SelectProfessionals: Validation failed - no available days',
+                            name: 'booking.flow');
                       }
-
-                      log('════════════════════════════════════════');
-                      log('📍 NAVIGATING TO SELECT DATE SCREEN');
-                      log('════════════════════════════════════════');
-                      log('Selected Professionals:');
-                      selectedProfessionals.forEach((key, value) {
-                        if (key is Service) {
-                          log('  - Service: ${key.name} → Professional: ${value ?? "Any"}');
-                        }
-                      });
-                      log('Cart Items Count: ${cartItems?.length ?? 0}');
-                      log('Salon: $salonName');
-                      log('════════════════════════════════════════');
-
-                      Navigator.pushNamed(
-                        context,
-                        SelectDateScreen.routeName,
-                        arguments: {
-                          'selectedProfessionals': selectedProfessionals,
-                          'cartItems': cartItems,
-                          'salonName': salonName,
-                          'salonImage': salonImage,
-                          'salonAddress': salonAddress,
-                          'salon': salon, // Pass salon object
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text('❌ No Available Dates'),
+                            content: const Text(
+                              'The selected professional(s) have no available working days set in their schedule. '
+                              'Please contact the salon or select a different professional.',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
                         },
                       );
+                      return;
                     }
-                  },
-                )),
+
+                    // Collect all selected professionals with their full data including day availability
+                    List<Professional> selectedProfessionalsList = [];
+                    selectedProfessionals.forEach((service, professionalName) {
+                      if (professionalName == null ||
+                          professionalName == 'Any') {
+                        return;
+                      }
+                      final profs = (service is salon_models.Service ||
+                              service is home_models.Service)
+                          ? (service.professionals as List<Professional>?)
+                          : null;
+                      if (profs != null) {
+                        try {
+                          final professional = profs.firstWhere(
+                            (p) => p.name == professionalName,
+                          );
+                          selectedProfessionalsList.add(professional);
+                        } catch (e) {
+                          // Professional not found
+                        }
+                      }
+                    });
+
+                    if (kDebugMode) {
+                      developer.log(
+                          'SelectProfessionals: Navigating to SelectDateScreen | professionals=${selectedProfessionals.length} | selectedWithDays=${selectedProfessionalsList.length}',
+                          name: 'booking.flow');
+                    }
+
+                    // Parse minBookingTime and maxBookingTime from String to int
+                    int minTime = 0;
+                    int maxTime = 0;
+
+                    final minBookingTimeStr = salon?.minBookingTime;
+                    final maxBookingTimeStr = salon?.maxBookingTime;
+
+                    if (minBookingTimeStr != null &&
+                        minBookingTimeStr.isNotEmpty) {
+                      try {
+                        minTime = int.parse(minBookingTimeStr);
+                      } catch (e) {
+                        minTime = 0;
+                      }
+                    }
+
+                    if (maxBookingTimeStr != null &&
+                        maxBookingTimeStr.isNotEmpty) {
+                      try {
+                        maxTime = int.parse(maxBookingTimeStr);
+                      } catch (e) {
+                        maxTime = 0;
+                      }
+                    }
+
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SelectDateScreen(),
+                        settings: RouteSettings(
+                          arguments: {
+                            'selectedProfessionals': selectedProfessionals,
+                            'selectedProfessionalsList':
+                                selectedProfessionalsList, // Full Professional objects with day data
+                            'cartItems': cartItems,
+                            'salonName': salonName,
+                            'salonImage': salonImage,
+                            'salonAddress': salonAddress,
+                            'salon': salon,
+                            'minAvailabilityTime': minTime,
+                            'maxAvailabilityTime': maxTime,
+                          },
+                        ),
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  /// ═══════════════════════════════════════════════════════════════════════
-  /// PROFESSIONAL AVAILABILITY FILTER - Redesigned from Scratch
-  /// ═══════════════════════════════════════════════════════════════════════
-  /// Purpose: Validates that selected professionals have at least one working day
-  /// Logic: Check each professional's weekday flags (monday=1, tuesday=1, etc.)
-  ///        Block navigation if ANY professional has zero working days
-  ///
-  /// TODO: Add support for checking if professional days overlap with salon days
-  /// TODO: Consider validating against specific date ranges (vacations, etc.)
-  /// TODO: Add caching of professional availability for performance
-  /// ═══════════════════════════════════════════════════════════════════════
   bool _validateProfessionalAvailability() {
-    log('');
-    log('═══════════════════════════════════════════════════════════════');
-    log('🔍 [PROFESSIONAL FILTER] Starting Validation');
-    log('═══════════════════════════════════════════════════════════════');
-    log('Total Services to Check: ${selectedProfessionals.length}');
-
-    // ─────────────────────────────────────────────────────────────────────
-    // STEP 1: Validate input data exists
-    // ─────────────────────────────────────────────────────────────────────
     if (selectedProfessionals.isEmpty) {
-      log('⚠️ [PROFESSIONAL FILTER] No professionals selected');
-      return true; // No selections to validate
+      return true;
     }
 
-    // ─────────────────────────────────────────────────────────────────────
-    // STEP 2: Iterate through each selected professional
-    // ─────────────────────────────────────────────────────────────────────
-    int serviceIndex = 0;
-
     for (var entry in selectedProfessionals.entries) {
-      serviceIndex++;
-      log('');
-      log('───────────────────────────────────────────────────────────────');
-      log('📋 [PROFESSIONAL FILTER] Checking Service $serviceIndex');
-      log('───────────────────────────────────────────────────────────────');
-
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.1: Validate entry is a Service
-      // ─────────────────────────────────────────────────────────────────
-      if (entry.key is! Service) {
-        log('⚠️ [PROFESSIONAL FILTER] Entry is not a Service - skipping');
-        continue;
-      }
-
-      final service = entry.key as Service;
+      final service = entry.key;
       final professionalName = entry.value;
 
-      log('Service Name: "${service.name}"');
-      log('Selected Professional: "${professionalName ?? "NULL"}"');
+      if (!(service is salon_models.Service ||
+          service is home_models.Service)) {
+        continue;
+      }
 
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.2: Handle "Any" professional selection
-      // ─────────────────────────────────────────────────────────────────
       if (professionalName == null || professionalName == 'Any') {
-        log('✅ [PROFESSIONAL FILTER] "Any" selected → VALIDATION PASSED');
-        log('   Reason: Any professional can be assigned');
         continue;
       }
 
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.3: Validate professionals list exists
-      // ─────────────────────────────────────────────────────────────────
       if (service.professionals == null || service.professionals!.isEmpty) {
-        log('⚠️ [PROFESSIONAL FILTER] No professionals available for this service');
-        log('   Action: Treating as "Any" - VALIDATION PASSED');
         continue;
       }
 
-      log('Available Professionals: ${service.professionals!.length}');
+      try {
+        final p = service.professionals!.firstWhere(
+          (p) => p.name?.trim() == professionalName.trim(),
+        );
 
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.4: Find the selected professional object
-      // ─────────────────────────────────────────────────────────────────
-      Professional? professional;
+        if (kDebugMode) {
+          developer.log(
+              'Professional working days | name=$professionalName | mon=${p.monday} | tue=${p.tuesday} | wed=${p.wednesday} | thu=${p.thursday} | fri=${p.friday} | sat=${p.saturday} | sun=${p.sunday}',
+              name: 'booking.flow');
+        }
+      } catch (e) {
+        if (kDebugMode) {
+          developer.log(
+              'Professional "$professionalName" not found for logging: $e',
+              name: 'booking.flow');
+        }
+      }
 
+      late final Professional professional;
       try {
         professional = service.professionals!.firstWhere(
           (p) => p.name?.trim() == professionalName.trim(),
         );
-        log('✓ Professional found: "${professional.name}"');
       } catch (e) {
-        log('❌ [PROFESSIONAL FILTER] Professional "$professionalName" NOT FOUND');
-        log('   Available: ${service.professionals!.map((p) => p.name).join(", ")}');
-        log('   Action: Skipping validation for this service');
         continue;
       }
 
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.5: Check working days availability
-      // ─────────────────────────────────────────────────────────────────
-      log('');
-      log('📅 Checking Working Days:');
-      log('   Monday:    ${professional.monday == 1 ? "✅" : "❌"} (${professional.monday})');
-      log('   Tuesday:   ${professional.tuesday == 1 ? "✅" : "❌"} (${professional.tuesday})');
-      log('   Wednesday: ${professional.wednesday == 1 ? "✅" : "❌"} (${professional.wednesday})');
-      log('   Thursday:  ${professional.thursday == 1 ? "✅" : "❌"} (${professional.thursday})');
-      log('   Friday:    ${professional.friday == 1 ? "✅" : "❌"} (${professional.friday})');
-      log('   Saturday:  ${professional.saturday == 1 ? "✅" : "❌"} (${professional.saturday})');
-      log('   Sunday:    ${professional.sunday == 1 ? "✅" : "❌"} (${professional.sunday})');
-
-      // Count working days (defensive null check)
       final workingDays = [
         professional.monday == 1,
         professional.tuesday == 1,
@@ -677,39 +888,21 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
         professional.sunday == 1,
       ].where((day) => day == true).length;
 
-      log('');
-      log('📊 Total Working Days: $workingDays');
-
-      // ─────────────────────────────────────────────────────────────────
-      // STEP 2.6: Determine if professional has availability
-      // ─────────────────────────────────────────────────────────────────
       if (workingDays == 0) {
-        log('');
-        log('❌❌❌ [PROFESSIONAL FILTER] VALIDATION FAILED ❌❌❌');
-        log('Professional "${professional.name}" has ZERO working days!');
-        log('This professional cannot accept any bookings.');
-        log('═══════════════════════════════════════════════════════════════');
-        return false; // BLOCK navigation
+        return false;
       }
-
-      log('✅ [PROFESSIONAL FILTER] Professional has $workingDays working days - OK');
     }
-
-    // ─────────────────────────────────────────────────────────────────────
-    // STEP 3: All professionals validated successfully
-    // ─────────────────────────────────────────────────────────────────────
-    log('');
-    log('═══════════════════════════════════════════════════════════════');
-    log('✅✅✅ [PROFESSIONAL FILTER] ALL VALIDATIONS PASSED ✅✅✅');
-    log('═══════════════════════════════════════════════════════════════');
-    log('');
 
     return true;
   }
 
   double _getItemPrice(dynamic item) {
-    if (item is Service) return (item.price ?? 0).toDouble();
-    if (item is Deal) return (item.totalPrice ?? 0).toDouble();
+    if (item is salon_models.Service) return (item.price ?? 0).toDouble();
+    if (item is home_models.Service) return (item.price ?? 0).toDouble();
+    if (item is salon_models.Deal)
+      return (item.totalPrice ?? item.price ?? 0).toDouble();
+    if (item is home_models.Deal)
+      return (item.totalPrice ?? item.price ?? 0).toDouble();
     return 0.0;
   }
 }

@@ -14,30 +14,39 @@ class AuthManager {
 
   static Future<bool> saveAuthData(AuthData authData) async {
     try {
+      // Saving auth data (debug logs removed)
       final prefs = await SharedPreferences.getInstance();
       final currentTime = DateTime.now();
       final expiryTime = currentTime.add(_sessionDuration);
 
       if (authData.token != null) {
+        // Saving token (debug logs removed)
         await prefs.setString(_tokenKey, authData.token!);
+      } else {
+        // No token to save (debug log removed)
       }
 
       if (authData.refreshToken != null) {
+        // Saving refresh token (debug log removed)
         await prefs.setString(_refreshTokenKey, authData.refreshToken!);
       }
 
       if (authData.user != null) {
+        // Saving user data (debug log removed)
         await prefs.setString(
             _userDataKey, jsonEncode(authData.user!.toJson()));
+      } else {
+        // No user data to save (debug log removed)
       }
 
       await prefs.setBool(_isLoggedInKey, true);
       await prefs.setInt(_loginTimeKey, currentTime.millisecondsSinceEpoch);
       await prefs.setInt(_sessionExpiryKey, expiryTime.millisecondsSinceEpoch);
 
+      // Auth data saved successfully (debug logs removed)
       return true;
     } catch (e) {
-      print('AuthManager: Error saving auth data - $e');
+      // Error saving auth data (debug log removed)
       return false;
     }
   }
@@ -47,7 +56,7 @@ class AuthManager {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_tokenKey);
     } catch (e) {
-      print('AuthManager: Error getting token - $e');
+      // Error getting token (debug log removed)
       return null;
     }
   }
@@ -57,7 +66,7 @@ class AuthManager {
       final prefs = await SharedPreferences.getInstance();
       return prefs.getString(_refreshTokenKey);
     } catch (e) {
-      print('AuthManager: Error getting refresh token - $e');
+      // Error getting refresh token (debug log removed)
       return null;
     }
   }
@@ -74,39 +83,50 @@ class AuthManager {
 
       return null;
     } catch (e) {
-      print('AuthManager: Error getting user data - $e');
+      // Error getting user data (debug log removed)
       return null;
     }
   }
 
   static Future<bool> isLoggedIn() async {
     try {
+      // Checking login status (debug log removed)
       final prefs = await SharedPreferences.getInstance();
       final isLoggedIn = prefs.getBool(_isLoggedInKey) ?? false;
       final token = prefs.getString(_tokenKey);
       final sessionExpiry = prefs.getInt(_sessionExpiryKey);
 
+      // Login check details (debug logs removed)
+
       if (!isLoggedIn || token == null || token.isEmpty) {
+        // Login check failed: missing flag or token (debug log removed)
         return false;
       }
 
       if (sessionExpiry != null) {
         final expiryTime = DateTime.fromMillisecondsSinceEpoch(sessionExpiry);
-        if (DateTime.now().isAfter(expiryTime)) {
+        final now = DateTime.now();
+        // Session expiry check (debug logs removed)
+
+        if (now.isAfter(expiryTime)) {
+          // Session expired, clearing auth data (debug log removed)
           await clearAuthData();
           return false;
         }
       }
 
+      // Login check passed (debug logs removed)
       return true;
     } catch (e) {
-      print('AuthManager: Error checking login status - $e');
+      // Error checking login status (debug log removed)
       return false;
     }
   }
 
   static Future<bool> clearAuthData() async {
     try {
+      // Clearing auth data (debug logs removed)
+
       final prefs = await SharedPreferences.getInstance();
 
       await prefs.remove(_tokenKey);
@@ -116,9 +136,10 @@ class AuthManager {
       await prefs.remove(_sessionExpiryKey);
       await prefs.setBool(_isLoggedInKey, false);
 
+      // Auth data cleared successfully (debug logs removed)
       return true;
     } catch (e) {
-      print('AuthManager: Error clearing auth data - $e');
+      // Error clearing auth data (debug log removed)
       return false;
     }
   }
@@ -129,7 +150,7 @@ class AuthManager {
       await prefs.setString(_userDataKey, jsonEncode(userData.toJson()));
       return true;
     } catch (e) {
-      print('AuthManager: Error updating user data - $e');
+      // Error updating user data (debug log removed)
       return false;
     }
   }
@@ -149,7 +170,7 @@ class AuthManager {
 
       return true;
     } catch (e) {
-      print('AuthManager: Error extending session - $e');
+      // Error extending session (debug log removed)
       return false;
     }
   }
@@ -170,7 +191,7 @@ class AuthManager {
 
       return null;
     } catch (e) {
-      print('AuthManager: Error getting session remaining time - $e');
+      // Error getting session remaining time (debug log removed)
       return null;
     }
   }
@@ -209,7 +230,7 @@ class AuthManager {
 
       return false;
     } catch (e) {
-      print('AuthManager: Error refreshing token - $e');
+      // Error refreshing token (debug log removed)
       return false;
     }
   }

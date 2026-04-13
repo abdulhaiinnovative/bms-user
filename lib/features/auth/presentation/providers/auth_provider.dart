@@ -42,31 +42,40 @@ class AuthProvider extends ChangeNotifier {
   /// Initialize the authentication state
   Future<void> initializeAuth() async {
     try {
+      // Initializing auth (debug log removed)
       _setLoading(true);
 
       final isLoggedIn = await AuthManager.isLoggedIn();
+      // isLoggedIn result (debug log removed)
 
       if (isLoggedIn) {
+        // User is logged in, fetching user data (debug log removed)
         final userData = await AuthManager.getUserData();
         if (userData != null) {
+          // User data loaded (debug log removed)
           _currentUser = userData;
           _setState(AuthState.authenticated);
         } else {
+          // User data is null, clearing auth (debug log removed)
           await _clearAuthAndSetUnauthenticated();
         }
       } else {
+        // User is NOT logged in, setting unauthenticated (debug log removed)
         _setState(AuthState.unauthenticated);
       }
     } catch (e) {
+      // Error initializing auth (debug log removed)
       _setError('Failed to initialize authentication: ${e.toString()}');
     } finally {
       _setLoading(false);
+      // Auth initialization complete (debug log removed)
     }
   }
 
   /// Login user with email and password
   Future<bool> login(String email, String password, {String? fcmToken}) async {
     try {
+      // Login attempt (debug log removed)
       _setLoading(true);
       _clearError();
 
@@ -79,30 +88,39 @@ class AuthProvider extends ChangeNotifier {
       // Validate input data
       final validationError = AuthServiceAPI.validateLoginData(loginData);
       if (validationError != null) {
+        // Validation error (debug log removed)
         _setError(validationError);
         return false;
       }
 
       // Make API call
+      // Calling API login (debug log removed)
       final AuthResponse response = await _authService.login(loginData);
 
+      // Login API response received (debug log removed)
       if (response.success && response.data != null) {
+        // Login successful, saving auth data (debug logs removed)
+
         // Save authentication data
         final saved = await AuthManager.saveAuthData(response.data!);
 
         if (saved) {
+          // Auth data saved, setting authenticated state (debug log removed)
           _currentUser = response.data!.user;
           _setState(AuthState.authenticated);
           return true;
         } else {
+          // Failed to save auth data (debug log removed)
           _setError('Failed to save login data');
           return false;
         }
       } else {
-        _setError(response.message);
+        // Login failed (debug log removed)
+        _setError(response.firstErrorMessage ?? response.message);
         return false;
       }
     } catch (e) {
+      // Login exception (debug log removed)
       _setError('Login failed: ${e.toString()}');
       return false;
     } finally {
@@ -159,7 +177,7 @@ class AuthProvider extends ChangeNotifier {
           return false;
         }
       } else {
-        _setError(response.message);
+        _setError(response.firstErrorMessage ?? response.message);
         return false;
       }
     } catch (e) {

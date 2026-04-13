@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import 'package:app/constants.dart';
 import '../viewmodels/profile_view_model.dart';
+import '../../../../screens/profile/edit_profile_screen.dart';
 
 class MyAccountScreen extends StatefulWidget {
   static String routeName = "/my_account";
@@ -47,23 +48,16 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
             ),
             actions: [
               IconButton(
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: kPrimaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(
-                    Icons.edit_outlined,
-                    color: kPrimaryColor,
-                    size: 20,
-                  ),
+                icon: const Icon(
+                  Icons.edit_outlined,
+                  color: kPrimaryColor,
+                  size: 24,
                 ),
                 onPressed: () {
-                  // TODO: Navigate to edit profile
+                  Navigator.pushNamed(context, '/edit_profile');
                 },
+                tooltip: 'Edit Profile',
               ),
-              const SizedBox(width: 8),
             ],
           ),
           body: viewModel.isLoading
@@ -247,17 +241,6 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                             value:
                                                 '${viewModel.appointmentCount}',
                                             cardColor: const Color(0xFF667eea),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 12),
-                                        Expanded(
-                                          child: _buildStatCard(
-                                            viewModel,
-                                            icon: Icons.cancel_outlined,
-                                            label: 'Cancelled',
-                                            value:
-                                                '${viewModel.userData?.cancelCount ?? 0}',
-                                            cardColor: const Color(0xFFf093fb),
                                           ),
                                         ),
                                       ],

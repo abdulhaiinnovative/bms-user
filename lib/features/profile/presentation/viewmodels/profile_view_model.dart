@@ -1,7 +1,8 @@
-import 'dart:developer';
+import 'dart:io';
 import 'package:app/core/base/base_view_model.dart';
 import '../../data/repositories/profile_repository.dart';
 import 'package:app/models/my_account_response.dart';
+import '../../../../utils/restriction_handler.dart';
 
 /// ViewModel for user profile management
 /// Handles profile data loading and state management
@@ -25,7 +26,14 @@ class ProfileViewModel extends BaseViewModel {
   String get userImage => _userData?.image ?? '';
   int get loyaltyPoints => _userData?.loyalty ?? 0;
   int get appointmentCount => _userData?.appointment ?? 0;
-  bool get isProfileComplete => (_userData?.completeStatus ?? 0) == 1;
+  bool get isProfileComplete => (_userData?.completeStatus ?? 0) == 100;
+  bool get isRestricted => (_userData?.isRestricted ?? 0) == 1;
+  bool get isActive => (_userData?.status ?? 0) == 1;
+  String get accountStatusText {
+    if (isRestricted) return 'Restricted';
+    if (!isActive) return 'Inactive';
+    return 'Active';
+  }
 
   // Marketing preferences
   bool get emailMarketing => (_userData?.emailMarketing ?? 0) == 1;
@@ -34,27 +42,21 @@ class ProfileViewModel extends BaseViewModel {
 
   /// Load user profile data
   Future<void> loadProfile() async {
-    log('ProfileViewModel: Loading profile');
-
     await executeAsync(
       operation: () async {
         final response = await _repository.getProfile();
 
-        log('ProfileViewModel: Response received - Status: ${response?.status}');
-
         if (response != null && response.status == true) {
           _userData = response.response?.user;
           _loyaltyTransactions = response.response?.loyaltyTransactions ?? [];
-
-          log('ProfileViewModel: Profile loaded successfully');
-          log('  - Name: ${_userData?.name}');
-          log('  - Email: ${_userData?.email}');
-          log('  - Loyalty Points: ${_userData?.loyalty}');
-          log('  - Appointments: ${_userData?.appointment}');
-          log('  - Complete Status: ${_userData?.completeStatus}');
+          
+          // Check if user is restricted or inactive
+          await RestrictionHandler.checkUserAccess(
+            isRestricted: _userData?.isRestricted,
+            status: _userData?.status,
+          );
         } else {
           final errorMsg = response?.message ?? 'Failed to load profile';
-          log('ProfileViewModel: Profile load failed - $errorMsg');
           throw Exception(errorMsg);
         }
 
@@ -65,8 +67,55 @@ class ProfileViewModel extends BaseViewModel {
 
   /// Refresh profile data
   Future<void> refreshProfile() async {
-    log('ProfileViewModel: Refreshing profile');
     await loadProfile();
+  }
+
+  /// Update user profile
+  Future<bool> updateProfile({
+    String? firstName,
+    String? lastName,
+    String? email,
+    String? phone,
+    String? dob,
+    String? gender,
+    String? country,
+    String? state,
+    String? city,
+    String? address,
+    File? image,
+  }) async {
+    bool success = false;
+
+    await executeAsync(
+      operation: () async {
+        final response = await _repository.updateProfile(
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          phone: phone,
+          dob: dob,
+          gender: gender,
+          country: country,
+          state: state,
+          city: city,
+          address: address,
+          image: image,
+        );
+
+        if (response != null && response.status == true) {
+          _userData = response.response?.user;
+          _loyaltyTransactions = response.response?.loyaltyTransactions ?? [];
+          success = true;
+        } else {
+          final errorMsg = response?.message ?? 'Failed to update profile';
+          throw Exception(errorMsg);
+        }
+
+        notifyListeners();
+      },
+    );
+
+    return success;
   }
 
   /// Check if profile data is available

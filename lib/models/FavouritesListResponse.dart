@@ -73,21 +73,23 @@ class PaginatedData {
 
   factory PaginatedData.fromJson(Map<String, dynamic> json) {
     return PaginatedData(
-      currentPage: json['current_page'],
-      data: (json['data'] as List)
+      currentPage: json['current_page'] ?? 1,
+      data: (json['data'] as List? ?? [])
           .map((e) => FavouriteSalon.fromJson(e))
           .toList(),
-      firstPageUrl: json['first_page_url'],
-      from: json['from'],
-      lastPage: json['last_page'],
-      lastPageUrl: json['last_page_url'],
-      links: (json['links'] as List).map((e) => PageLink.fromJson(e)).toList(),
+      firstPageUrl: json['first_page_url'] ?? '',
+      from: json['from'] ?? 0,
+      lastPage: json['last_page'] ?? 1,
+      lastPageUrl: json['last_page_url'] ?? '',
+      links: (json['links'] as List? ?? [])
+          .map((e) => PageLink.fromJson(e))
+          .toList(),
       nextPageUrl: json['next_page_url'],
-      path: json['path'],
-      perPage: json['per_page'],
+      path: json['path'] ?? '',
+      perPage: json['per_page'] ?? 10,
       prevPageUrl: json['prev_page_url'],
-      to: json['to'],
-      total: json['total'],
+      to: json['to'] ?? 0,
+      total: json['total'] ?? 0,
     );
   }
 }
@@ -194,7 +196,7 @@ class FavouriteSalon {
       averageRating: (json['average_rating'] ?? 0).toDouble(),
       reviewCount: json['review_count'] ?? 0,
       isFavourite: json['is_favourite'] ?? false,
-      activeDays: (json['active_days'] as List)
+      activeDays: (json['active_days'] as List? ?? [])
           .map((e) => ActiveDay.fromJson(e))
           .toList(),
     );

@@ -1,9 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:app/constants.dart';
 import 'package:app/models/HomePageResponse.dart';
 import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
+import '../screens/top_salons_screen.dart';
 
 import 'section_title.dart';
 
@@ -29,9 +28,11 @@ class SalonDashboard extends StatelessWidget {
                 child: SectionTitle(
                   title: section.heading,
                   press: () {
-                    Navigator.pushNamed(
+                    Navigator.push(
                       context,
-                      '/top-salons',
+                      MaterialPageRoute(
+                        builder: (context) => const TopSalonsScreen(),
+                      ),
                     );
                   },
                 ),
@@ -53,29 +54,14 @@ class SalonDashboard extends StatelessWidget {
                       reviews: item.reviewCount ?? 0,
                       press: () {
                         //working
-                        Navigator.pushNamed(
+                        Navigator.push(
                           context,
-                          SalonDetailsScrollingTabsEffectB.routeName,
-                          arguments: '${item.id}',
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                const SalonDetailsScrollingTabsEffectB(),
+                            settings: RouteSettings(arguments: '${item.id}'),
+                          ),
                         );
-
-                        // working salon detail segmented
-                        //Navigator.pushNamed(context, SalonScreen.routeName);
-
-                        // Navigator.pushNamed(context, ProductsScreen.routeName);
-
-                        // Navigator.pushNamed(context, ScrollSyncTabs.routeName);
-
-                        // working salon
-                        // Navigator.pushNamed(context, SalonDetailsScrollingTabsEffect.routeName);
-
-                        //may be category
-                        // Navigator.pushNamed(context, SalonCategoryAndServicesList.routeName);
-
-                        // SalonDetailAPI salonDetailAPI = SalonDetailAPI();
-                        // //late SalonData? salonDetailsss =
-                        // salonDetailAPI.fetchSalonDetailData("1");
-                        log('Tapped salon: ${item.name}');
                       },
                     );
                   },

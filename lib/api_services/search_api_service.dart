@@ -1,5 +1,4 @@
-import 'dart:convert';
-import 'dart:developer';
+// import 'dart:convert'; // Unused import removed
 import 'package:dio/dio.dart';
 import 'base_api_service.dart';
 import '../models/HomePageResponse.dart';
@@ -42,10 +41,6 @@ class SearchApiService extends BaseApiService {
     int page = 1, // Page number for pagination
   }) async {
     try {
-      log('════════════════════════════════════════════════════════');
-      log('🔍 SEARCH API - NEW UNIFIED SEARCH');
-      log('════════════════════════════════════════════════════════');
-
       // Build request body according to documentation
       final Map<String, dynamic> body = {};
 
@@ -75,34 +70,23 @@ class SearchApiService extends BaseApiService {
       body['per_page'] = perPage;
       body['page'] = page; // Add page parameter for pagination
 
-      // Log the request
-      log('📤 Request Body:');
-      log(const JsonEncoder.withIndent('  ').convert(body));
-      log('════════════════════════════════════════════════════════');
-
       // Make API call
       final response = await BaseApiService.post(
-        '/api/search',
+        '/search',
         data: body,
         requiresAuth: false,
         logTag: 'SEARCH',
       );
 
-      log('📥 Response Status: ${response.statusCode}');
-
       if (response.statusCode == 200) {
         final data = response.data;
-        log('✅ Search successful');
-
         return SearchResponse.fromJson(data);
       } else {
         throw Exception('Search failed with status: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      log('❌ Search API Error: ${BaseApiService.extractErrorMessage(e)}');
       throw Exception(BaseApiService.extractErrorMessage(e));
     } catch (e) {
-      log('❌ Unexpected Error: $e');
       throw Exception('An error occurred while searching: $e');
     }
   }
@@ -174,6 +158,36 @@ class SearchApiService extends BaseApiService {
       sortBy: sortBy,
       perPage: perPage,
       page: page,
+    );
+  }
+
+  /// Search all types (salons, services, deals) at once
+  /// This is the unified search that updates all three tabs simultaneously
+  static Future<SearchResponse> searchAll({
+    String? keyword,
+    String? location,
+    String? area,
+    String? type,
+    List<int>? categories,
+    double? minPrice,
+    double? maxPrice,
+    List<String>? gender,
+    String sortBy = 'relevance',
+    int perPage = 12,
+  }) {
+    return search(
+      keyword: keyword,
+      location: location,
+      area: area,
+      type: type,
+      filterType: ['salon', 'service', 'deal'], // Search all types
+      categories: categories,
+      minPrice: minPrice,
+      maxPrice: maxPrice,
+      gender: gender,
+      sortBy: sortBy,
+      perPage: perPage,
+      page: 1, // Always start at page 1 for unified search
     );
   }
 }

@@ -163,6 +163,7 @@ class _PriceRangeNewState extends State<PriceRangeNew> {
                     setState(() {
                       _currentRangeValues = const RangeValues(100, 100000);
                     });
+                    Navigator.pop(context);
                   },
                   style: OutlinedButton.styleFrom(
                     side: const BorderSide(color: kPrimaryColor),
