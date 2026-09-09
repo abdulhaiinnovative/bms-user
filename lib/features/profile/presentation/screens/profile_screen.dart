@@ -194,13 +194,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
-                _buildModernMenuItem(
-                  context: context,
-                  icon: Icons.edit_outlined,
-                  title: "Edit Profile",
-                  subtitle: "Update your profile information",
-                  onTap: () => Navigator.pushNamed(context, '/edit_profile'),
-                ),
+                // _buildModernMenuItem(
+                //   context: context,
+                //   icon: Icons.edit_outlined,
+                //   title: "Edit Profile",
+                //   subtitle: "Update your profile information",
+                //   onTap: () => Navigator.pushNamed(context, '/edit_profile'),
+                // ),
                 // _buildModernMenuItem(
                 //   context: context,
                 //   icon: Icons.notifications_outlined,
@@ -608,7 +608,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // 3. Logout from auth provider (clears AuthManager data)
       final logoutSuccess = await authProvider.logout();
 
-      // 4. Clear old user details (backward compatibility)
+      // 4. Clear profile viewmodel data to prevent stale state
+      if (context.mounted) {
+        Provider.of<ProfileViewModel>(context, listen: false).clearProfile();
+      }
+
+      // 5. Clear old user details (backward compatibility)
       await UtilsExtra.clearUserDetails();
 
       // Close loading dialog

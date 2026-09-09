@@ -74,7 +74,7 @@ class RestrictionHandler {
     }
 
     // Check if profile is incomplete
-    if (completeStatus == null || completeStatus != 1) {
+    if (completeStatus == null || completeStatus < 100) {
       await _handleIncompleteProfile(contextToUse);
       return false;
     }
@@ -82,85 +82,64 @@ class RestrictionHandler {
     return true; // User can book
   }
 
+
   /// Handle restricted user - show dialog and logout
+  // ==================== RESTRICTED USER ====================
   static Future<void> _handleRestrictedUser([BuildContext? context]) async {
     final contextToUse = context ?? _currentContext;
-
-    if (contextToUse == null || _isShowingDialog) {
-      return;
-    }
+    if (contextToUse == null || _isShowingDialog) return;
 
     _isShowingDialog = true;
 
     try {
-      // Get auth provider
-      final authProvider =
-          Provider.of<AuthProvider>(contextToUse, listen: false);
+      final authProvider = Provider.of<AuthProvider>(contextToUse, listen: false);
 
-      // Show restriction dialog
       await showDialog(
         context: contextToUse,
         barrierDismissible: false,
-        builder: (context) => WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
-              children: [
-                Icon(
-                  Icons.block_rounded,
-                  color: Colors.red.shade700,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                const Text(
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.block_rounded, color: Colors.red.shade700, size: 28),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
                   'Account Restricted',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
                 ),
-              ],
-            ),
-            content: Column(
+              ),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Your account has been restricted and you have been logged out.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 16, height: 1.5),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.shade200,
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Colors.orange.shade700,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
+                      Icon(Icons.info_outline, color: Colors.orange.shade700, size: 22),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: Text(
                           'Please contact support for assistance.',
                           style: TextStyle(
                             fontSize: 14,
                             color: Colors.orange.shade900,
-                            fontWeight: FontWeight.w500,
+                            height: 1.4,
                           ),
                         ),
                       ),
@@ -169,44 +148,31 @@ class RestrictionHandler {
                 ),
               ],
             ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.shade700,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
         ),
       );
 
-      // Logout user
       await authProvider.logout();
 
-      // Navigate to login screen and clear all routes
       if (contextToUse.mounted) {
         Navigator.of(contextToUse).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const AuthScreen()),
-          (route) => false,
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
+              (route) => false,
         );
       }
     } catch (e) {
@@ -219,83 +185,51 @@ class RestrictionHandler {
   /// Handle inactive user - show dialog and logout
   static Future<void> _handleInactiveUser([BuildContext? context]) async {
     final contextToUse = context ?? _currentContext;
-
-    if (contextToUse == null || _isShowingDialog) {
-      return;
-    }
+    if (contextToUse == null || _isShowingDialog) return;
 
     _isShowingDialog = true;
 
     try {
-      // Get auth provider
-      final authProvider =
-          Provider.of<AuthProvider>(contextToUse, listen: false);
+      final authProvider = Provider.of<AuthProvider>(contextToUse, listen: false);
 
-      // Show inactive account dialog
       await showDialog(
         context: contextToUse,
         barrierDismissible: false,
-        builder: (context) => WillPopScope(
-          onWillPop: () async => false,
-          child: AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            title: Row(
-              children: [
-                Icon(
-                  Icons.pause_circle_outline,
-                  color: Colors.orange.shade700,
-                  size: 28,
-                ),
-                const SizedBox(width: 12),
-                const Text(
-                  'Account Inactive',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                  ),
-                ),
-              ],
-            ),
-            content: Column(
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Row(
+            children: [
+              Icon(Icons.pause_circle_outline, color: Colors.orange.shade700, size: 28),
+              const SizedBox(width: 12),
+              const Expanded(child: Text('Account Inactive', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20))),
+            ],
+          ),
+          content: SingleChildScrollView(
+            child: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
                   'Your account is currently inactive and you have been logged out.',
-                  style: TextStyle(
-                    fontSize: 16,
-                    height: 1.5,
-                  ),
+                  style: TextStyle(fontSize: 16, height: 1.5),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: Colors.orange.shade200,
-                      width: 1,
-                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.orange.shade200),
                   ),
                   child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        Icons.info_outline,
-                        color: Colors.orange.shade700,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
+                      Icon(Icons.info_outline, color: Colors.orange.shade700, size: 22),
+                      const SizedBox(width: 12),
+                       Expanded(
                         child: Text(
                           'Please contact support to reactivate your account.',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.orange.shade900,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          style: TextStyle(fontSize: 14, color: Colors.orange.shade900, height: 1.4),
                         ),
                       ),
                     ],
@@ -303,44 +237,31 @@ class RestrictionHandler {
                 ),
               ],
             ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.orange.shade700,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ),
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text(
-                    'OK',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ),
-            ],
           ),
+          actions: [
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange.shade700,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('OK', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
         ),
       );
 
-      // Logout user
       await authProvider.logout();
 
-      // Navigate to login screen and clear all routes
       if (contextToUse.mounted) {
         Navigator.of(contextToUse).pushAndRemoveUntil(
-          MaterialPageRoute(builder: (context) => const AuthScreen()),
-          (route) => false,
+          MaterialPageRoute(builder: (_) => const AuthScreen()),
+              (route) => false,
         );
       }
     } catch (e) {
@@ -352,115 +273,97 @@ class RestrictionHandler {
 
   /// Handle incomplete profile - show dialog to complete profile
   static Future<void> _handleIncompleteProfile([BuildContext? context]) async {
-    final contextToUse = context ?? _currentContext;
-
-    if (contextToUse == null || _isShowingDialog) {
-      return;
-    }
+    final ctx = context ?? _currentContext;
+    if (ctx == null || _isShowingDialog) return;
 
     _isShowingDialog = true;
 
     try {
-      // Show incomplete profile dialog
       await showDialog(
-        context: contextToUse,
+        context: ctx,
         barrierDismissible: true,
-        builder: (context) => AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange.shade700,
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Complete Your Profile',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
-            ],
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Please complete your profile to proceed with booking.',
-                style: TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                    color: Colors.blue.shade200,
-                    width: 1,
+        builder: (context) {
+          final size = MediaQuery.of(context).size;
+
+          return Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Material(
+                borderRadius: BorderRadius.circular(20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    maxWidth: size.width * 0.9,
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'You need to add your personal details before making a booking.',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.blue.shade900,
-                          fontWeight: FontWeight.w500,
-                        ),
+                  child: SingleChildScrollView(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.warning_amber_rounded,
+                                color: Colors.orange,
+                                size: 28,
+                              ),
+                              const SizedBox(width: 10),
+                              Flexible(
+                                child: Text(
+                                  "Complete Your Profile",
+                                  textAlign: TextAlign.center,
+                                  softWrap: true,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          const SizedBox(height: 16),
+
+                          const Text(
+                            "Please complete your profile before booking. You need to add your personal details.",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 15,
+                              height: 1.4,
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.orange,
+                                padding: const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text(
+                                "OK",
+                                style: TextStyle(fontSize: 16),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.orange.shade700,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: const Text(
-                  'OK',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          );
+        },
       );
-    } catch (e) {
-      debugPrint('Error handling incomplete profile: $e');
     } finally {
       _isShowingDialog = false;
     }

@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:app/constants.dart';
 
 class FilterCategoriesNew extends StatefulWidget {
-  final int? selectedCategoryId;
+  final List<int>? selectedCategoryIds;
 
-  const FilterCategoriesNew({Key? key, this.selectedCategoryId})
+  const FilterCategoriesNew({Key? key, this.selectedCategoryIds})
       : super(key: key);
 
   @override
@@ -15,12 +15,16 @@ class FilterCategoriesNew extends StatefulWidget {
 
 class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
   List<Map<String, dynamic>> categories = [];
+  List<int> currentSelectedIds = [];
   bool isLoading = true;
   String? error;
 
   @override
   void initState() {
     super.initState();
+    if (widget.selectedCategoryIds != null) {
+      currentSelectedIds = List.from(widget.selectedCategoryIds!);
+    }
     fetchCategories();
   }
 
@@ -130,48 +134,89 @@ class _FilterCategoriesNewState extends State<FilterCategoriesNew> {
                 itemCount: categories.length,
                 itemBuilder: (context, index) {
                   final category = categories[index];
-                  final isSelected =
-                      category['id'] == widget.selectedCategoryId;
+                  final isSelected = currentSelectedIds.contains(category['id']);
 
                   return Container(
                     margin:
                         const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
                       color: isSelected
-                          ? const Color(0xFFFF4C5E).withOpacity(0.1)
+                          ? Colors.purple.withOpacity(0.1)
                           : Colors.transparent,
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
                         color: isSelected
-                            ? const Color(0xFFFF4C5E)
+                            ? Colors.purple
                             : Colors.grey[300]!,
                         width: isSelected ? 2 : 1,
                       ),
                     ),
-                    child: ListTile(
+                    child: CheckboxListTile(
                       title: Text(
                         category['name'],
                         style: TextStyle(
                           fontWeight:
                               isSelected ? FontWeight.w600 : FontWeight.normal,
                           color: isSelected
-                              ? const Color(0xFFFF4C5E)
+                              ? Colors.purple
                               : Colors.black87,
                         ),
                       ),
-                      trailing: isSelected
-                          ? const Icon(Icons.check_circle,
-                              color: Color(0xFFFF4C5E))
-                          : null,
-                      onTap: () {
-                        Navigator.pop(context,
-                            {'id': category['id'], 'name': category['name']});
+                      value: isSelected,
+                      activeColor: Colors.purple,
+                      checkboxShape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      onChanged: (bool? checked) {
+                        setState(() {
+                          if (checked == true) {
+                            currentSelectedIds.add(category['id']);
+                          } else {
+                            currentSelectedIds.remove(category['id']);
+                          }
+                        });
                       },
                     ),
                   );
                 },
               ),
             ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  List<String> selectedNames = [];
+                  for (var cat in categories) {
+                    if (currentSelectedIds.contains(cat['id'])) {
+                      selectedNames.add(cat['name']);
+                    }
+                  }
+                  Navigator.pop(context, {
+                    'ids': currentSelectedIds.isEmpty ? null : currentSelectedIds,
+                    'names': selectedNames.isEmpty ? null : selectedNames,
+                  });
+                },
+                child: const Text(
+                  'Apply Filters',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
           const SizedBox(height: 20),
         ],
       ),

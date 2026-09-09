@@ -1,4 +1,6 @@
+import '../features/home/presentation/viewmodels/home_slider_response.dart';
 import 'home/Professional.dart';
+import 'SalonDetailApiResponse.dart' as sd;
 
 class HomePageResponse {
   final int statusCode;
@@ -157,6 +159,7 @@ class Deal {
       deletedAt: json['deleted_at'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      // Deal class mein yeh line change karo
       salon: json['salon'] != null ? Salon.fromJson(json['salon']) : null,
       services: (json['services'] as List? ?? [])
           .map((e) => Service.fromJson(e))
@@ -204,7 +207,9 @@ class Service {
   final String? createdAt;
   final String? updatedAt;
   final Salon? salon;
+  final String? image;
   List<Professional>? professionals;
+  final List<sd.Review>? reviews;
 
   Service({
     this.id,
@@ -230,6 +235,8 @@ class Service {
     this.updatedAt,
     this.salon,
     this.professionals,
+    this.image,
+    this.reviews,
   });
 
   factory Service.fromJson(Map<String, dynamic> json) {
@@ -239,6 +246,7 @@ class Service {
           ? json['salon_id']
           : (json['salon_id'] as num?)?.toInt(),
       name: json['name'],
+      image: json['image'],
       shortDescription: json['short_description'],
       duration: json['duration'],
       description: json['description'],
@@ -281,6 +289,11 @@ class Service {
       professionals: json['professionals'] != null
           ? (json['professionals'] as List<dynamic>)
               .map((e) => Professional.fromJson(e as Map<String, dynamic>))
+              .toList()
+          : null,
+      reviews: json['reviews'] != null
+          ? (json['reviews'] as List<dynamic>)
+              .map((e) => sd.Review.fromJson(e as Map<String, dynamic>))
               .toList()
           : null,
     );
@@ -428,7 +441,7 @@ class Salon {
   final String? updatedAt;
   final int? averageRating;
   final int? reviewCount;
-  final bool? isFavourite;
+  bool? isFavourite;
   final List<ActiveDay>? activeDays;
 
   Salon({
@@ -469,50 +482,58 @@ class Salon {
   });
 
   factory Salon.fromJson(Map<String, dynamic> json) {
+    // Helper to safely parse type which can be string or list
+    String? parseType(dynamic typeData) {
+      if (typeData == null) return null;
+      if (typeData is String) return typeData;
+      if (typeData is List && typeData.isNotEmpty) return typeData.first.toString();
+      return typeData.toString();
+    }
+
     return Salon(
       id: json['id'] is int ? json['id'] : (json['id'] as num?)?.toInt(),
       vendorId: json['vendor_id'] is int
           ? json['vendor_id']
           : (json['vendor_id'] as num?)?.toInt(),
-      name: json['name'],
-      image: json['image'],
-      logo: json['logo'],
-      country: json['country'],
-      state: json['state'],
-      city: json['city'],
-      area: json['area'],
-      address: json['address'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      minBookingTime: json['min_booking_time'],
-      maxBookingTime: json['max_booking_time'],
-      minCancellationTime: json['min_cancellation_time'],
-      type: json['type'],
-      facebook: json['facebook'],
-      instagram: json['instagram'],
-      linkedin: json['linkedin'],
-      twitter: json['twitter'],
-      salonFor: json['salon_for'],
-      mapLocation: json['map_location'],
-      salonPolicy: json['salon_policy'],
-      additionalInformation: json['additional_information'],
-      about: json['about'],
+      name: json['name']?.toString(),
+      image: json['image']?.toString(),
+      logo: json['logo']?.toString() ?? json['image']?.toString(),
+      country: json['country']?.toString(),
+      state: json['state']?.toString(),
+      city: json['city']?.toString(),
+      area: json['area']?.toString(),
+      address: json['address']?.toString(),
+      latitude: json['latitude']?.toString(),
+      longitude: json['longitude']?.toString(),
+      minBookingTime: json['min_booking_time']?.toString(),
+      maxBookingTime: json['max_booking_time']?.toString(),
+      minCancellationTime: json['min_cancellation_time']?.toString(),
+      type: parseType(json['type']),
+      facebook: json['facebook']?.toString(),
+      instagram: json['instagram']?.toString(),
+      linkedin: json['linkedin']?.toString(),
+      twitter: json['twitter']?.toString(),
+      salonFor: json['salon_for']?.toString(),
+      mapLocation: json['map_location']?.toString(),
+      salonPolicy: json['salon_policy']?.toString(),
+      additionalInformation: json['additional_information']?.toString(),
+      about: json['about']?.toString(),
       status: json['status'] is int
           ? json['status']
           : (json['status'] as num?)?.toInt(),
       suspended: json['suspended'] is int
           ? json['suspended']
           : (json['suspended'] as num?)?.toInt(),
-      deletedAt: json['deleted_at'],
-      createdAt: json['created_at'],
-      updatedAt: json['updated_at'],
-      averageRating: json['average_rating'] is int
-          ? json['average_rating']
-          : (json['average_rating'] as num?)?.toInt(),
+      deletedAt: json['deleted_at']?.toString(),
+      createdAt: json['created_at']?.toString(),
+      updatedAt: json['updated_at']?.toString(),
+      averageRating: json['average_rating'] is num
+          ? (json['average_rating'] as num).toInt()
+          : (int.tryParse(json['average_rating']?.toString() ?? '')),
       reviewCount: json['review_count'] is int
           ? json['review_count']
           : (json['review_count'] as num?)?.toInt(),
-      isFavourite: json['is_favourite'],
+      isFavourite: json['is_favourite'] == true || json['is_favourite'] == 1 || json['is_favourite'] == '1',
       activeDays: json['active_days'] != null
           ? (json['active_days'] as List? ?? [])
               .map((e) => ActiveDay.fromJson(e))
@@ -662,6 +683,13 @@ class Type1 {
   final String heading;
   final List<SliderItem> data;
 
+  List<SliderImageItem> get images => data
+      .map((item) => SliderImageItem(
+            id: item.sharableId,
+            imageUrl: item.image ?? '',
+            link: item.url,
+          ))
+      .toList();
   Type1({
     required this.heading,
     required this.data,

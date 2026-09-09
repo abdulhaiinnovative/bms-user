@@ -1,6 +1,7 @@
 import 'package:app/features/search/presentation/providers/search_provider_new.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 import 'package:app/features/auth/presentation/providers/auth_provider.dart';
@@ -16,6 +17,10 @@ import 'package:app/presentation/viewmodels/bookings/bookings_view_model.dart';
 import 'package:app/features/auth/presentation/screens/splash/splash_screen.dart';
 import 'package:app/utils/restriction_handler.dart';
 import 'package:app/screens/profile/edit_profile_screen.dart';
+import 'package:app/services/notifications/notification_service.dart';
+import 'package:app/screens/test/salon_details_scrolling_tabs_effect_b.dart';
+import 'package:app/features/home/presentation/screens/service_detail_screen.dart';
+import 'package:app/features/home/presentation/screens/deals_list_screen.dart';
 import 'firebase_options.dart';
 import 'theme.dart';
 // Booking flow screens
@@ -23,6 +28,31 @@ import 'package:app/screens/test_scroll/select_professionals.dart';
 import 'package:app/screens/test_scroll/SelectDateScreen.dart';
 import 'package:app/screens/test_scroll/select_time_screen.dart';
 import 'package:app/screens/test_scroll/confirm_booking_screen.dart';
+import 'package:app/features/bookings/presentation/screens/booking_details_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+const _deepLinkChannel = MethodChannel('com.bms.app/deeplink');
+
+void _navigateDeepLink(String type, int id) {
+  final navigator = navigatorKey.currentState;
+  if (navigator == null) return;
+
+  switch (type) {
+    case 'salon':
+      navigator.push(MaterialPageRoute(
+        builder: (_) => const SalonDetailsScrollingTabsEffectB(),
+        settings: RouteSettings(arguments: '$id'),
+      ));
+    case 'service':
+      navigator.push(MaterialPageRoute(
+        builder: (_) => ServiceDetailScreen(serviceId: id),
+      ));
+    case 'deal':
+      navigator.push(MaterialPageRoute(
+        builder: (_) => DealsListScreen(initialDealId: id),
+      ));
+  }
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -31,10 +61,25 @@ Future<void> main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  GoogleSignIn.instance.initialize(
+  await GoogleSignIn.instance.initialize(
     serverClientId:
-        '55638853518-g0g84a7rsoolhi6ugo76se0o0seovf9b.apps.googleusercontent.com',
+        '87062363095-mrde6nmhi2d2v9ptrfotoqdpgu2a26pr.apps.googleusercontent.com',
   );
+
+  // Initialize Notification Service
+  await NotificationService.initialize(navigatorKey: navigatorKey);
+
+  // Handle deep links from native Android (bookmyspot://go/...)
+  _deepLinkChannel.setMethodCallHandler((call) async {
+    if (call.method == 'navigate' && call.arguments is Map) {
+      final args = call.arguments as Map;
+      final type = args['type'] as String?;
+      final id = args['id'] as int?;
+      if (type != null && id != null) {
+        _navigateDeepLink(type, id);
+      }
+    }
+  });
 
   runApp(
     MultiProvider(
@@ -70,6 +115,7 @@ class MyApp extends StatelessWidget {
     RestrictionHandler.initialize(context);
 
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       title: 'BookMySpot',
       theme: AppTheme.lightTheme(context),
@@ -108,6 +154,18 @@ class MyApp extends StatelessWidget {
               builder: (context) => const ConfirmBookingScreen(),
               settings: settings,
             );
+          case '/appointment':
+            final args = settings.arguments as Map<String, dynamic>?;
+            final id = args?['id'] ?? args?['appointmentId'] ?? args?['bookingId'];
+            if (id != null) {
+              return MaterialPageRoute(
+                builder: (context) => BookingDetailsScreen(
+                  bookingId: id is int ? id : int.tryParse(id.toString()) ?? 0,
+                ),
+                settings: settings,
+              );
+            }
+            return null;
           default:
             return null; // Let Flutter handle unknown routes
         }

@@ -1,3 +1,5 @@
+import 'package:flutter/cupertino.dart';
+
 /// Model for notification from API
 class NotificationItem {
   final int id;
@@ -27,21 +29,64 @@ class NotificationItem {
   });
 
   factory NotificationItem.fromJson(Map<String, dynamic> json) {
-    return NotificationItem(
-      id: json['id'] ?? 0,
-      subject: json['subject']?.toString() ?? '',
-      message: json['message']?.toString() ?? '',
-      isRead: json['is_read'] ?? false,
-      readAt: json['read_at']?.toString(),
-      createdAt: json['created_at']?.toString() ?? '',
-      category: json['category']?.toString() ?? '',
-      sender: json['sender']?.toString() ?? '',
-      url: json['url']?.toString(),
-      appRoute: json['app_route']?.toString(),
-      routeId: json['route_id'] is String
-          ? int.tryParse(json['route_id'])
-          : json['route_id'],
-    );
+    try {
+      final item = NotificationItem(
+        id: json['id'] ?? 0,
+        subject: json['subject']?.toString() ?? '',
+        message: json['message']?.toString() ?? '',
+        isRead: json['is_read'] ?? false,
+        readAt: json['read_at']?.toString(),
+        createdAt: json['created_at']?.toString() ?? '',
+        category: json['category']?.toString() ?? '',
+        sender: json['sender']?.toString() ?? '',
+        url: json['url']?.toString(),
+        appRoute: json['app_route']?.toString(),
+        routeId: (json['route_id'] ?? json['appointment_id'] ?? json['booking_id'] ?? 
+                   json['appointmentId'] ?? json['bookingId'] ?? json['booking_detail_id'] ??
+                   json['object_id'] ?? json['target_id']) is String
+            ? int.tryParse((json['route_id'] ?? json['appointment_id'] ?? json['booking_id'] ?? 
+                          json['appointmentId'] ?? json['bookingId'] ?? json['booking_detail_id'] ??
+                          json['object_id'] ?? json['target_id']).toString())
+            : (json['route_id'] ?? json['appointment_id'] ?? json['booking_id'] ?? 
+               json['appointmentId'] ?? json['bookingId'] ?? json['booking_detail_id'] ??
+               json['object_id'] ?? json['target_id']),
+      );
+
+      // If routeId is still null but we have a URL, try to extract it from the URL
+      if (item.routeId == null && item.url != null && item.url!.isNotEmpty) {
+        try {
+          final uri = Uri.parse(item.url!);
+          // Check all path segments for a numeric ID
+          for (final segment in uri.pathSegments) {
+            final id = int.tryParse(segment);
+            if (id != null && id > 0) {
+              debugPrint('NotificationItem: Found ID in URL segment: $segment');
+              return item.copyWith(routeId: id);
+            }
+          }
+          
+          // Check common query parameters for ID
+          final queryKeys = ['id', 'booking_id', 'appointment_id', 'bookingId', 'appointmentId', 'booking_detail_id', 'route_id', 'notification_id', 'object_id', 'target_id'];
+          for (final key in queryKeys) {
+            final queryVal = uri.queryParameters[key];
+            if (queryVal != null) {
+              final id = int.tryParse(queryVal);
+              if (id != null && id > 0) {
+                debugPrint('NotificationItem: Found ID in query parameter ($key): $queryVal');
+                return item.copyWith(routeId: id);
+              }
+            }
+          }
+        } catch (e) {
+          debugPrint('NotificationItem: URL parsing error: $e');
+        }
+      }
+      return item;
+    } catch (e) {
+      print("❌ NotificationItem Parsing Error: $e");
+      print("📦 JSON: $json");
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -169,15 +214,17 @@ class NotificationsResponse {
   });
 
   factory NotificationsResponse.fromJson(Map<String, dynamic> json) {
-    final responseData = json['response']?['data'] ?? json['data'] ?? {};
+    final responseData = json['response']?['data'];
+
+    if (responseData == null) {
+      throw Exception("Invalid notification response structure");
+    }
 
     return NotificationsResponse(
       currentPage: responseData['current_page'] ?? 1,
-      data: (responseData['data'] as List<dynamic>?)
-              ?.map((item) =>
-                  NotificationItem.fromJson(item as Map<String, dynamic>))
-              .toList() ??
-          [],
+      data: (responseData['data'] as List? ?? [])
+          .map((item) => NotificationItem.fromJson(item))
+          .toList(),
       firstPageUrl: responseData['first_page_url']?.toString(),
       from: responseData['from'] ?? 0,
       lastPage: responseData['last_page'] ?? 1,

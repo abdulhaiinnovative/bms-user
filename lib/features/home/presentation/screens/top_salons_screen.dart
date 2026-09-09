@@ -3,6 +3,9 @@ import 'package:provider/provider.dart';
 import 'package:app/constants.dart';
 import '../../../../screens/test/salon_details_scrolling_tabs_effect_b.dart';
 import '../viewmodels/top_salons_view_model.dart';
+import '../widgets/salon_dashboard.dart' show FavoriteHeartWidget;
+import '../../../../api_services/salon_detail_api.dart';
+import '../../../../features/auth/utils/auth_manager.dart';
 import 'package:shimmer/shimmer.dart';
 
 class TopSalonsScreen extends StatefulWidget {
@@ -82,31 +85,68 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
             return _buildEmptyState();
           }
 
+          final double screenWidth = MediaQuery.of(context).size.width;
+          final bool isWide = screenWidth > 500;
+
           // Success state with data
           return RefreshIndicator(
             onRefresh: () => viewModel.refreshSalons(),
             color: kPrimaryColor,
-            child: ListView.builder(
+            child: CustomScrollView(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-              itemCount:
-                  viewModel.salons.length + 1, // +1 for loading indicator
-              itemBuilder: (context, index) {
-                // Loading indicator at the bottom
-                if (index == viewModel.salons.length) {
-                  if (viewModel.isLoadingMore) {
-                    return _buildLoadingMoreIndicator();
-                  }
-                  if (!viewModel.hasMoreData) {
-                    return _buildEndOfListIndicator(viewModel);
-                  }
-                  return const SizedBox.shrink();
-                }
+              slivers: [
+                if (isWide)
+                  SliverPadding(
+                    padding: const EdgeInsets.all(10),
+                    sliver: SliverGrid(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 16,
+                        mainAxisSpacing: 16,
+                        childAspectRatio: 0.85,
+                      ),
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final salon = viewModel.salons[index];
+                          return _buildSalonCard(context, salon, isWide: true);
+                        },
+                        childCount: viewModel.salons.length,
+                      ),
+                    ),
+                  )
+                else
+                  SliverPadding(
+                    padding: const EdgeInsets.all(10),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final salon = viewModel.salons[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: _buildSalonCard(context, salon, isWide: false),
+                          );
+                        },
+                        childCount: viewModel.salons.length,
+                      ),
+                    ),
+                  ),
 
-                // Salon card
-                final salon = viewModel.salons[index];
-                return _buildSalonCard(context, salon);
-              },
+                // Footer (Loading more / End of list)
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      children: [
+                        if (viewModel.isLoadingMore)
+                          _buildLoadingMoreIndicator(),
+                        if (!viewModel.hasMoreData)
+                          _buildEndOfListIndicator(viewModel),
+                        const SizedBox(height: 20),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
             ),
           );
         },
@@ -114,238 +154,291 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
     );
   }
 
-  Widget _buildSalonCard(BuildContext context, salon) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: kPrimaryColor.withOpacity(0.1),
-          width: 1.5,
+  Widget _buildSalonCard(BuildContext context, salon, {required bool isWide}) {
+  return GestureDetector(
+    onTap: () {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const SalonDetailsScrollingTabsEffectB(),
+          settings: RouteSettings(arguments: '${salon.id}'),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: kPrimaryColor.withOpacity(0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+      );
+    },
+    child: Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: const EdgeInsets.only(right: 10, left: 0),
+      decoration: BoxDecoration(
+        color: const Color(0xffF5F5F5),
+        borderRadius: BorderRadius.circular(18),
       ),
-      child: InkWell(
-        onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const SalonDetailsScrollingTabsEffectB(),
-              settings: RouteSettings(arguments: '${salon.id}'),
-            ),
-          );
-        },
-        borderRadius: BorderRadius.circular(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Gradient bar at top
-            Container(
-              height: 4,
-              decoration: const BoxDecoration(
-                color: kPrimaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(20),
-                  topRight: Radius.circular(20),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+
+          /// IMAGE SECTION (SearchSalonCard style)
+          Stack(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.network(
+                  salon.image ?? salonImage,
+                  height: 95,
+                  width: 95,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+
+                      height: 95,
+                      width: 95,
+                      color: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.storefront_rounded,
+                        color: Colors.grey,
+                      ),
+                    );
+                  },
                 ),
               ),
-            ),
 
-            // Image with overlay
-            Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                  ),
-                  child: Image.network(
-                    salon.image ?? salonImage,
-                    height: 175,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        height: 175,
-                        color: Colors.grey[200],
-                        child: Icon(
-                          Icons.store,
-                          size: 60,
-                          color: Colors.grey[400],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-
-                // Gradient overlay at bottom of image
+              /// RATING BADGE
+              if (salon.averageRating != null && salon.averageRating! > 0)
                 Positioned(
-                  bottom: 0,
-                  left: 0,
+                  top: 0,
                   right: 0,
                   child: Container(
-                    height: 80,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.5),
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(14),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          color: Colors.amber,
+                          size: 12,
+                        ),
+                        const SizedBox(width: 2),
+                        Text(
+                          salon.averageRating.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Colors.black87,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
 
-                // Rating badge overlay
-                if (salon.averageRating != null && salon.averageRating! > 0)
-                  Positioned(
-                    bottom: 12,
-                    left: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
+              /// FAVORITE ICON
+              if (salon.isFavourite == true)
+                Positioned(
+                  top: 0,
+                  left: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.9),
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(14),
+                        bottomRight: Radius.circular(12),
                       ),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.2),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.star,
-                            color: Color(0xFFFFC107),
-                            size: 18,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            salon.averageRating.toString(),
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          if (salon.reviewCount != null &&
-                              salon.reviewCount! > 0) ...[
-                            const SizedBox(width: 4),
-                            Text(
-                              '(${salon.reviewCount})',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Icon(
+                      Icons.favorite_rounded,
+                      color: Colors.red,
+                      size: 14,
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
+          ),
 
-            // Content section
-            Padding(
-              padding: const EdgeInsets.all(14),
+          const SizedBox(width: 12),
+
+          /// DETAILS SECTION (SearchSalonCard style)
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Store icon badge and title
+
+                  /// TITLE + LOGO
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(5),
+                        width: 20,
+                        height: 20,
                         decoration: BoxDecoration(
-                          color: kPrimaryColor.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(7),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: kPrimaryColor.withOpacity(0.2),
+                            width: 1,
+                          ),
                         ),
-                        child: const Icon(
-                          Icons.store_rounded,
-                          color: kPrimaryColor,
-                          size: 14,
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: (salon.logo != null && salon.logo!.isNotEmpty)
+                              ? Image.network(
+                                  salon.logo!,
+                                  fit: BoxFit.cover,
+                                )
+                              : const Icon(
+                                  Icons.store,
+                                  size: 14,
+                                  color: Colors.grey,
+                                ),
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
+
                       Expanded(
                         child: Text(
                           salon.name ?? 'Unknown Salon',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: Color(0xFF1A1A1A),
-                            height: 1.2,
-                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.black,
+                          ),
                         ),
                       ),
                     ],
                   ),
 
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
 
-                  // Address with icon
+                  /// ADDRESS
                   if (salon.address != null && salon.address!.isNotEmpty)
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withOpacity(0.05),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: kPrimaryColor.withOpacity(0.1),
-                          width: 1,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.location_on_rounded,
+                          size: 13,
+                          color: Colors.grey.shade600,
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            color: kPrimaryColor.withOpacity(0.7),
-                            size: 16,
-                          ),
-                          const SizedBox(width: 6),
-                          Expanded(
-                            child: Text(
-                              salon.address!,
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.grey[700],
-                                fontWeight: FontWeight.w500,
-                                height: 1.3,
-                              ),
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            salon.address!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+
+                  const SizedBox(height: 4),
+
+                  /// REVIEWS
+                  Row(
+                    children: [
+                      const Icon(
+                        Icons.rate_review_rounded,
+                        color: kPrimaryColor,
+                        size: 13,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          '${salon.reviewCount ?? 0} Reviews',
+                          style: TextStyle(
+                            color: Colors.grey[700],
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
+          ),
+
+          const SizedBox(width: 10),
+
+          /// ARROW BUTTON
+          Container(
+            height: 42,
+            width: 42,
+            decoration: const BoxDecoration(
+              color: kPrimaryColor,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.arrow_forward_ios_rounded,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildLoadingShimmer() {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 500;
+
+    if (isWide) {
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.85,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          );
+        },
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: 5,
@@ -357,9 +450,9 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(24),
             ),
-            height: 300,
+            height: 250,
           ),
         );
       },
@@ -491,6 +584,127 @@ class _TopSalonsScreenState extends State<TopSalonsScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TopSalonFavButton extends StatefulWidget {
+  final String salonId;
+  final bool initialIsFavourite;
+
+  const _TopSalonFavButton({
+    Key? key,
+    required this.salonId,
+    required this.initialIsFavourite,
+  }) : super(key: key);
+
+  @override
+  State<_TopSalonFavButton> createState() => _TopSalonFavButtonState();
+}
+
+class _TopSalonFavButtonState extends State<_TopSalonFavButton> {
+  late bool isFavourite;
+  bool isToggling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    isFavourite = widget.initialIsFavourite;
+  }
+
+  @override
+  void didUpdateWidget(covariant _TopSalonFavButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.initialIsFavourite != oldWidget.initialIsFavourite) {
+      isFavourite = widget.initialIsFavourite;
+    }
+  }
+
+  Future<void> _toggleFavourite() async {
+    if (isToggling) return;
+    final previousStatus = isFavourite;
+    setState(() => isToggling = true);
+    try {
+      final token = await AuthManager.getToken();
+      final salonApi = SalonDetailAPI();
+      final newStatus = await salonApi.toggleFavorite(
+          int.parse(widget.salonId), token);
+
+      if (newStatus != null) {
+        setState(() {
+          isFavourite = newStatus;
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                Icon(
+                  newStatus ? Icons.favorite : Icons.favorite_border,
+                  color: Colors.white,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  newStatus ? 'Added to favorites' : 'Removed from favorites',
+                ),
+              ],
+            ),
+            backgroundColor: newStatus ? Colors.green : Colors.grey[700],
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      } else {
+        setState(() {
+          isFavourite = previousStatus;
+        });
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Failed to update favorite status'),
+              ],
+            ),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (_) {
+      setState(() {
+        isFavourite = previousStatus;
+      });
+    } finally {
+      if (mounted) setState(() => isToggling = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggleFavourite,
+      child: Container(
+        padding: const EdgeInsets.all(6),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          shape: BoxShape.circle,
+        ),
+        child: isToggling
+            ? const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+              )
+            : Icon(
+                isFavourite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                color: isFavourite ? Colors.red : Colors.grey,
+                size: 16,
+              ),
       ),
     );
   }

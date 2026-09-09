@@ -93,13 +93,13 @@ class SalonData {
   factory SalonData.fromJson(Map<String, dynamic> json) {
     return SalonData(
       name: json['name'],
-      id: json['id'],
+      id: (json['id'] as num?)?.toInt(),
       images: List<String>.from(json['images'] ?? []),
       createdAt: json['created_at'],
       gender: json['gender'],
       logo: json['logo'],
-      star: json['star'],
-      review_count: json['review-count'],
+      star: (json['star'] as num?)?.toInt(),
+      review_count: (json['review-count'] as num?)?.toInt(),
 
       fackebook: json['fackebook'],
       instagram: json['instagram'],
@@ -115,7 +115,7 @@ class SalonData {
       maxBookingTime: json['max_booking_time'],
 
       // TODO: FAVOURITES PARSING - Parse is_favourite from API
-      isFavourite: json['is_favourite'],
+      isFavourite: json['is_favourite'] == true || json['is_favourite'] == 1 || json['is_favourite'] == '1',
       sections: json['sections'] != null
           ? (json['sections'] as List? ?? [])
               .map((e) => Section.fromJson(e))
@@ -305,14 +305,14 @@ class Review {
   /// **Factory constructor to parse JSON into a Review object**
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
-      id: json['id'],
-      salonId: json['salon_id'],
-      userId: json['user_id'],
-      bookingId: json['booking_id'],
+      id: (json['id'] as num?)?.toInt(),
+      salonId: (json['salon_id'] as num?)?.toInt(),
+      userId: (json['user_id'] as num?)?.toInt(),
+      bookingId: (json['booking_id'] as num?)?.toInt(),
       comment: json['comment'],
-      rating: json['rating'],
-      status: json['status'],
-      isHome: json['is_home'],
+      rating: (json['rating'] as num?)?.toInt(),
+      status: (json['status'] as num?)?.toInt(),
+      isHome: (json['is_home'] as num?)?.toInt(),
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       deletedAt: json['deleted_at'],
@@ -411,7 +411,7 @@ class User {
   /// **Factory constructor to create a `User` object from JSON**
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
+      id: (json['id'] as num?)?.toInt(),
       firstName: json['first_name'],
       lastName: json['last_name'],
       name: json['name'],
@@ -420,7 +420,7 @@ class User {
       facebookUniqueId: json['facebook_unique_id'],
       deviceId: json['device_id'],
       emailVerifiedAt: json['email_verified_at'],
-      loyalty: json['loyalty'],
+      loyalty: (json['loyalty'] as num?)?.toInt(),
       provider: json['provider'],
       providerId: json['provider_id'],
       image: json['image'],
@@ -433,16 +433,16 @@ class User {
       longitude: json['longitude'],
       city: json['city'],
       address: json['address'],
-      appointment: json['appointment'],
-      emailMarketing: json['email_marketing'],
-      marketingNotification: json['marketing_notification'],
-      status: json['status'],
+      appointment: (json['appointment'] as num?)?.toInt(),
+      emailMarketing: (json['email_marketing'] as num?)?.toInt(),
+      marketingNotification: (json['marketing_notification'] as num?)?.toInt(),
+      status: (json['status'] as num?)?.toInt(),
       deletedAt: json['deleted_at'],
       emailVerificationCode: json['email_verification_code'],
       passwordResetCode: json['password_reset_code'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
-      completeStatus: json['complete_status'],
+      completeStatus: (json['complete_status'] as num?)?.toInt(),
     );
   }
 
@@ -534,8 +534,8 @@ class Staff {
 
   factory Staff.fromJson(Map<String, dynamic> json) {
     return Staff(
-      id: json['id'],
-      salonId: json['salon_id'],
+      id: (json['id'] as num?)?.toInt(),
+      salonId: (json['salon_id'] as num?)?.toInt(),
       firstName: json['first_name'],
       lastName: json['last_name'],
       name: json['name'],
@@ -543,17 +543,17 @@ class Staff {
       phone: json['phone'],
       image: json['image'],
       experience: json['experience'],
-      bookingAccept: json['booking_accept'],
-      monday: json['monday'],
-      tuesday: json['tuesday'],
-      wednesday: json['wednesday'],
-      thursday: json['thursday'],
-      friday: json['friday'],
-      saturday: json['saturday'],
-      sunday: json['sunday'],
+      bookingAccept: (json['booking_accept'] as num?)?.toInt(),
+      monday: (json['monday'] as num?)?.toInt(),
+      tuesday: (json['tuesday'] as num?)?.toInt(),
+      wednesday: (json['wednesday'] as num?)?.toInt(),
+      thursday: (json['thursday'] as num?)?.toInt(),
+      friday: (json['friday'] as num?)?.toInt(),
+      saturday: (json['saturday'] as num?)?.toInt(),
+      sunday: (json['sunday'] as num?)?.toInt(),
       startDate: json['start_date'],
       endDate: json['end_date'],
-      status: json['status'],
+      status: (json['status'] as num?)?.toInt(),
       note: json['note'],
     );
   }
@@ -621,12 +621,12 @@ class OpeningTiming {
   /// **Factory constructor to parse JSON into an OpeningTiming object**
   factory OpeningTiming.fromJson(Map<String, dynamic> json) {
     return OpeningTiming(
-      id: json['id'],
-      salonId: json['salon_id'],
+      id: (json['id'] as num?)?.toInt(),
+      salonId: (json['salon_id'] as num?)?.toInt(),
       day: json['day'],
       openingTime: json['opening_time'],
       closingTime: json['closing_time'],
-      status: json['status'],
+      status: (json['status'] as num?)?.toInt(),
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
       deletedAt: json['deleted_at'],
@@ -687,12 +687,12 @@ class SalonActiveDay {
 
   factory SalonActiveDay.fromJson(Map<String, dynamic> json) {
     return SalonActiveDay(
-      id: json['id'] as int?,
-      salonId: json['salon_id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
+      salonId: (json['salon_id'] as num?)?.toInt(),
       day: json['day'] as String?,
       openingTime: json['opening_time'] as String?,
       closingTime: json['closing_time'] as String?,
-      status: json['status'] as int?,
+      status: (json['status'] as num?)?.toInt(),
     );
   }
 }

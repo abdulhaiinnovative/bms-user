@@ -13,7 +13,6 @@ class BookingDetailAPI {
           'BookingDetailAPI.getBookingDetail called | bookingId=$bookingId',
           name: 'booking.api');
     }
-
     final response =
         await ProtectedHttpClient.get('/booking-detail/$bookingId');
 

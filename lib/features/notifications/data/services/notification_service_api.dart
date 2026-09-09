@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:app/constants.dart';
 import 'package:app/models/notification/notification_model.dart';
 import 'package:app/features/auth/utils/auth_interceptor.dart';
@@ -39,7 +40,14 @@ class NotificationServiceAPI {
         throw Exception(
             'Failed to fetch notifications: ${response.statusCode}');
       }
-    } on DioException catch (dioError) {
+    } on DioException catch (dioError, stackTrace) {
+      debugPrint('Notification getNotifications DioException: $dioError');
+      debugPrint('Stack trace: $stackTrace');
+      if (dioError.response != null) {
+        debugPrint('Response data: ${dioError.response?.data}');
+        debugPrint('Status code: ${dioError.response?.statusCode}');
+      }
+
       if (dioError.type == DioExceptionType.connectionTimeout ||
           dioError.type == DioExceptionType.receiveTimeout ||
           dioError.type == DioExceptionType.sendTimeout) {
@@ -56,7 +64,9 @@ class NotificationServiceAPI {
       } else {
         throw Exception('Network error: ${dioError.message}');
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Notification getNotifications error: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to fetch notifications: ${e.toString()}');
     }
   }
@@ -80,12 +90,20 @@ class NotificationServiceAPI {
       } else {
         throw Exception('Failed to fetch unread count: ${response.statusCode}');
       }
-    } on DioException catch (dioError) {
+    } on DioException catch (dioError, stackTrace) {
+      debugPrint('Notification getUnreadCount DioException: $dioError');
+      debugPrint('Stack trace: $stackTrace');
+      if (dioError.response != null) {
+        debugPrint('Response data: ${dioError.response?.data}');
+        debugPrint('Status code: ${dioError.response?.statusCode}');
+      }
       if (dioError.response != null && dioError.response!.statusCode == 401) {
         throw Exception('Please login to continue');
       }
       throw Exception('Failed to fetch unread count');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('Notification getUnreadCount error: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to fetch unread count: ${e.toString()}');
     }
   }
@@ -93,11 +111,15 @@ class NotificationServiceAPI {
   /// Mark a single notification as read
   Future<MarkReadResponse> markAsRead(int notificationId) async {
     try {
-      final response = await AuthInterceptor.post(
+      debugPrint(
+          'NotificationServiceAPI: Marking notification $notificationId as read');
+      final response = await AuthInterceptor.get(
         markReadEndpoint(notificationId.toString()),
         requiresAuth: true,
       );
 
+      debugPrint(
+          'NotificationServiceAPI: Mark read response status: ${response.statusCode}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         final Map<String, dynamic> responseData =
             response.data is Map<String, dynamic>
@@ -105,17 +127,30 @@ class NotificationServiceAPI {
                 : jsonDecode(response.data.toString());
 
         final markReadResponse = MarkReadResponse.fromJson(responseData);
+        debugPrint(
+            'NotificationServiceAPI: Successfully marked notification as read');
         return markReadResponse;
       } else {
+        debugPrint(
+            'NotificationServiceAPI: Failed to mark notification as read: ${response.statusCode}');
         throw Exception(
             'Failed to mark notification as read: ${response.statusCode}');
       }
-    } on DioException catch (dioError) {
+    } on DioException catch (dioError, stackTrace) {
+      debugPrint(
+          'NotificationServiceAPI: DioException in markAsRead: $dioError');
+      debugPrint('Stack trace: $stackTrace');
+      if (dioError.response != null) {
+        debugPrint('Response data: ${dioError.response?.data}');
+        debugPrint('Status code: ${dioError.response?.statusCode}');
+      }
       if (dioError.response != null && dioError.response!.statusCode == 401) {
         throw Exception('Please login to continue');
       }
       throw Exception('Failed to mark notification as read');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('NotificationServiceAPI: Error in markAsRead: $e');
+      debugPrint('Stack trace: $stackTrace');
       throw Exception('Failed to mark notification as read: ${e.toString()}');
     }
   }

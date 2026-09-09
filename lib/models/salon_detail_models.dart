@@ -289,6 +289,7 @@ class Deal {
     this.price,
     this.totalPrice,
     this.services,
+    Salon? salon,
     // legacy fields
     this.discountType,
     this.discountValue,
@@ -309,6 +310,9 @@ class Deal {
         totalPrice: (json['total_price'] is num)
             ? (json['total_price'] as num).toDouble()
             : null,
+    salon: json['salon'] != null
+        ? Salon.fromJson(Map<String, dynamic>.from(json['salon']))
+        : null,
         services: (json['services'] as List?)
             ?.map((e) => Service.fromJson(Map<String, dynamic>.from(e)))
             .toList(),

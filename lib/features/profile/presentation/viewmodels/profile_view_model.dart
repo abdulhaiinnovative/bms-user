@@ -40,6 +40,13 @@ class ProfileViewModel extends BaseViewModel {
   bool get marketingNotification =>
       (_userData?.marketingNotification ?? 0) == 1;
 
+  /// Clear profile data on logout
+  void clearProfile() {
+    _userData = null;
+    _loyaltyTransactions = [];
+    notifyListeners();
+  }
+
   /// Load user profile data
   Future<void> loadProfile() async {
     await executeAsync(
@@ -86,6 +93,20 @@ class ProfileViewModel extends BaseViewModel {
   }) async {
     bool success = false;
 
+    // ←←← YE PRINT ADD KARO
+    print('=== UPDATE PROFILE PAYLOAD ===');
+    print('firstName: $firstName');
+    print('lastName: $lastName');
+    print('email: $email');
+    print('phone: $phone');
+    print('dob: $dob');
+    print('gender: $gender');
+    print('country: $country');
+    print('state: $state');
+    print('city: $city');
+    print('address: $address');
+    print('hasImage: ${image != null}');
+    print('=============================');
     await executeAsync(
       operation: () async {
         final response = await _repository.updateProfile(

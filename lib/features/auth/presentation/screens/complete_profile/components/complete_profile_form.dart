@@ -35,12 +35,13 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
   String? firstName;
   String? lastName;
   String? phoneNumber;
+bool isPhoneValid = false;
   String? email;
-  String? gender = "female";
+  String? gender = "male";
   String? country = "pakistan";
   String? state = "sindh";
   String? city = "karachi";
-  String? address;
+  String? address = '';
 
   TextEditingController emailController = TextEditingController();
   TextEditingController firstNameController = TextEditingController();
@@ -211,74 +212,60 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
           const SizedBox(height: 20),
           //phone
           IntlPhoneField(
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-            dropdownTextStyle: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w500,
-            ),
-            decoration: InputDecoration(
-              labelText: "Phone Number",
-              hintText: "Enter your phone number",
-              floatingLabelBehavior: FloatingLabelBehavior.always,
-              labelStyle: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-                letterSpacing: 0.2,
-              ),
-              hintStyle: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[400],
-              ),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[200]!),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.grey[200]!, width: 1.5),
-              ),
-              focusedBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide:
-                    BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
-              ),
-              errorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: BorderSide(color: Colors.red.shade300, width: 1.5),
-              ),
-              focusedErrorBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(16),
-                borderSide: const BorderSide(color: Colors.red, width: 2),
-              ),
-              filled: true,
-              fillColor: Colors.grey[50],
-            ),
-            initialCountryCode: 'PK', // Pakistan as default
-            onChanged: (phone) {
-              phoneNumber = phone.completeNumber;
-              if (phone.completeNumber.isNotEmpty) {
-                removeError(error: kPhoneNumberNullError);
-              }
-            },
-            onSaved: (phone) {
-              if (phone != null) {
-                phoneNumber = phone.completeNumber;
-              }
-            },
-            validator: (phone) {
-              if (phone == null || phone.completeNumber.isEmpty) {
-                addError(error: kPhoneNumberNullError);
-                return "";
-              }
-              return null;
-            },
-          ),
+  style: const TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  ),
+  dropdownTextStyle: const TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w500,
+  ),
+  initialCountryCode: 'PK',
+  showCountryFlag: true,
+
+  decoration: InputDecoration(
+    labelText: "Phone Number *",
+    hintText: "Enter your phone number",
+    floatingLabelBehavior: FloatingLabelBehavior.always,
+    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+    border: OutlineInputBorder(
+      borderRadius: BorderRadius.circular(16),
+    ),
+  ),
+
+  onChanged: (phone) {
+    final number = phone.number.trim();
+
+    if (number.isEmpty) {
+      phoneNumber = null;
+      isPhoneValid = false;
+      return;
+    }
+
+    phoneNumber = "${phone.countryCode}$number";
+    isPhoneValid = number.length >= 10;
+  },
+
+  onSaved: (phone) {
+    final number = phone?.number.trim() ?? "";
+
+    phoneNumber = number.isEmpty ? null : "${phone?.countryCode}$number";
+  },
+
+  validator: (phone) {
+    final number = phone?.number.trim() ?? "";
+
+    if (number.isEmpty) {
+      return "Phone number is required";
+    }
+
+    if (number.length < 10) {
+      return "Enter a valid phone number";
+    }
+
+    return null;
+  },
+),
           const SizedBox(height: 20),
           // gender
           DropdownButtonFormField<String>(
@@ -431,14 +418,11 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
               return;
             },
             validator: (value) {
-              if (value!.isEmpty) {
-                addError(error: kAddressNullError);
-                return "";
-              }
-              return null;
-            },
+  // address is optional
+  return null;
+},
             decoration: _buildInputDecoration(
-              label: "Address",
+              label: "Address (Optional)",
               hint: "Enter your address",
               icon: Icons.home_outlined,
             ),
@@ -451,6 +435,15 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
             height: 56,
             child: ElevatedButton(
               onPressed: () async {
+                if (!isPhoneValid) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("Please enter a valid phone number"),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
                 _formKey.currentState!.save();
                 if (_formKey.currentState!.validate()) {
                   showDialog(
@@ -519,9 +512,9 @@ class _CompleteProfileFormState extends State<CompleteProfileForm> {
                         "city": city,
                         "latitude": "24.8607",
                         "longitude": "67.0011",
-                        "address": address
+                        "address": address ?? ""
                       });
-
+  
                       Navigator.pop(context); // Close loading dialog
 
                       if (response.status == true) {

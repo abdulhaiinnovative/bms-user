@@ -1,3 +1,4 @@
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'notification_models.dart';
@@ -15,9 +16,13 @@ class LocalNotificationService {
 
   /// Initialize the local notification service
   Future<bool> initialize() async {
-    if (_isInitialized) return true;
+    if (_isInitialized) {
+      debugPrint('LocalNotificationService: Already initialized');
+      return true;
+    }
 
     try {
+      debugPrint('LocalNotificationService: Starting initialization');
       _flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
       // Android initialization
@@ -47,14 +52,22 @@ class LocalNotificationService {
       );
 
       if (initialized == true) {
+        debugPrint('LocalNotificationService: Creating notification channels');
         await _createNotificationChannels();
+        debugPrint('LocalNotificationService: Requesting permissions');
         await _requestPermissions();
         _isInitialized = true;
+        debugPrint(
+            'LocalNotificationService: Initialization completed successfully');
         return true;
       } else {
+        debugPrint(
+            'LocalNotificationService: Initialization failed - plugin returned false');
         return false;
       }
     } catch (e) {
+      debugPrint(
+          'LocalNotificationService: Initialization failed with error: $e');
       return false;
     }
   }
@@ -157,10 +170,26 @@ class LocalNotificationService {
   /// Show immediate notification
   Future<void> showNotification(LocalNotificationModel notification) async {
     if (!_isInitialized) {
-      return;
+      debugPrint(
+          'LocalNotificationService: Not initialized, initializing before show');
+      final initialized = await initialize();
+      if (!initialized) {
+        debugPrint(
+            'LocalNotificationService: Initialization failed, cannot show notification');
+        return;
+      }
     }
 
     try {
+      debugPrint(
+          'LocalNotificationService: Showing notification: ${notification.title}');
+      debugPrint(
+          'LocalNotificationService: Notification ID: ${notification.id}');
+      debugPrint(
+          'LocalNotificationService: Channel ID: ${notification.channelId}');
+      debugPrint(
+          'LocalNotificationService: Priority: ${notification.priority}');
+
       await _flutterLocalNotificationsPlugin.show(
         notification.id,
         notification.title,
@@ -168,8 +197,9 @@ class LocalNotificationService {
         _getNotificationDetails(notification),
         payload: notification.payload,
       );
+      debugPrint('LocalNotificationService: Notification shown successfully');
     } catch (e) {
-      // ignore
+      debugPrint('LocalNotificationService: Error showing notification: $e');
     }
   }
 
@@ -361,7 +391,7 @@ class LocalNotificationService {
   }
 
   /// Check if service is initialized
-  bool get isInitialized => _isInitialized;
+  static bool get isInitialized => _instance._isInitialized;
 
   /// Static access methods for compatibility
   static LocalNotificationService get instance => _instance;
@@ -372,6 +402,13 @@ class LocalNotificationService {
 
   static Future<void> staticShowNotification(
       LocalNotificationModel notification) async {
+    debugPrint(
+        'LocalNotificationService: staticShowNotification called for: ${notification.title}');
+    if (!_instance._isInitialized) {
+      debugPrint(
+          'LocalNotificationService: Instance not initialized, initializing now');
+      await _instance.initialize();
+    }
     await _instance.showNotification(notification);
   }
 

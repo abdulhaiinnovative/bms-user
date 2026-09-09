@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:timezone/timezone.dart' as tz;
+import 'package:flutter/foundation.dart';
 import 'local_notification_service.dart';
 import 'push_notification_service.dart';
 import 'notification_handler.dart';
 import 'notification_models.dart';
 import 'notification_config.dart';
+import 'package:provider/provider.dart';
+import 'package:app/features/notifications/presentation/viewmodels/notifications_view_model.dart';
 
 /// Main notification service that manages all notification functionality
 class NotificationService {
@@ -15,26 +18,34 @@ class NotificationService {
     GlobalKey<NavigatorState>? navigatorKey,
   }) async {
     if (_isInitialized) {
+      debugPrint('NotificationService: Already initialized');
       return;
     }
 
     try {
+      debugPrint('NotificationService: Starting initialization');
+
       // Store navigator key for navigation
       if (navigatorKey != null) {
         NotificationHandler.setNavigatorKey(navigatorKey);
       }
 
       // Initialize local notification service
+      debugPrint(
+          'NotificationService: Initializing local notification service');
       await LocalNotificationService.staticInitialize();
 
       // Initialize push notification service
+      debugPrint('NotificationService: Initializing push notification service');
       await PushNotificationService.initialize();
 
       // Register default notification callbacks
       _registerDefaultCallbacks();
 
       _isInitialized = true;
+      debugPrint('NotificationService: Initialization completed successfully');
     } catch (e) {
+      debugPrint('NotificationService: Initialization failed: $e');
       rethrow;
     }
   }
@@ -110,7 +121,7 @@ class NotificationService {
     }
 
     final notification = LocalNotificationModel(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
       title: title,
       body: body,
       payload: payload,
@@ -254,7 +265,7 @@ class NotificationService {
     );
 
     final notification = LocalNotificationModel(
-      id: DateTime.now().millisecondsSinceEpoch,
+      id: DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
       title: title,
       body: body,
       payload: payload,
@@ -352,5 +363,40 @@ class NotificationService {
   static void registerDataCallback(
       String type, Function(Map<String, dynamic>) callback) {
     NotificationHandler.registerDataCallback(type, callback);
+  }
+
+  /// Refresh notification count in the UI
+  static void refreshNotificationCount() {
+    try {
+      final context = NotificationHandler.navigatorKey?.currentContext;
+      if (context != null) {
+        debugPrint('NotificationService: Refreshing notification count');
+        // We use the context from navigator key to get the provider
+        final viewModel =
+            context.read<NotificationsViewModel>(); // Using .read for one-time access
+        viewModel.loadUnreadCount();
+      } else {
+        debugPrint('NotificationService: Cannot refresh count, context is null');
+      }
+    } catch (e) {
+      debugPrint('NotificationService: Error refreshing count: $e');
+    }
+  }
+
+  /// Refresh notifications list in the UI
+  static void refreshNotificationsList() {
+    try {
+      final context = NotificationHandler.navigatorKey?.currentContext;
+      if (context != null) {
+        debugPrint('NotificationService: Refreshing notifications list');
+        final viewModel = context.read<NotificationsViewModel>();
+        viewModel.loadNotifications(refresh: true);
+        viewModel.loadUnreadCount();
+      } else {
+        debugPrint('NotificationService: Cannot refresh list, context is null');
+      }
+    } catch (e) {
+      debugPrint('NotificationService: Error refreshing list: $e');
+    }
   }
 }

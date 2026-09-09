@@ -22,6 +22,7 @@ class SelectProfessionals extends StatefulWidget {
 class _SelectProfessionalsState extends State<SelectProfessionals> {
   Map<dynamic, int>? cartItems;
   final Map<dynamic, String?> selectedProfessionals = {};
+  bool _isGlobalAnySelected = true;
 
   String? salonName;
   String? salonAddress;
@@ -102,10 +103,17 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
 
     selectedProfessionals.clear();
     cartItems?.forEach((item, _) {
-      if (item is salon_models.Service || item is home_models.Service) {
+      if (item is salon_models.Service ||
+          item is home_models.Service ||
+          item is salon_models.Deal ||
+          item is home_models.Deal) {
+
         selectedProfessionals[item] = 'Any';
       }
     });
+
+    // Global button only shows for 2+ services; for 1 service show per-service chip as selected
+    _isGlobalAnySelected = selectedProfessionals.length > 1;
 
     if (kDebugMode) {
       developer.log(
@@ -161,13 +169,19 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                   }
                   setState(() {
                     selectedProfessionals[service] = 'Any';
+                    // If all services are now 'Any' AND there are 2+ services, auto-activate global button
+                    if (selectedProfessionals.length > 1 && selectedProfessionals.values.every((v) => v == 'Any')) {
+                      _isGlobalAnySelected = true;
+                    } else {
+                      _isGlobalAnySelected = false;
+                    }
                   });
                 },
                 child: Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: selectedProfessionals[service] == 'Any'
+                    color: (selectedProfessionals[service] == 'Any' && (!_isGlobalAnySelected || selectedProfessionals.length == 1))
                         ? kPrimaryColor
                         : kPrimaryColor.withOpacity(0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -179,7 +193,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (selectedProfessionals[service] == 'Any')
+                      if (selectedProfessionals[service] == 'Any' && (!_isGlobalAnySelected || selectedProfessionals.length == 1))
                         const Padding(
                           padding: EdgeInsets.only(right: 6),
                           child: Icon(
@@ -191,7 +205,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                       Text(
                         'Any Professional',
                         style: TextStyle(
-                          color: selectedProfessionals[service] == 'Any'
+                          color: (selectedProfessionals[service] == 'Any' && (!_isGlobalAnySelected || selectedProfessionals.length == 1))
                               ? Colors.white
                               : kPrimaryColor,
                           fontSize: 13,
@@ -227,6 +241,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                       );
                     }
                     setState(() {
+                      _isGlobalAnySelected = false;
                       selectedProfessionals[service] = professional.name;
                     });
                   },
@@ -590,7 +605,7 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    salonName ?? 'Select Professionals',
+                    'Select Professionals',
                     style: const TextStyle(
                       color: Color(0xFF2D2D2D),
                       fontSize: 19,
@@ -672,13 +687,20 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
                         ),
                       )
                     else
-                      // Only show services, not deals (deals don't need professional selection)
-                      ...cartItems!.keys
-                          .where((item) =>
-                              item is salon_models.Service ||
-                              item is home_models.Service)
-                          .map((item) => _buildProfessionalSelector(item))
-                          .toList(),
+                      ...[
+                        // Global "Any Professional" button (only when 2+ services)
+                        if (_getServiceAndDealItems().length > 1)
+                          _buildGlobalAnyProfessionalButton(),
+                        // Per-service professional selectors
+                        ...cartItems!.keys
+                            .where((item) =>
+                        item is salon_models.Service ||
+                            item is home_models.Service ||
+                            item is salon_models.Deal ||
+                            item is home_models.Deal)
+                            .map((item) => _buildProfessionalSelector(item))
+                            .toList(),
+                      ],
                     const SizedBox(height: 100),
                   ],
                 ),
@@ -894,6 +916,125 @@ class _SelectProfessionalsState extends State<SelectProfessionals> {
     }
 
     return true;
+  }
+
+  /// Returns all service/deal items from the cart.
+  List<dynamic> _getServiceAndDealItems() {
+    if (cartItems == null) return [];
+    return cartItems!.keys
+        .where((item) =>
+            item is salon_models.Service ||
+            item is home_models.Service ||
+            item is salon_models.Deal ||
+            item is home_models.Deal)
+        .toList();
+  }
+
+  /// Returns true when every service is set to 'Any'.
+  bool _allServicesAreAny() {
+    return selectedProfessionals.values.every((v) => v == 'Any');
+  }
+
+  /// Global "Any Professional" button – sets ALL services to 'Any' in one tap.
+    /// Global "Any Professional" button – sets ALL services to 'Any' in one tap.
+  Widget _buildGlobalAnyProfessionalButton() {
+    final isSelected = _isGlobalAnySelected;
+
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: 14, left: 12, right: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(kRadius),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Title - bilkul service.name jaisa
+          Text(
+            "All Services",
+            style: const TextStyle(
+              fontSize: 17,
+              fontWeight: FontWeight.w800,
+              letterSpacing: -0.3,
+            ),
+          ),
+
+          const SizedBox(height: 12),   // ← yeh important hai (service wala spacing)
+
+          // Any Professional button
+          GestureDetector(
+            onTap: () {
+              if (kDebugMode) {
+                developer.log(
+                  'SelectProfessionals: Global Any Professional selected',
+                  name: 'booking.flow',
+                );
+              }
+
+              setState(() {
+                _isGlobalAnySelected = true;
+                for (final key in selectedProfessionals.keys.toList()) {
+                  selectedProfessionals[key] = 'Any';
+                }
+              });
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? kPrimaryColor
+                    : kPrimaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: kPrimaryColor.withOpacity(0.3),
+                  width: 1.5,
+                ),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: kPrimaryColor.withOpacity(0.25),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ]
+                    : [],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isSelected)
+                    const Padding(
+                      padding: EdgeInsets.only(right: 6),
+                      child: Icon(
+                        Icons.check_circle,
+                        color: Colors.white,
+                        size: 16,
+                      ),
+                    ),
+                  Text(
+                    'Any Professional',
+                    style: TextStyle(
+                      color: isSelected ? Colors.white : kPrimaryColor,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   double _getItemPrice(dynamic item) {

@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/notification/notification_model.dart';
 import '../../constants.dart';
 import '../../presentation/viewmodels/notifications/notifications_view_model.dart';
 import 'components/notification_card.dart';
+import '../../services/notifications/notification_handler.dart';
+import '../../services/notifications/notification_config.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class NotificationsScreen extends StatefulWidget {
   static String routeName = "/notifications";
@@ -255,33 +259,110 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await viewModel.markAsRead(notification.id);
     }
 
-    // Handle navigation based on notification data
-    if (notification.appRoute != null && notification.appRoute!.isNotEmpty) {
-      // Navigate to app route - dynamic routing based on notification route
-      _navigateToRoute(notification.appRoute!, notification.routeId);
+    if (!mounted) return;
+
+    final Map<String, dynamic> data = {
+      ...notification.toJson(),
+      'id': notification.routeId,
+      'appointmentId': notification.routeId,
+      'bookingId': notification.routeId,
+    };
+
+    debugPrint('NotificationsScreen: Tapped notification ID: ${notification.id}');
+    debugPrint('NotificationsScreen: Category: ${notification.category}');
+    debugPrint('NotificationsScreen: Route ID: ${notification.routeId}');
+    debugPrint('NotificationsScreen: App Route: ${notification.appRoute}');
+    
+    if (notification.routeId == null) {
+      debugPrint('NotificationsScreen: WARNING - Route ID is NULL! Full notification JSON: ${notification.toJson()}');
+    }
+
+    String? route = notification.appRoute;
+
+    // Auto-detect booking route if category is booking but route is missing
+    if ((route == null || route.isEmpty) &&
+        notification.category.toLowerCase() == 'booking' &&
+        notification.routeId != null) {
+      route = NotificationConfig.appointmentScreen;
+    }
+
+    if (route != null && route.isNotEmpty) {
+      if (route == '/notifications') return;
+      debugPrint('NotificationsScreen: Calling NotificationHandler.navigateToScreen with route: $route');
+      NotificationHandler.navigateToScreen(route, data);
     } else if (notification.url != null && notification.url!.isNotEmpty) {
-      // Open external URL (you can implement this with url_launcher package)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Opening: ${notification.url}'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+      final Uri url = Uri.parse(notification.url!);
+      try {
+        await launchUrl(url, mode: LaunchMode.platformDefault);
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error opening URL: $e')),
+          );
+        }
+      }
+    } else {
+      _showDetailDialog(context, notification);
     }
   }
 
-  void _navigateToRoute(String routeName, dynamic routeId) {
-    // This method handles dynamic routing based on the notification route name
-    // You can map route names to actual screens here
-    // For now, keeping the original route structure but using direct navigation
-    // This would need to be implemented based on your actual route mapping
+ String formatReadableDate(String dateString) {
+  try {
+    DateTime? dateTime;
 
-    // Placeholder: Navigator.pushNamed behavior can be replicated here
-    // with custom logic to instantiate screens based on routeName
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Navigating to: $routeName'),
-        duration: const Duration(seconds: 2),
+    // 1. Try ISO format
+    dateTime = DateTime.tryParse(dateString);
+
+    // 2. Try fallback formats
+    if (dateTime == null) {
+      try {
+        dateTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(dateString);
+      } catch (_) {}
+
+      try {
+        dateTime = DateFormat("dd-MM-yyyy HH:mm:ss").parse(dateString);
+      } catch (_) {}
+    }
+
+    if (dateTime == null) {
+      debugPrint("❌ Still can't parse date: $dateString");
+      return dateString;
+    }
+
+    return DateFormat('dd MMM yyyy, hh:mm a')
+        .format(dateTime.toLocal());
+  } catch (e) {
+    debugPrint("Date parse error: $e");
+    return dateString;
+  }
+}
+
+  void _showDetailDialog(BuildContext context, NotificationItem notification) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(notification.subject),
+        content: Column(
+
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+
+          children: [
+            Text(notification.message),
+            const SizedBox(height: 16),
+            Text(
+  'Received: ${formatReadableDate(notification.createdAt)}',
+  style: Theme.of(context).textTheme.bodySmall,
+),
+          ],
+        ),
+        actions: [
+          
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
       ),
     );
   }

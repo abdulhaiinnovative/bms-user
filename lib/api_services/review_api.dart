@@ -28,9 +28,9 @@ class ReviewAPI {
       }
 
       final body = {
-        'booking_id': bookingId,
+        'bookingId': bookingId,
         'rating': rating,
-        'comment': comment,
+        'review_content': comment,
       };
 
       final response = await ProtectedHttpClient.post(
@@ -115,11 +115,11 @@ class ReviewData {
   factory ReviewData.fromJson(Map<String, dynamic> json) {
     return ReviewData(
       id: json['id'] ?? 0,
-      bookingId: json['booking_id'] ?? 0,
+      bookingId: json['bookingId'] ?? 0,
       userId: json['user_id'] ?? 0,
       salonId: json['salon_id'] ?? 0,
       rating: json['rating'] ?? 0,
-      comment: json['comment'] ?? '',
+      comment: json['review_content'] ?? '',
     );
   }
 }

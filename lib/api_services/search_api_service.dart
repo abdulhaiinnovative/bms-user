@@ -38,7 +38,7 @@ class SearchApiService extends BaseApiService {
     String sortBy =
         'relevance', // relevance, rating, price_low, price_high, newest
     int perPage = 12,
-    int page = 1, // Page number for pagination
+    int page = 1, int? serviceCategoryId, // Page number for pagination
   }) async {
     try {
       // Build request body according to documentation
@@ -56,6 +56,10 @@ class SearchApiService extends BaseApiService {
 
       if (categories != null && categories.isNotEmpty) {
         body['categories'] = categories;
+      }
+      // Inside search() method, body map ke andar
+      if (serviceCategoryId != null) {
+        body['service_category_id'] = serviceCategoryId;
       }
 
       if (minPrice != null) body['min_price'] = minPrice;
@@ -142,8 +146,11 @@ class SearchApiService extends BaseApiService {
   }
 
   /// Search only deals
+  /// Search only deals
   static Future<SearchResponse> searchDeals({
     String? keyword,
+    int? serviceCategoryId,     // ← NEW: Ye important hai (Services ki category filter)
+    int? categoryId,            // Deal ki apni category (agar future mein zarurat pade)
     double? minPrice,
     double? maxPrice,
     String sortBy = 'relevance',
@@ -153,6 +160,7 @@ class SearchApiService extends BaseApiService {
     return search(
       keyword: keyword,
       filterType: ['deal'],
+      serviceCategoryId: serviceCategoryId,   // ← Pass kar rahe hain
       minPrice: minPrice,
       maxPrice: maxPrice,
       sortBy: sortBy,
@@ -189,6 +197,46 @@ class SearchApiService extends BaseApiService {
       perPage: perPage,
       page: 1, // Always start at page 1 for unified search
     );
+  }
+
+  /// Get Top Rated Salons
+  static Future<SalonPagination> getTopRatedSalons({int page = 1}) async {
+    try {
+      final response = await BaseApiService.get(
+        '/get-top-rated-salon?page=$page',
+        requiresAuth: false,
+        logTag: 'TOP_RATED_SALONS',
+      );
+      if (response.statusCode == 200) {
+        return SalonPagination.fromJson(response.data['response']['data']);
+      } else {
+        throw Exception('Failed to fetch top rated salons');
+      }
+    } on DioException catch (e) {
+      throw Exception(BaseApiService.extractErrorMessage(e));
+    } catch (e) {
+      throw Exception('An error occurred: $e');
+    }
+  }
+
+  /// Get Popular Salons
+  static Future<SalonPagination> getPopularSalons({int page = 1}) async {
+    try {
+      final response = await BaseApiService.get(
+        '/get-popular-salons?page=$page',
+        requiresAuth: false,
+        logTag: 'POPULAR_SALONS',
+      );
+      if (response.statusCode == 200) {
+        return SalonPagination.fromJson(response.data['response']['data']);
+      } else {
+        throw Exception('Failed to fetch popular salons');
+      }
+    } on DioException catch (e) {
+      throw Exception(BaseApiService.extractErrorMessage(e));
+    } catch (e) {
+      throw Exception('An error occurred: $e');
+    }
   }
 }
 

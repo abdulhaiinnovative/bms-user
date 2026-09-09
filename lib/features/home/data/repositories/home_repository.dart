@@ -17,4 +17,12 @@ class HomeRepository extends BaseRepository {
       errorContext: 'Fetch home page data',
     );
   }
+
+  /// Track slider image click
+  Future<void> trackSliderClickById(int id) async {
+    return await execute(
+      operation: () => _homeScreenAPI.trackSliderClickById(id),
+      errorContext: 'Track slider click',
+    );
+  }
 }

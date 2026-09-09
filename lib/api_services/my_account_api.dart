@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
+import 'package:path/path.dart' as path;
 import 'package:app/services/protected_http_client.dart';
 import '../models/my_account_response.dart';
 import '../constants.dart';
@@ -57,87 +59,86 @@ class MyAccountAPI {
       }
 
       final url = Uri.parse('$BASE_URL/user/profile-update');
-      final request = http.MultipartRequest('PUT', url);
+      // Laravel doesn't support PUT with multipart/form-data
+      // Use POST with _method=PUT (Laravel method spoofing)
+      final request = http.MultipartRequest('POST', url);
 
-      // Add headers
       request.headers['Authorization'] = 'Bearer $token';
       request.headers['Accept'] = 'application/json';
 
-      // Add text fields only if they are not null
-      if (firstName != null && firstName.isNotEmpty) {
-        request.fields['first_name'] = firstName;
-      }
-      if (lastName != null && lastName.isNotEmpty) {
-        request.fields['last_name'] = lastName;
-      }
-      if (email != null && email.isNotEmpty) {
-        request.fields['email'] = email;
-      }
-      if (phone != null && phone.isNotEmpty) {
-        request.fields['phone'] = phone;
-      }
-      if (dob != null && dob.isNotEmpty) {
-        request.fields['dob'] = dob;
-      }
-      if (gender != null && gender.isNotEmpty) {
-        request.fields['gender'] = gender;
-      }
-      if (country != null && country.isNotEmpty) {
-        request.fields['country'] = country;
-      }
-      if (state != null && state.isNotEmpty) {
-        request.fields['state'] = state;
-      }
-      if (city != null && city.isNotEmpty) {
-        request.fields['city'] = city;
-      }
-      if (address != null && address.isNotEmpty) {
-        request.fields['address'] = address;
-      }
+      // Laravel method spoofing - tells Laravel to treat this as PUT
+      request.fields['_method'] = 'PUT';
 
-      // Add image if provided
+      // Sab fields hamesha bhejo (empty string bhi)
+      request.fields['first_name'] = firstName ?? '';
+      request.fields['last_name']  = lastName ?? '';
+      request.fields['email']      = email ?? '';
+      request.fields['phone']      = phone ?? '';
+      request.fields['dob']        = dob ?? '';
+      request.fields['gender']     = gender ?? '';
+      request.fields['country']    = country ?? '';
+      request.fields['state']      = state ?? '';
+      request.fields['city']       = city ?? '';
+      request.fields['address']    = address ?? '';
+
+      // Image upload
       if (image != null) {
-        final imageStream = http.ByteStream(image.openRead());
-        final imageLength = await image.length();
-        final multipartFile = http.MultipartFile(
+        final fileName = path.basename(image.path);
+        final ext = path.extension(image.path).toLowerCase();
+        
+        // Determine content type based on extension
+        String contentType;
+        switch (ext) {
+          case '.jpg':
+          case '.jpeg':
+            contentType = 'image/jpeg';
+            break;
+          case '.png':
+            contentType = 'image/png';
+            break;
+          case '.gif':
+            contentType = 'image/gif';
+            break;
+          case '.webp':
+            contentType = 'image/webp';
+            break;
+          default:
+            contentType = 'image/jpeg';
+        }
+
+        final multipartFile = await http.MultipartFile.fromPath(
           'image',
-          imageStream,
-          imageLength,
-          filename: image.path.split('/').last,
+          image.path,
+          filename: fileName,
+          contentType: MediaType.parse(contentType),
         );
         request.files.add(multipartFile);
+        print('📸 Image attached: $fileName ($contentType)');
       }
 
-      // Send the request
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
 
+      print('🔄 Profile Update Status: ${response.statusCode}');
+
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
-        final myAccountResponse =
-            MyAccountResponse.fromJson(responseData as Map<String, dynamic>);
-        
+        print('🔍 FULL BACKEND RESPONSE: $responseData');
+
+        final myAccountResponse = MyAccountResponse.fromJson(responseData as Map<String, dynamic>);
+
         if (myAccountResponse.status == true) {
+          print('✅ Backend says success');
           return myAccountResponse;
         } else {
-          throw Exception(myAccountResponse.message);
+          throw Exception(myAccountResponse.message ?? 'Update failed');
         }
-      } else if (response.statusCode == 422) {
-        // Validation error
-        final responseData = jsonDecode(response.body);
-        final message = responseData['message'] ?? 'Validation error occurred';
-        throw Exception(message);
-      } else if (response.statusCode == 401) {
-        await AuthManager.clearAuthData();
-        throw UnauthorizedException('Session expired. Please login again.');
       } else {
-        throw Exception('Failed to update profile: HTTP ${response.statusCode}');
+        print('❌ Response Body: ${response.body}');
+        throw Exception('Failed: HTTP ${response.statusCode}');
       }
-    } on UnauthorizedException {
-      rethrow;
-    } on ApiException {
-      rethrow;
     } catch (e) {
+      print('Update Profile API Error: $e');
       rethrow;
     }
   }

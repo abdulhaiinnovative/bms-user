@@ -1,6 +1,11 @@
 import 'package:app/constants.dart';
-import '../widgets/salon_card_new.dart';
+import '../../../../models/home/SalonData.dart' as HomeSalonData;
+import '../../../home/presentation/screens/deal_detail_screen.dart';
+import '../widgets/search_salon_card.dart';
 import '../providers/search_provider_new.dart';
+import '../widgets/search_deals_card.dart';
+import '../widgets/search_salon_card.dart';
+import '../widgets/search_service_card.dart';
 import '../widgets/services_header_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -40,30 +45,69 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
   int? categoryId;
   String? categoryName;
   bool? isFromBottomNav;
+  int? _initialTab;
+  String? _salonFilter;
+  bool _argsProcessed = false;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    // Access ModalRoute and Provider here
-    try {
-      final Map<String, dynamic>? args =
-          ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-      categoryId = args?['categoryId'] as int?;
-      categoryName = args?['categoryName'] as String?;
-      isFromBottomNav = args?['isFromBottomNav'] as bool?;
-    } catch (e) {
-      // ignore errors accessing ModalRoute
+    
+    if (!_argsProcessed) {
+      try {
+        final Map<String, dynamic>? args =
+            ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+        categoryId = args?['categoryId'] as int?;
+        categoryName = args?['categoryName'] as String?;
+        isFromBottomNav = args?['isFromBottomNav'] as bool?;
+        _initialTab = args?['initialTab'] as int?;
+        _salonFilter = args?['salonFilter'] as String?;
+      } catch (e) {
+        // ignore errors accessing ModalRoute
+      }
+
+      // Apply initial tab + salon filter if provided
+      if (_initialTab != null && _initialTab! >= 0 && _initialTab! < 3) {
+        _tabController.index = _initialTab!;
+      }
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        final provider = Provider.of<SearchProviderNew>(context, listen: false);
+        
+        if (_salonFilter != null) {
+          // If we have a specific salon filter, apply it
+          if (_salonFilter == 'top_rated') {
+            await provider.searchTopRatedSalons();
+          } else if (_salonFilter == 'popular') {
+            await provider.searchPopularSalons();
+          }
+        } else {
+          // Default behavior: load all services
+          await provider.searchServices('', categoryId: null); // All services
+          provider.markAsSearched();
+        }
+      });
+
+      _argsProcessed = true;
     }
   }
 
   @override
   void initState() {
     super.initState();
+
     _tabController = TabController(length: 3, vsync: this);
+
+    // Default tab Services (index 0) set karo
+    _tabController.index = 0;
+
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        _triggerTabSearch();
         setState(() {});
+        // Only trigger tab search if we aren't in the middle of a special filter
+        if (_salonFilter == null) {
+          _triggerTabSearch();
+        }
       }
     });
 
@@ -88,6 +132,26 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
     });
   }
 
+  /// New Method: Initial search without any filter (all services)
+  Future<void> _performInitialSearch() async {
+    final searchProvider =
+        Provider.of<SearchProviderNew>(context, listen: false);
+
+    // Services tab ke liye empty query + no category = all services
+    await searchProvider.searchServices(
+      '', // empty keyword
+      categoryId: null, // no category filter
+      minPrice: null,
+      maxPrice: null,
+      gender: null,
+      sortBy: 'relevance',
+    );
+
+    // Mark as searched taaki initial state na dikhe
+    searchProvider
+        .markAsSearched(); // ← Yeh method add karna hoga provider mein
+  }
+
   /// Trigger search based on current tab
   /// Calls the API with filter_type parameter based on the selected tab
   void _triggerTabSearch() {
@@ -100,7 +164,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
     }
 
     final tabIndex = _tabController.index;
-    String filterType;
+    String filterType = "service";
 
     switch (tabIndex) {
       case 0:
@@ -468,6 +532,102 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
     );
   }
 
+  /// Deals Tab ka content with proper empty state
+  Widget _buildDealsContent(SearchProviderNew searchProvider) {
+    final selectedCatId =
+        searchProvider.lastServiceCategoryId ?? searchProvider.lastCategoryId;
+
+    // Agar koi category select nahi ki gayi
+    if (selectedCatId == null) {
+      if (searchProvider.deals.isEmpty) {
+        return SliverToBoxAdapter(child: _buildDealsEmptyState());
+      }
+
+      return SliverList(
+        delegate: SliverChildBuilderDelegate(
+          (context, index) {
+            final deal = searchProvider.deals[index];
+            // Convert HomePage.Salon to home/SalonData for DealDetailScreen
+            final salonDataForDetail = deal.salon != null
+                ? HomeSalonData.SalonData(
+                    id: deal.salon!.id,
+                    name: deal.salon!.name,
+                    logo: deal.salon!.logo,
+                    image: deal.salon!.image,
+                    address: deal.salon!.address,
+                  )
+                : null;
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  0, 0, 8, 4),
+              child: SearchDealsCard(
+                title: deal.name ?? "",
+                price: deal.totalPrice ?? 0,
+                deal: deal,
+                services: deal.services?.map((s) => s.name).join(' • ') ?? '',
+                discountValue: deal.discountValue ?? 0,
+                discountType: deal.discountType ?? "",
+                salon: salonDataForDetail,
+                salonName: deal.salon?.name,
+                image: deal.image ?? "",
+              ),
+            );
+          },
+          childCount: searchProvider.deals.length,
+        ),
+      );
+    }
+
+    // Category select ki gayi hai → filter deals
+    final filteredDeals = searchProvider.deals.where((deal) {
+      if (deal.services == null || deal.services!.isEmpty) return false;
+      return deal.services!.any((s) => s.categoryId == selectedCatId);
+    }).toList();
+
+    if (filteredDeals.isEmpty) {
+      return SliverToBoxAdapter(child: _buildDealsEmptyState());
+    }
+
+    // Filtered deals ko show karo
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        (context, index) {
+          final deal = filteredDeals[index];
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Deal Card
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 0, 12, 8),
+                child: SearchDealsCard(
+                  title: deal.name ?? "",
+                  price: deal.totalPrice ?? 0,
+                  deal: deal,
+                  services: deal.services!.map((s) => s.name).join(' • '),
+                  discountValue: deal.discountValue ?? 0,
+                  discountType: deal.discountType ?? "",
+                  salon: deal.salon != null
+                      ? HomeSalonData.SalonData(
+                          id: deal.salon!.id,
+                          name: deal.salon!.name,
+                          logo: deal.salon!.logo,
+                          image: deal.salon!.image,
+                          address: deal.salon!.address,
+                        )
+                      : null,
+                  salonName: deal.salon?.name,
+                  image: deal.image ?? "",
+                ),
+              ),
+            ],
+          );
+        },
+        childCount: filteredDeals.length,
+      ),
+    );
+  }
+
   /// Build empty state for salons
   Widget _buildSalonsEmptyState() {
     return Container(
@@ -599,21 +759,17 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                                         searchProvider
                                                             .services[index];
                                                     return Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                        bottom: 4,
-                                                      ),
-                                                      child: ServicesCard(
-                                                        title:
-                                                            service.name ?? "",
-                                                        image: "",
-                                                        salon: null,
+                                                      padding: const EdgeInsets
+                                                          .fromLTRB(0, 0, 8,
+                                                          4),
+                                                      child: SearchServiceCard(
+                                                        title: service.name ?? "",
+                                                        image: service.image ?? "",
+                                                        salon: service.salon,
                                                         salonName: service.salon?.name,
                                                         service: service,
-                                                        desc: service
-                                                                .shortDescription ??
-                                                            "",
-                                                        
+                                                        desc: service.shortDescription ?? "",
+                                                        width: 180,
                                                       ),
                                                     );
                                                   },
@@ -640,6 +796,7 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                       ),
                     ),
                     // Deals Tab with Pull-to-Refresh
+
                     RefreshIndicator(
                       onRefresh: _onRefreshDeals,
                       color: kPrimaryColor,
@@ -661,53 +818,10 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                     : !searchProvider.hasSearched
                                         ? SliverToBoxAdapter(
                                             child: _buildInitialState())
-                                        : searchProvider.deals.isEmpty
-                                            ? SliverToBoxAdapter(
-                                                child: _buildDealsEmptyState())
-                                            : SliverList(
-                                                delegate:
-                                                    SliverChildBuilderDelegate(
-                                                  (BuildContext context,
-                                                      int index) {
-                                                    final deal = searchProvider
-                                                        .deals[index];
-                                                    return Padding(
-                                                      padding:
-                                                          const EdgeInsets.only(
-                                                        bottom: 4,
-                                                      ),
-                                                      child: DealsCard(
-                                                        title: deal.name ?? "",
-                                                        price:
-                                                            deal.totalPrice ??
-                                                                0,
-                                                        deal: deal,
-                                                        services:
-                                                            deal.services !=
-                                                                    null
-                                                                ? deal.services!
-                                                                    .map((s) =>
-                                                                        s.name)
-                                                                    .join(' • ')
-                                                                : '',
-                                                        discountValue:
-                                                            deal.discountValue ??
-                                                                0,
-                                                        discountType:
-                                                            deal.discountType ??
-                                                                "",
-                                                        salon: null,
-                                                        salonName: deal.salon?.name,
-                                                        image: deal.image ?? "",
-                                                   
-                                                      ),
-                                                    );
-                                                  },
-                                                  childCount: searchProvider
-                                                      .deals.length,
-                                                ),
-                                              ),
+                                        : _buildDealsContent(
+                                            searchProvider), // ← Yeh naya method call
                           ),
+
                           // Loading indicator for pagination
                           if (searchProvider.isLoading &&
                               searchProvider.deals.isNotEmpty)
@@ -715,11 +829,8 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                               child: Padding(
                                 padding: EdgeInsets.all(16.0),
                                 child: Center(
-                                  child: CircularProgressIndicator(
-                                    color: kPrimaryColor,
-                                    strokeWidth: 2,
-                                  ),
-                                ),
+                                    child: CircularProgressIndicator(
+                                        color: kPrimaryColor)),
                               ),
                             ),
                         ],
@@ -735,7 +846,8 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                         physics: const AlwaysScrollableScrollPhysics(),
                         slivers: [
                           SliverPadding(
-                            padding: const EdgeInsets.only(top: 8, bottom: 8),
+                            padding: const EdgeInsets.fromLTRB(
+                                0, 0, 8, 4), // ← Right padding yahan di
                             sliver: searchProvider.isLoading &&
                                     searchProvider.salons.isEmpty
                                 ? SliverToBoxAdapter(
@@ -762,16 +874,19 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
                                                           const EdgeInsets.only(
                                                         bottom: 8,
                                                       ),
-                                                      child: SalonCard(
-                                                        name: salon.name ?? "Salon #${salon.id}",
+                                                      child: SearchSalonCard(
+                                                        name: salon.name ??
+                                                            "Salon #${salon.id}",
+                                                        logo: salon.logo ?? '',
                                                         image:
                                                             salon.image ?? '',
                                                         address:
                                                             salon.address ?? "",
                                                         about:
                                                             salon.about ?? "",
-                                                        average_rating:
-                                                            salon.averageRating ?? 0,
+                                                        average_rating: salon
+                                                                .averageRating ??
+                                                            0,
                                                         review_count:
                                                             salon.reviewCount ??
                                                                 0,
@@ -824,5 +939,6 @@ class _SearchServiceScreenState extends State<SearchServiceScreenNew>
         ),
       ),
     );
+
   }
 }

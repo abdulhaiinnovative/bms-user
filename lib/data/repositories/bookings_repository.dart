@@ -14,6 +14,7 @@ class BookingsRepository extends BaseRepository {
   Future<dynamic> getBookingsList({
     required int page,
     String? url,
+    String? status,
   }) async {
     if (kDebugMode) {
       developer.log(
@@ -22,7 +23,7 @@ class BookingsRepository extends BaseRepository {
     }
 
     final result = await execute(
-      operation: () => _bookingsAPI.getBooking(page: page, url: url),
+      operation: () => _bookingsAPI.getBooking(page: page, url: url, status: status),
       errorContext: 'Get bookings list',
     );
 

@@ -5,7 +5,8 @@ import '../data/models/auth_response.dart';
 class AuthManager {
   static const String _tokenKey = 'auth_token';
   static const String _refreshTokenKey = 'refresh_token';
-  static const String _userDataKey = 'user_data';
+  // static const String _userDataKey = 'user_data';
+  static const String _userDataKey = 'get-user-profile';
   static const String _isLoggedInKey = 'is_logged_in';
   static const String _loginTimeKey = 'login_time';
   static const String _sessionExpiryKey = 'session_expiry';
@@ -83,7 +84,7 @@ class AuthManager {
 
       return null;
     } catch (e) {
-      // Error getting user data (debug log removed)
+      // Error getting user data
       return null;
     }
   }

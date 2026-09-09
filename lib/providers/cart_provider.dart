@@ -31,6 +31,8 @@ class CartProvider extends ChangeNotifier {
   bool get hasDeals {
     return _items.keys.any((item) => _itemType(item) == _CartItemType.deal);
   }
+  String? salonLogo;
+  String? salonImage;
 
   // Get salon info
   int? get salonId => _salonId;
@@ -40,6 +42,7 @@ class CartProvider extends ChangeNotifier {
   void setSalonInfo(int? id, String? name) {
     _salonId = id;
     _salonName = name;
+
     notifyListeners();
   }
 

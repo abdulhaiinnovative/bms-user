@@ -71,6 +71,13 @@ class SocialUserData {
   final int emailMarketing; // Changed from bool to int
   final int marketingNotification; // Changed from bool to int
   final int completeStatus;
+  final String? role;
+  final bool? isNumberVerified;
+  final String? deviceToken;
+  final String? appleUniqueId;
+  final String? appleEmail;
+  final String? googleUniqueId;
+  final String? facebookUniqueId;
 
   SocialUserData({
     required this.id,
@@ -95,6 +102,13 @@ class SocialUserData {
     required this.emailMarketing,
     required this.marketingNotification,
     required this.completeStatus,
+    this.role,
+    this.isNumberVerified,
+    this.deviceToken,
+    this.appleUniqueId,
+    this.appleEmail,
+    this.googleUniqueId,
+    this.facebookUniqueId,
   });
 
   factory SocialUserData.fromJson(Map<String, dynamic> json) {
@@ -122,6 +136,15 @@ class SocialUserData {
       marketingNotification:
           json['marketing_notification'] ?? 0, // Parse as int
       completeStatus: json['complete_status'] ?? 60,
+      role: json['role']?.toString(),
+      isNumberVerified: json['is_number_verified'] ?? json['isNumberVerified'],
+      deviceToken: json['device_id']?.toString() ??
+          json['device_token']?.toString() ??
+          json['deviceToken']?.toString(),
+      appleUniqueId: json['apple_unique_id']?.toString(),
+      appleEmail: json['apple_email']?.toString(),
+      googleUniqueId: json['google_unique_id']?.toString(),
+      facebookUniqueId: json['facebook_unique_id']?.toString(),
     );
   }
 
@@ -149,6 +172,13 @@ class SocialUserData {
       'email_marketing': emailMarketing,
       'marketing_notification': marketingNotification,
       'complete_status': completeStatus,
+      'role': role,
+      'is_number_verified': isNumberVerified,
+      'device_token': deviceToken,
+      'apple_unique_id': appleUniqueId,
+      'apple_email': appleEmail,
+      'google_unique_id': googleUniqueId,
+      'facebook_unique_id': facebookUniqueId,
     };
   }
 }

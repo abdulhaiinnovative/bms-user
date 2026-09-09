@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import '../widgets/account_boxes.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -120,40 +122,69 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                 children: [
                                   const SizedBox(height: 24),
                                   // Profile Picture
+                                  // Profile Picture
                                   Stack(
                                     alignment: Alignment.center,
                                     children: [
+                                      // Glow background
                                       Container(
                                         height: 120,
                                         width: 120,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          color: kPrimaryColor,
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: kPrimaryColor
-                                                  .withOpacity(0.3),
-                                              blurRadius: 20,
-                                              offset: const Offset(0, 8),
-                                            ),
-                                          ],
+                                          color: kPrimaryColor.withOpacity(0.15),
                                         ),
                                       ),
+
+                                      // Actual Image Container
                                       Container(
                                         height: 112,
                                         width: 112,
                                         decoration: BoxDecoration(
                                           shape: BoxShape.circle,
-                                          border: Border.all(
-                                            color: Colors.white,
-                                            width: 4,
-                                          ),
-                                          image: const DecorationImage(
-                                            image: NetworkImage(logo),
-                                            fit: BoxFit.cover,
+                                          border: Border.all(color: Colors.white, width: 4),
+                                        ),
+                                        child: ClipOval(
+                                          child: Builder(
+                                            builder: (context) {
+                                              final imageUrl = viewModel.userImage;
+
+                                              // Case 1: Valid Network URL
+                                              if (imageUrl.isNotEmpty &&
+                                                  (imageUrl.startsWith('http://') || imageUrl.startsWith('https://'))) {
+                                                return Image.network(
+                                                  imageUrl,
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return const Icon(Icons.person, size: 55, color: Colors.grey);
+                                                  },
+                                                );
+                                              }
+                                              // Case 2: Local file path (after upload)
+                                              else if (imageUrl.isNotEmpty && imageUrl.startsWith('file://')) {
+                                                final filePath = imageUrl.replaceFirst('file://', '');
+                                                return Image.file(
+                                                  File(filePath),
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (context, error, stackTrace) {
+                                                    return const Icon(Icons.person, size: 55, color: Colors.grey);
+                                                  },
+                                                );
+                                              }
+                                              // Case 3: No image
+                                              else {
+                                                return const Icon(
+                                                  Icons.person,
+                                                  size: 55,
+                                                  color: Colors.grey,
+                                                );
+                                              }
+                                            },
                                           ),
                                         ),
                                       ),
+
+                                      // Camera Icon
                                       Positioned(
                                         bottom: 0,
                                         right: 0,
@@ -162,18 +193,7 @@ class _MyAccountScreenState extends State<MyAccountScreen> {
                                           decoration: BoxDecoration(
                                             color: kPrimaryColor,
                                             shape: BoxShape.circle,
-                                            border: Border.all(
-                                              color: Colors.white,
-                                              width: 3,
-                                            ),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: kPrimaryColor
-                                                    .withOpacity(0.4),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
+                                            border: Border.all(color: Colors.white, width: 3),
                                           ),
                                           child: const Icon(
                                             Icons.camera_alt_rounded,

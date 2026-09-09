@@ -1,9 +1,21 @@
 import 'package:app/core/base/base_view_model.dart';
 import 'package:app/data/repositories/bookings_repository.dart';
 import 'package:app/models/MyBookingResponse.dart';
-import 'package:intl/intl.dart';
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
+
+class BookingTabState {
+  List<Booking> bookings = [];
+  int currentPage = 1;
+  int lastPage = 1;
+  int totalBookings = 0;
+  String? nextPageUrl;
+  bool hasMorePages = false;
+  bool isLoadingMore = false;
+  bool isFirstLoad = true;
+  bool hasError = false;
+  String? errorMessage;
+}
 
 /// ViewModel for Bookings Screen
 /// Manages state for user bookings with pagination and filtering
@@ -13,51 +25,50 @@ class BookingsViewModel extends BaseViewModel {
   BookingsViewModel({BookingsRepository? repository})
       : _repository = repository ?? BookingsRepository();
 
-  // State
-  List<Booking> _allBookings = [];
-  final List<Booking> _upcomingBookings = [];
-  final List<Booking> _pastBookings = [];
+  final Map<String, BookingTabState> _tabStates = {};
+
   bool _isRefreshing = false;
-  bool _isLoadingMore = false;
-
-  // Pagination
-  int _currentPage = 1;
-  int _lastPage = 1;
-  int _totalBookings = 0;
-  String? _nextPageUrl;
-
-  // Getters
-  List<Booking> get allBookings => _allBookings;
-  List<Booking> get upcomingBookings => _upcomingBookings;
-  List<Booking> get pastBookings => _pastBookings;
   bool get isRefreshing => _isRefreshing;
-  bool get isLoadingMore => _isLoadingMore;
-  int get currentPage => _currentPage;
-  int get lastPage => _lastPage;
-  int get totalBookings => _totalBookings;
-  bool get hasMorePages => _nextPageUrl != null;
-  bool get isEmpty => _allBookings.isEmpty && !isLoading;
 
-  /// Load bookings list
-  Future<void> loadBookings({bool refresh = false}) async {
+  BookingTabState getTabState(String status) {
+    if (!_tabStates.containsKey(status)) {
+      _tabStates[status] = BookingTabState();
+    }
+    return _tabStates[status]!;
+  }
+
+  /// Load bookings list for a given status
+  Future<void> loadBookings(String status, {bool refresh = false}) async {
+    final tabState = getTabState(status);
+
     if (kDebugMode) {
       developer.log(
-          'BookingsViewModel.loadBookings called | refresh=$refresh | page=$_currentPage',
+          'BookingsViewModel.loadBookings called | status=$status | refresh=$refresh | page=${tabState.currentPage}',
           name: 'bookings.viewModel');
     }
+
     if (refresh) {
       _isRefreshing = true;
-      _currentPage = 1;
-      _nextPageUrl = null;
-      _allBookings.clear();
+      tabState.currentPage = 1;
+      tabState.nextPageUrl = null;
+      tabState.bookings.clear();
+      tabState.hasMorePages = false;
+      tabState.hasError = false;
+      tabState.errorMessage = null;
       notifyListeners();
+    }
+
+    if (tabState.bookings.isEmpty && !tabState.isLoadingMore && tabState.isFirstLoad) {
+      setLoading();
     }
 
     await executeAsync(
       operation: () async {
+        final targetPage = refresh ? 1 : (tabState.currentPage + 1);
         final response = await _repository.getBookingsList(
-          page: _currentPage,
-          url: _nextPageUrl,
+          page: targetPage,
+          url: tabState.nextPageUrl,
+          status: status == 'all' ? '' : status,
         );
 
         if (response.status == true && response.response?.data != null) {
@@ -66,132 +77,89 @@ class BookingsViewModel extends BaseViewModel {
 
           if (kDebugMode) {
             developer.log(
-                'BookingsViewModel: API returned ${newBookings.length} bookings | currentPage=${bookingData.currentPage} | total=${bookingData.total}',
+                'BookingsViewModel: API returned ${newBookings.length} bookings for status=$status | currentPage=${bookingData.currentPage} | total=${bookingData.total}',
                 name: 'bookings.viewModel');
           }
 
           if (!refresh) {
             if (newBookings.isNotEmpty) {
-              _allBookings.addAll(newBookings);
+              tabState.bookings.addAll(newBookings);
             }
           } else {
-            _allBookings = newBookings;
+            tabState.bookings = newBookings;
           }
 
-          _currentPage = bookingData.currentPage ?? 1;
-          _lastPage = bookingData.lastPage ?? 1;
-          _totalBookings = bookingData.total ?? 0;
-          _nextPageUrl = bookingData.nextPageUrl;
-
-          // Filter bookings into upcoming and past
-          _filterBookings();
+          tabState.currentPage = bookingData.currentPage ?? 1;
+          tabState.lastPage = bookingData.lastPage ?? 1;
+          tabState.totalBookings = bookingData.total ?? 0;
+          tabState.nextPageUrl = bookingData.nextPageUrl;
+          tabState.hasMorePages = tabState.nextPageUrl != null;
+          tabState.isFirstLoad = false;
+          tabState.hasError = false;
+          tabState.errorMessage = null;
         }
 
+        if (tabState.isFirstLoad && tabState.bookings.isEmpty) {
+            tabState.isFirstLoad = false;
+        }
+
+        setSuccess();
         notifyListeners();
       },
       onError: (error) {
-        // Handle 404 error as empty bookings instead of showing error
+        tabState.isFirstLoad = false;
         if (error.contains('404')) {
-          _allBookings = [];
-          _upcomingBookings.clear();
-          _pastBookings.clear();
-          _totalBookings = 0;
-          _currentPage = 1;
-          _lastPage = 1;
-          _nextPageUrl = null;
-          // Clear the error and set to success state so empty state shows
+          tabState.bookings = [];
+          tabState.currentPage = 1;
+          tabState.nextPageUrl = null;
+          tabState.hasMorePages = false;
+          tabState.hasError = false;
+          tabState.errorMessage = null;
           setSuccess();
-          notifyListeners();
+        } else {
+          tabState.hasError = true;
+          tabState.errorMessage = error;
+          setError(error);
         }
+        notifyListeners();
       },
     );
 
     _isRefreshing = false;
   }
 
-  /// Filter bookings into upcoming and past
-  void _filterBookings() {
-    final now = DateTime.now();
+  /// Load next page for a given status
+  Future<void> loadNextPage(String status) async {
+    final tabState = getTabState(status);
+    if (!tabState.hasMorePages || isLoading || tabState.isLoadingMore) return;
 
-    _upcomingBookings.clear();
-    _pastBookings.clear();
-
-    for (var booking in _allBookings) {
-      if (booking.date == null) {
-        continue;
-      }
-
-      DateTime? bookingDateTime;
-      try {
-        final date = DateTime.tryParse(booking.date!);
-        if (date == null) {
-          continue;
-        }
-
-        final time = booking.time != null
-            ? DateFormat('HH:mm:ss').parse(booking.time!).toLocal()
-            : DateTime(1970, 1, 1, 0, 0);
-
-        bookingDateTime = DateTime(
-          date.year,
-          date.month,
-          date.day,
-          time.hour,
-          time.minute,
-        );
-      } catch (e) {
-        continue;
-      }
-
-      // Upcoming: status is 'booked' and time is in the future
-      if (booking.status == 'booked' && !bookingDateTime.isBefore(now)) {
-        _upcomingBookings.add(booking);
-      }
-      // Past: not booked or time is in the past
-      else if (booking.status != 'booked' || bookingDateTime.isBefore(now)) {
-        _pastBookings.add(booking);
-      }
-    }
-
-    // Sort bookings by date descending
-    _sortBookingsList(_allBookings);
-    _sortBookingsList(_upcomingBookings);
-    _sortBookingsList(_pastBookings);
-  }
-
-  /// Sort bookings list by date descending
-  void _sortBookingsList(List<Booking> bookings) {
-    bookings.sort((a, b) {
-      try {
-        final dateA = DateTime.tryParse(a.date ?? '');
-        final dateB = DateTime.tryParse(b.date ?? '');
-
-        if (dateA == null && dateB == null) return 0;
-        if (dateA == null) return 1;
-        if (dateB == null) return -1;
-
-        return dateB.compareTo(dateA); // Descending order
-      } catch (e) {
-        return 0;
-      }
-    });
-  }
-
-  /// Load next page
-  Future<void> loadNextPage() async {
-    if (!hasMorePages || isLoading || _isLoadingMore) return;
-
-    _isLoadingMore = true;
+    tabState.isLoadingMore = true;
     notifyListeners();
 
-    await loadBookings(refresh: false);
+    await loadBookings(status, refresh: false);
 
-    _isLoadingMore = false;
+    tabState.isLoadingMore = false;
     notifyListeners();
   }
 
-  /// Refresh bookings list
+  /// Refresh bookings list for a given status
+  Future<void> refreshStatus(String status) async {
+    await loadBookings(status, refresh: true);
+  }
+
+  /// Refresh all booking tab states
   Future<void> refresh() async {
-    await loadBookings(refresh: true);
+    _isRefreshing = true;
+    for (final state in _tabStates.values) {
+      state.currentPage = 1;
+      state.nextPageUrl = null;
+      state.bookings.clear();
+      state.hasMorePages = false;
+      state.hasError = false;
+      state.errorMessage = null;
+      state.isFirstLoad = true;
+    }
+    notifyListeners();
+    _isRefreshing = false;
   }
 }

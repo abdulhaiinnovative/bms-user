@@ -425,6 +425,7 @@ class _SignInFormState extends State<SignInForm> {
             height: 56,
             child: ElevatedButton(
               onPressed: authProvider.isLoading ? null : _handleSignIn,
+              
               style: ElevatedButton.styleFrom(
                 backgroundColor: kPrimaryColor,
                 foregroundColor: Colors.white,
@@ -533,13 +534,14 @@ class _SignInFormState extends State<SignInForm> {
       if (fcmToken != null) {
         // FCM token retrieved
       }
-      
+
       // Call login API - this will save token and user data to local storage on success (status 200)
       final success = await authProvider.login(
         _emailController.text.trim(),
         _passwordController.text,
         fcmToken: fcmToken,
       );
+      print("HANDLE SIGN IN${success}");
 
       if (!mounted) return;
 
@@ -550,7 +552,7 @@ class _SignInFormState extends State<SignInForm> {
         setState(() {
           errors.clear();
         });
-        
+
         if (!mounted) return;
         Navigator.pushReplacement(
           context,
@@ -651,8 +653,8 @@ class _SignInFormState extends State<SignInForm> {
             ),
           );
         }
-      } else {
-        // Google Sign-In failed
+      } else if (result['cancelled'] != true) {
+        // Google Sign-In failed (not just cancelled)
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -697,6 +699,7 @@ class _SignUpFormState extends State<SignUpForm> {
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
   final List<String?> errors = [];
+  String _completePhoneNumber = '';
 
   @override
   void dispose() {
@@ -907,8 +910,8 @@ class _SignUpFormState extends State<SignUpForm> {
 
           const SizedBox(height: 20),
 
-            // Phone Number with modern design
-            IntlPhoneField(
+          // Phone Number with modern design
+          IntlPhoneField(
             controller: _phoneController,
             style: const TextStyle(
               fontSize: 15,
@@ -928,61 +931,61 @@ class _SignUpFormState extends State<SignUpForm> {
               hintText: "Enter your phone number",
               floatingLabelBehavior: FloatingLabelBehavior.always,
               labelStyle: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-              letterSpacing: 0.2,
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.grey[700],
+                letterSpacing: 0.2,
               ),
               hintStyle: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[400],
+                fontSize: 14,
+                color: Colors.grey[400],
               ),
               contentPadding:
-                const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!),
               ),
               enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.grey[200]!),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.grey[200]!),
               ),
               focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide:
-                BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
+                borderRadius: BorderRadius.circular(16),
+                borderSide:
+                    BorderSide(color: kPrimaryColor.withOpacity(0.8), width: 2),
               ),
               errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: Colors.red.shade300),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide(color: Colors.red.shade300),
               ),
               focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: Colors.red, width: 2),
+                borderRadius: BorderRadius.circular(16),
+                borderSide: const BorderSide(color: Colors.red, width: 2),
               ),
               filled: true,
               fillColor: Colors.grey[50],
             ),
             initialCountryCode: 'PK',
             onChanged: (phone) {
+              _completePhoneNumber = phone.completeNumber;
               if (phone.completeNumber.isNotEmpty) {
-              removeError(error: "Phone number is required");
+                removeError(error: "Phone number is required");
               }
             },
             onSaved: (phone) {
               if (phone != null) {
-              _phoneController.text = phone.completeNumber;
+                _phoneController.text = phone.completeNumber;
               }
             },
             validator: (phone) {
               if (phone == null || phone.completeNumber.isEmpty) {
-              addError(error: "Phone number is required");
-              return "";
+                addError(error: "Phone number is required");
+                return "";
               }
               return null;
             },
-            ),
-
+          ),
 
           const SizedBox(height: 20),
 
@@ -1208,7 +1211,7 @@ class _SignUpFormState extends State<SignUpForm> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         username: _usernameController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _completePhoneNumber.isNotEmpty ? _completePhoneNumber : _phoneController.text.trim(),
         email: email,
         password: password,
         fcmToken: fcmToken,
@@ -1222,7 +1225,7 @@ class _SignUpFormState extends State<SignUpForm> {
         setState(() {
           errors.clear();
         });
-        
+
         // Navigate directly to home screen since registration response includes auth token
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -1358,8 +1361,8 @@ class _SignUpFormState extends State<SignUpForm> {
             ),
           );
         }
-      } else {
-        // Google Sign-Up failed (debug log removed)
+      } else if (result['cancelled'] != true) {
+        // Google Sign-Up failed (not just cancelled)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(

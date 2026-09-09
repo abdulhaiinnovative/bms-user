@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:intl_phone_field/phone_number.dart';
 import 'package:provider/provider.dart';
 import '../../constants.dart';
 import '../../features/profile/presentation/viewmodels/profile_view_model.dart';
@@ -32,6 +34,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   File? _profileImage;
   String? _selectedGender;
+  String _completePhoneNumber = '';
+  String _initialCountryCode = 'PK';
   bool _isSaving = false;
 
   @override
@@ -44,13 +48,34 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         TextEditingController(text: userData?.firstName ?? '');
     _lastNameController = TextEditingController(text: userData?.lastName ?? '');
     _emailController = TextEditingController(text: userData?.email ?? '');
-    _phoneController = TextEditingController(text: userData?.phone ?? '');
     _dobController = TextEditingController(text: userData?.dob ?? '');
     _countryController = TextEditingController(text: userData?.country ?? '');
     _stateController = TextEditingController(text: userData?.state ?? '');
     _cityController = TextEditingController(text: userData?.city ?? '');
     _addressController = TextEditingController(text: userData?.address ?? '');
     _selectedGender = userData?.gender;
+
+    // Parse existing phone number to extract local number and country code
+    final existingPhone = userData?.phone ?? '';
+    _completePhoneNumber = existingPhone;
+    if (existingPhone.startsWith('+92')) {
+      _initialCountryCode = 'PK';
+      _phoneController = TextEditingController(text: existingPhone.substring(3));
+    } else if (existingPhone.startsWith('+1')) {
+      _initialCountryCode = 'US';
+      _phoneController = TextEditingController(text: existingPhone.substring(2));
+    } else if (existingPhone.startsWith('+44')) {
+      _initialCountryCode = 'GB';
+      _phoneController = TextEditingController(text: existingPhone.substring(3));
+    } else if (existingPhone.startsWith('+91')) {
+      _initialCountryCode = 'IN';
+      _phoneController = TextEditingController(text: existingPhone.substring(3));
+    } else if (existingPhone.startsWith('+')) {
+      // Generic: strip the + and let IntlPhoneField handle it
+      _phoneController = TextEditingController(text: existingPhone);
+    } else {
+      _phoneController = TextEditingController(text: existingPhone);
+    }
   }
 
   @override
@@ -119,6 +144,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     setState(() {
       _isSaving = true;
     });
+    // ←←← YE PRINT ADD KARO (debug ke liye)
+    print('=== SENDING TO UPDATE PROFILE ===');
+    print('Gender: ${_selectedGender}');
+    print('DOB: ${_dobController.text}');
+    print('Country: ${_countryController.text}');
+    print('State: ${_stateController.text}');
+    print('City: ${_cityController.text}');
+    print('Address: ${_addressController.text}');
+    print('=============================');
 
     final viewModel = context.read<ProfileViewModel>();
 
@@ -127,7 +161,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         firstName: _firstNameController.text.trim(),
         lastName: _lastNameController.text.trim(),
         email: _emailController.text.trim(),
-        phone: _phoneController.text.trim(),
+        phone: _completePhoneNumber.trim(),
         dob: _dobController.text.trim().isNotEmpty
             ? _dobController.text.trim()
             : null,
@@ -146,8 +180,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             : null,
         image: _profileImage,
       );
-
+      print('Update API Response: success = $success');
       if (success && mounted) {
+        await viewModel.loadProfile();
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profile updated successfully!'),
@@ -351,13 +386,91 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
               ),
               const SizedBox(height: 16),
 
-              _buildTextField(
-                controller: _phoneController,
-                label: 'Phone',
-                hint: 'Enter your phone number',
-                icon: Icons.phone_outlined,
-                keyboardType: TextInputType.phone,
-                isRequired: true,
+              // Phone Number Field (with Country Code)
+              const SizedBox(height: 16),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Phone',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: kTextColor,
+                        ),
+                      ),
+                      const Text(
+                        ' *',
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  IntlPhoneField(
+                    controller: _phoneController,
+                    initialCountryCode: _initialCountryCode,
+                    disableLengthCheck: true,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    dropdownTextStyle: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    decoration: InputDecoration(
+                      hintText: "Enter your phone number",
+                      hintStyle: TextStyle(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                      filled: true,
+                      fillColor: Colors.white,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[200]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: kPrimaryColor, width: 2),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 16,
+                      ),
+                    ),
+                    onChanged: (phone) {
+                      // Store the complete international number (e.g. +923123456789)
+                      _completePhoneNumber = phone.completeNumber;
+                      print('📱 Complete phone: $_completePhoneNumber');
+                    },
+                    validator: (phone) {
+                      if (phone == null || phone.number.isEmpty) {
+                        return 'Phone number is required';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
               ),
               const SizedBox(height: 30),
 
@@ -541,7 +654,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             border: Border.all(color: Colors.grey[200]!),
           ),
           child: DropdownButtonFormField<String>(
-            initialValue: _selectedGender,
+            value: _selectedGender,
             decoration: const InputDecoration(
               prefixIcon:
                   Icon(Icons.person_outline, color: kPrimaryColor, size: 20),

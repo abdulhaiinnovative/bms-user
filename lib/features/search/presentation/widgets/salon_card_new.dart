@@ -24,10 +24,10 @@ class SalonCard extends StatelessWidget {
     required this.average_rating,
     required this.review_count,
     required this.is_favourite,
-    required this.press,
+    required this.press, required this.logo,
   }) : super(key: key);
 
-  final String name, image, address, about;
+  final String name, image, address, about,logo;
   final int review_count;
   final int average_rating;
   final bool is_favourite;
@@ -154,17 +154,48 @@ class SalonCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Salon Name
-                      Text(
-                        name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF2D2D2D),
-                          letterSpacing: -0.3,
-                          height: 1.2,
-                        ),
+                      Row(
+                        children: [
+                          Container(
+                            width: 28,
+                            height: 28,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(7),
+                              border: Border.all(
+                                color: kPrimaryColor.withOpacity(0.2),
+                                width: 1.5,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(5.5),
+                              child: (logo != null && logo!.isNotEmpty)
+                                  ? Image.network(logo!,
+                                  width: 20, height: 20, fit: BoxFit.cover)
+                                  : (image != null && image!.isNotEmpty)
+                                  ? Image.network(image!,
+                                  width: 20, height: 20, fit: BoxFit.cover)
+                                  : Container(
+                                width: 20,
+                                height: 20,
+                                color: Colors.grey[200],
+                                child: const Icon(Icons.store),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 7,),
+                          Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              color: Color(0xFF2D2D2D),
+                              letterSpacing: -0.3,
+                              height: 1.2,
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 8),
                       // About

@@ -51,11 +51,7 @@ class AuthServiceAPI {
                 : jsonDecode(response.data.toString());
         final authResponse = AuthResponse.fromJson(responseData);
 
-        if (authResponse.success) {
-          return authResponse;
-        } else {
-          return authResponse;
-        }
+        return authResponse;
       } else if (response.statusCode == 400) {
         // Bad request - invalid credentials or validation errors
         final Map<String, dynamic> responseData =

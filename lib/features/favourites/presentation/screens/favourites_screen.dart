@@ -383,168 +383,243 @@ class _FavouritesScreenState extends State<FavouritesScreen>
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: GestureDetector(
         onTap: () => _navigateToSalonDetail(salon.id),
-        child: SizedBox(
+        child: Container(
           width: double.infinity,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(kRadius),
-            child: Container(
-              color: kCardBG,
-              child: Column(
+          padding: const EdgeInsets.only(right: 10, left: 0),
+          decoration: BoxDecoration(
+            color: const Color(0xffF5F5F5),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              /// IMAGE
+              Stack(
                 children: [
-                  // Image on top
-                  Stack(
-                    children: [
-                      SizedBox(
-                        width: double.infinity,
-                        height: 175,
-                        child: CachedNetworkImage(
-                          imageUrl: imageUrl,
-                          fit: BoxFit.cover,
-                          placeholder: (context, url) => Container(
-                            color: Colors.grey[200],
-                            child: const Center(
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                    kPrimaryColor),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: imageUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: imageUrl,
+                            height: 95,
+                            width: 95,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 95,
+                              width: 95,
+                              color: Colors.grey.shade300,
+                              child: const Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: kPrimaryColor,
+                                ),
                               ),
                             ),
-                          ),
-                          errorWidget: (context, url, error) => Container(
-                            color: Colors.grey[200],
-                            child: Icon(
-                              Icons.store,
-                              size: 60,
-                              color: Colors.grey[400],
+                            errorWidget: (context, url, error) => Container(
+                              height: 95,
+                              width: 95,
+                              color: Colors.grey.shade300,
+                              child: const Icon(
+                                Icons.storefront_rounded,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          )
+                        : Container(
+                            height: 95,
+                            width: 95,
+                            color: Colors.grey.shade300,
+                            child: const Icon(
+                              Icons.storefront_rounded,
+                              color: Colors.grey,
                             ),
                           ),
+                  ),
+
+                  /// RATING BADGE
+                  if (salon.averageRating > 0)
+                    Positioned(
+                      top: 0,
+                      right: 0,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.9),
+                          borderRadius: const BorderRadius.only(
+                            topRight: Radius.circular(14),
+                            bottomLeft: Radius.circular(12),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 4,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.star_rounded,
+                              color: Colors.amber,
+                              size: 12,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              salon.averageRating.toStringAsFixed(1),
+                              style: const TextStyle(
+                                color: Colors.black87,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      // Heart icon overlay
-                      Positioned(
-                        top: 10,
-                        right: 10,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            shape: BoxShape.circle,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.2),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
+                    ),
+                ],
+              ),
+
+              const SizedBox(width: 12),
+
+              /// DETAILS
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      /// TITLE AND LOGO
+                      Row(
+                        children: [
+                          Container(
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: kPrimaryColor.withOpacity(0.2),
+                                width: 1,
                               ),
-                            ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(12),
+                              child: (salon.logo != null && salon.logo!.isNotEmpty)
+                                  ? CachedNetworkImage(
+                                      imageUrl: salon.logo!.startsWith('http')
+                                          ? salon.logo!
+                                          : '$BASE_URL_IMAGE${salon.logo}',
+                                      fit: BoxFit.cover,
+                                      errorWidget: (context, url, error) => const Icon(Icons.store, size: 14, color: Colors.grey),
+                                    )
+                                  : const Icon(Icons.store, size: 14, color: Colors.grey),
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.favorite,
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              salon.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+
+                      const SizedBox(height: 6),
+
+                      /// ADDRESS
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 13,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              salon.address,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      /// REVIEWS
+                      Row(
+                        children: [
+                          const Icon(
+                            Icons.rate_review_rounded,
                             color: kPrimaryColor,
-                            size: 20,
+                            size: 13,
                           ),
-                        ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              '${salon.reviewCount} ${salon.reviewCount == 1 ? 'Review' : 'Reviews'}',
+                              style: TextStyle(
+                                color: Colors.grey[700],
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  // Content below image
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 10,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Salon name
-                        Text(
-                          salon.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1,
-                        ),
-                        const SizedBox(height: 5),
-                        // Address with location icon
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.location_pin,
-                              color: Colors.amber,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 5),
-                            Expanded(
-                              child: Text(
-                                salon.address,
-                                style: const TextStyle(
-                                  color: Colors.black,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        // Rating and reviews
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            // Star rating
-                            Row(
-                              children: [
-                                Row(
-                                  children: List.generate(5, (index) {
-                                    return Icon(
-                                      index < salon.averageRating
-                                          ? Icons.star_rounded
-                                          : Icons.star_border_rounded,
-                                      color: Colors.amber,
-                                      size: 18,
-                                    );
-                                  }),
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  salon.averageRating.toStringAsFixed(1),
-                                  style: const TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            // Review count
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.reviews,
-                                  color: kPrice,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 5),
-                                Text(
-                                  '${salon.reviewCount}',
-                                  style: const TextStyle(
-                                    color: kPrice,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+
+              const SizedBox(width: 10),
+
+              /// HEART BUTTON
+              GestureDetector(
+                onTap: () {
+                   viewModel.toggleFavourite(
+                     salonId: salon.id.toString(), 
+                     index: index,
+                   );
+                },
+                child: Container(
+                  height: 42,
+                  width: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(
+                    Icons.favorite_rounded,
+                    color: kPrimaryColor,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),

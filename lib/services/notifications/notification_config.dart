@@ -61,6 +61,8 @@ class NotificationConfig {
   static const String payloadTypeKey = 'type';
   static const String payloadDataKey = 'data';
   static const String payloadScreenKey = 'screen';
+  static const String payloadTitleKey = 'title';
+  static const String payloadBodyKey = 'body';
 
   // Notification types
   static const String appointmentNotificationType = 'appointment';

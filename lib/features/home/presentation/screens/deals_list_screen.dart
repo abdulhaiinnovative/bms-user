@@ -10,11 +10,16 @@ import 'package:app/components/cart_bottom_bar.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
 import '../../../auth/utils/auth_manager.dart';
 import '../../../auth/presentation/screens/auth/auth_screen.dart';
+import '../widgets/deals_dashboard.dart';
+import 'deal_detail_screen.dart';
+import 'package:app/models/home/SalonData.dart' as HomeSalonData;
 
 class DealsListScreen extends StatefulWidget {
   static const String routeName = '/deals-list';
 
-  const DealsListScreen({Key? key}) : super(key: key);
+  final int? initialDealId;
+
+  const DealsListScreen({Key? key, this.initialDealId}) : super(key: key);
 
   @override
   State<DealsListScreen> createState() => _DealsListScreenState();
@@ -23,12 +28,14 @@ class DealsListScreen extends StatefulWidget {
 class _DealsListScreenState extends State<DealsListScreen> {
   final ScrollController _scrollController = ScrollController();
   late DealsViewModel _viewModel;
+  bool _didAutoNavigate = false;
 
   @override
   void initState() {
     super.initState();
 
     _viewModel = DealsViewModel();
+    _viewModel.addListener(_onViewModelChanged);
 
     // Load initial data
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -41,10 +48,38 @@ class _DealsListScreenState extends State<DealsListScreen> {
 
   @override
   void dispose() {
+    _viewModel.removeListener(_onViewModelChanged);
     _scrollController.removeListener(_onScroll);
     _scrollController.dispose();
     _viewModel.dispose();
     super.dispose();
+  }
+
+  void _onViewModelChanged() {
+    if (_didAutoNavigate || widget.initialDealId == null) return;
+    if (_viewModel.isLoading) return;
+
+    final deal = _viewModel.deals.cast<HomePage.Deal?>().firstWhere(
+      (d) => d?.id == widget.initialDealId,
+      orElse: () => null,
+    );
+    if (deal == null) return;
+
+    _didAutoNavigate = true;
+
+    final salonDataForDetail = deal.salon != null
+        ? HomeSalonData.SalonData(
+            id: deal.salon!.id,
+            name: deal.salon!.name,
+            logo: deal.salon!.logo,
+            image: deal.salon!.image,
+            address: deal.salon!.address,
+          )
+        : null;
+
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (_) => DealDetailScreen(deal: deal, salon: salonDataForDetail),
+    ));
   }
 
   void _onScroll() {
@@ -79,7 +114,10 @@ class _DealsListScreenState extends State<DealsListScreen> {
                 onPressed: () {
                   Navigator.pop(context);
                   // Navigate to sign in screen
-                  Navigator.pushNamed(context, AuthScreen.routeName);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kPrimaryColor,
@@ -160,25 +198,59 @@ class _DealsListScreenState extends State<DealsListScreen> {
                 return RefreshIndicator(
                   onRefresh: () => viewModel.refreshDeals(),
                   color: kPrimaryColor,
-                  child: ListView.builder(
-                    controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                    itemCount: viewModel.deals.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == viewModel.deals.length) {
-                        if (viewModel.isLoadingMore) {
-                          return _buildLoadingCard();
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(2, 8, 2, 8),
+                    child: ListView.builder(
+                      controller: _scrollController,
+                      itemCount: viewModel.deals.length + 1,
+                      itemBuilder: (context, index) {
+                        if (index == viewModel.deals.length) {
+                          if (viewModel.isLoadingMore) {
+                            return _buildLoadingCard();
+                          }
+                          if (!viewModel.hasMoreData) {
+                            return _buildEndOfListIndicator(viewModel);
+                          }
+                          return const SizedBox.shrink();
                         }
-                        if (!viewModel.hasMoreData) {
-                          return _buildEndOfListIndicator(viewModel);
-                        }
-                        return const SizedBox.shrink();
-                      }
 
-                      final deal = viewModel.deals[index];
-                      return _buildDealCard(context, deal);
-                    },
+                        final item = viewModel.deals[index];
+
+                    // Convert HomePage.Salon to home/SalonData for DealDetailScreen
+                    final salonDataForDetail = item.salon != null
+                        ? HomeSalonData.SalonData(
+                            id: item.salon!.id,
+                            name: item.salon!.name,
+                            logo: item.salon!.logo,
+                            image: item.salon!.image,
+                            address: item.salon!.address,
+                          )
+                        : null;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: GestureDetector(
+                            onTap: (){
+                              Navigator.push(context, MaterialPageRoute(builder: (context) => DealDetailScreen(deal: item, salon: salonDataForDetail)));
+                            },
+                            // child: DealsCard(
+                            //   title: deal.name ?? 'No Title',
+                            //   image: deal.image ?? '',
+                            //   services: deal.services != null
+                            //       ? deal.services!.map((s) => s.name).join(' • ')
+                            //       : '',
+                            //   salon: null,
+                            //   salonName: deal.salon?.name,
+                            //   deal: deal,
+                            //   price: deal.price?.toInt() ?? 0,
+                            //   discountValue: deal.discountValue?.toInt() ?? 0,
+                            //   discountType: deal.discountType ?? '',
+                            //   width: double.infinity, // list screen full width
+                            // ),
+                            child :_buildDealCard(context, item),
+                          ),
+                        );
+                      },
+                    ),
                   ),
                 );
               },
@@ -209,291 +281,255 @@ class _DealsListScreenState extends State<DealsListScreen> {
     );
   }
 
+  /// REPLACE YOUR COMPLETE _buildDealCard WITH THIS
+
   Widget _buildDealCard(BuildContext context, HomePage.Deal deal) {
-    final hasDiscount = deal.discountValue != null && deal.discountValue! > 0;
+    final hasDiscount =
+        deal.discountValue != null && deal.discountValue! > 0;
+
     final int oldPrice = deal.discountType == 'amount'
         ? (deal.price ?? 0) + (deal.discountValue ?? 0)
         : ((deal.price ?? 0) +
-                ((deal.price ?? 0) * (deal.discountValue ?? 0) / 100))
-            .toInt();
+        ((deal.price ?? 0) *
+            (deal.discountValue ?? 0) /
+            100))
+        .toInt();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: kPrimaryColor.withOpacity(0.15),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: kPrimaryColor.withOpacity(0.12),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              spreadRadius: -4,
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+      padding: const EdgeInsets.only(right: 10, left: 0),
+      decoration: BoxDecoration(
+        color: const Color(0xffF5F5F5),
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+
+          /// IMAGE SECTION
+          Stack(
             children: [
-              // Discount Badge
-              if (hasDiscount)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B6B),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(14),
+                child: Image.network(
+                  deal.image ?? salonImage,
+                  height: 150,
+                  width: 110,
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 110,
+                      width: 110,
+                      color: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.local_offer_rounded,
+                        color: Colors.grey,
                       ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.flash_on, color: Colors.white, size: 13),
-                      const SizedBox(width: 4),
-                      Text(
-                        deal.discountType == 'amount'
-                            ? 'Rs ${deal.discountValue} OFF'
-                            : '${deal.discountValue}% OFF',
-                        style: const TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
+                    );
+                  },
                 ),
-
-              SizedBox(height: hasDiscount ? 8 : 0),
-
-              // Deal Title
-              Text(
-                deal.name ?? 'No Title',
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                  height: 1.2,
-                  letterSpacing: -0.3,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
 
-              const SizedBox(height: 5),
-
-              // Services List
-              if (deal.services != null && deal.services!.isNotEmpty)
-                Text(
-                  deal.services!.map((s) => s.name).join(' • '),
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[600],
-                    height: 1.2,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-              const SizedBox(height: 7),
-
-              // Salon Name with Icon
-              if (deal.salon?.name != null)
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: const Icon(
-                        Icons.store_rounded,
-                        size: 13,
-                        color: kPrimaryColor,
-                      ),
+              /// DISCOUNT BADGE
+              if (hasDiscount)
+                Positioned(
+                  top: 0,
+                  right: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 5,
                     ),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: Text(
-                        deal.salon!.name!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                    decoration: BoxDecoration(
+                      color: Colors.redAccent,
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(14),
+                        bottomLeft: Radius.circular(12),
                       ),
-                    ),
-                  ],
-                ),
-
-              const SizedBox(height: 8),
-
-              // Price and Book Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Price Section
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "PKR ${deal.price ?? 0}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: kPrimaryColor,
-                            height: 1,
-                            letterSpacing: -0.5,
-                          ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.12),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
                         ),
-                        if (hasDiscount) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            "PKR $oldPrice",
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: Colors.red[400],
-                              decorationThickness: 2,
-                            ),
-                          ),
-                        ],
                       ],
                     ),
+                    child: Text(
+                      deal.discountType == 'amount'
+                          ? 'Rs ${deal.discountValue} OFF'
+                          : '${deal.discountValue}% OFF',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+
+          const SizedBox(width: 12),
+
+          /// DETAILS SECTION
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+
+                  /// DEAL TITLE
+                  Text(
+                    deal.name ?? 'No Title',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black,
+                    ),
                   ),
 
-                  const SizedBox(width: 8),
+                  const SizedBox(height: 6),
 
-                  // Book Button with Cart functionality
-                  Consumer<CartProvider>(
-                    builder: (context, cart, child) {
-                      final isInCart = cart.isInCart(deal);
-                      return Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                          color:
-                              isInCart ? Colors.grey.shade400 : kPrimaryColor,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isInCart
-                                      ? Colors.grey.shade400
-                                      : kPrimaryColor)
-                                  .withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
+                  /// SERVICES
+                  if (deal.services != null &&
+                      deal.services!.isNotEmpty)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.spa_rounded,
+                          size: 13,
+                          color: Colors.grey.shade600,
                         ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () async {
-                              final success = cart.toggleItem(deal);
-
-                              if (!success && cart.isDifferentSalon(deal)) {
-                                // Show confirmation dialog
-                                final shouldClear = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Change Salon?'),
-                                      content: Text(
-                                          'Your cart contains items from ${cart.salonName ?? "another salon"}. '
-                                          'Adding items from ${deal.salon?.name ?? "this salon"} will clear your current cart. Continue?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: kPrimaryColor,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          child: const Text('Clear & Continue'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-
-                                if (shouldClear == true) {
-                                  cart.toggleItem(deal, forceClear: true);
-                                  cart.setSalonInfo(
-                                      deal.salon?.id, deal.salon?.name);
-                                }
-                              } else if (success) {
-                                cart.setSalonInfo(
-                                    deal.salon?.id, deal.salon?.name);
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(18),
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isInCart ? "Added" : "Book Now",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    isInCart
-                                        ? Icons.check_circle
-                                        : Icons.arrow_forward_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ],
-                              ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            deal.services!
+                                .map((s) => s.name)
+                                .join(' • '),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
                             ),
                           ),
                         ),
-                      );
-                    },
+                      ],
+                    ),
+
+                  const SizedBox(height: 6),
+
+                  /// SALON NAME
+                  if (deal.salon?.name != null)
+                    Row(
+                      children: [
+                        Container(
+                          width: 16,
+                          height: 16,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            border: Border.all(color: kPrimaryColor.withOpacity(0.2)),
+                          ),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(4),
+                            child: (deal.salon?.logo != null && deal.salon!.logo!.isNotEmpty)
+                                ? Image.network(
+                              deal.salon!.logo!,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) {
+                                return Container(
+                                  color: Colors.grey.shade200,
+                                  child: const Icon(
+                                    Icons.store,
+                                    size: 10,
+                                    color: Colors.grey,
+                                  ),
+                                );
+                              },
+                            )
+                                : const Icon(
+                              Icons.store,
+                              size: 10,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            deal.salon!.name!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[700],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                  const SizedBox(height: 8),
+
+                  /// PRICE + ARROW BUTTON
+                  Row(
+                    mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween,
+                    children: [
+                      /// PRICE SECTION
+                      Column(
+                        crossAxisAlignment:
+                        CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'PKR ${deal.price ?? 0}',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: kPrimaryColor,
+                            ),
+                          ),
+
+                          if (hasDiscount)
+                            Text(
+                              'PKR $oldPrice',
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Colors.grey.shade500,
+                                decoration:
+                                TextDecoration.lineThrough,
+                              ),
+                            ),
+                        ],
+                      ),
+
+                      /// ARROW BUTTON
+                      Container(
+                        height: 42,
+                        width: 42,
+                        decoration: const BoxDecoration(
+                          color: kPrimaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.arrow_forward_ios_rounded,
+                          color: Colors.white,
+                          size: 18,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

@@ -1,3 +1,4 @@
+import 'package:app/features/home/presentation/screens/service_detail_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/constants.dart';
@@ -8,6 +9,8 @@ import 'package:app/models/HomePageResponse.dart'
 import 'package:app/providers/cart_provider.dart';
 import 'package:app/components/cart_bottom_bar.dart';
 import 'package:app/screens/test_scroll/select_professionals.dart';
+import 'package:app/features/auth/utils/auth_manager.dart';
+import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 
 class ServicesListScreen extends StatefulWidget {
   static const String routeName = '/services-list';
@@ -57,7 +60,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     }
   }
 
-  void _proceedToBooking() {
+  Future<void> _proceedToBooking() async {
     final cartProvider = Provider.of<CartProvider>(context, listen: false);
 
     if (cartProvider.itemCount == 0) {
@@ -68,6 +71,45 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
           duration: Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
+      );
+      return;
+    }
+
+    // Check if user is authenticated
+    final token = await AuthManager.getToken();
+    if (token == null) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Sign In Required'),
+            content: const Text(
+              'Please sign in to proceed with booking.',
+              style: TextStyle(fontSize: 15),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Sign In'),
+              ),
+            ],
+          );
+        },
       );
       return;
     }
@@ -122,28 +164,86 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
                   return _buildEmptyState();
                 }
 
+                final double screenWidth = MediaQuery.of(context).size.width;
+                final bool isWide = screenWidth > 500;
+
                 return RefreshIndicator(
                   onRefresh: () => viewModel.refreshServices(),
                   color: kPrimaryColor,
-                  child: ListView.builder(
+                  child: CustomScrollView(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 16),
-                    itemCount: viewModel.services.length + 1,
-                    itemBuilder: (context, index) {
-                      if (index == viewModel.services.length) {
-                        if (viewModel.isLoadingMore) {
-                          return _buildLoadingCard();
-                        }
-                        if (!viewModel.hasMoreData) {
-                          return _buildEndOfListIndicator(viewModel);
-                        }
-                        return const SizedBox.shrink();
-                      }
-
-                      final service = viewModel.services[index];
-                      return _buildServiceCard(context, service);
-                    },
+                    slivers: [
+                      if (isWide)
+                        SliverPadding(
+                          padding: const EdgeInsets.only(bottom: 16,top: 16),
+                          sliver: SliverGrid(
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 16,
+                              mainAxisSpacing: 16,
+                              childAspectRatio: 0.62,
+                            ),
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final service = viewModel.services[index];
+                                return GestureDetector(
+                                  onTap: () {
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ServiceDetailScreen(serviceId: service.id!),
+                                      ),
+                                    );
+                                  },
+                                  child: _buildServiceCard(context, service, isWide: true),
+                                );
+                              },
+                              childCount: viewModel.services.length,
+                            ),
+                          ),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.all(16),
+                          sliver: SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final service = viewModel.services[index];
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) => ServiceDetailScreen(serviceId: service.id!),
+                                        ),
+                                      );
+                                    },
+                                    child: _buildServiceCard(context, service, isWide: false),
+                                  ),
+                                );
+                              },
+                              childCount: viewModel.services.length,
+                            ),
+                          ),
+                        ),
+                      // Footer (Loading more / End of list)
+                      SliverPadding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            children: [
+                              if (viewModel.isLoadingMore)
+                                _buildLoadingCard(),
+                              if (!viewModel.hasMoreData)
+                                _buildEndOfListIndicator(viewModel),
+                              const SizedBox(height: 80), // extra padding for cart bottom bar
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               },
@@ -174,402 +274,238 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
     );
   }
 
-  Widget _buildServiceCard(BuildContext context, HomePage.Service service) {
-    final hasDiscount =
-        service.discountType != null && service.oldPrice != null;
+  Widget _buildServiceCard(BuildContext context, HomePage.Service service,
+    {required bool isWide}) {
+  final hasDiscount =
+      service.discountType != null && service.oldPrice != null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: kPrimaryColor.withOpacity(0.15),
-            width: 2,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: kPrimaryColor.withOpacity(0.12),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              spreadRadius: -4,
+  return Container(
+    width: double.infinity,
+    margin: const EdgeInsets.symmetric(horizontal: 0, vertical: 2),
+    padding: const EdgeInsets.only(right: 10),
+    decoration: BoxDecoration(
+      color: const Color(0xffF5F5F5),
+      borderRadius: BorderRadius.circular(18),
+    ),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        /// IMAGE (same SearchServiceCard style)
+        Stack(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: (service.image != null && service.image!.isNotEmpty)
+                  ? Image.network(
+                      service.image!,
+                      height: 95,
+                      width: 95,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          height: 95,
+                          width: 95,
+                          color: Colors.grey.shade300,
+                          child: const Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    )
+                  : Container(
+                      height: 95,
+                      width: 95,
+                      color: Colors.grey.shade300,
+                      child: const Icon(
+                        Icons.image_not_supported,
+                        color: Colors.grey,
+                      ),
+                    ),
             ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
+
+            /// DISCOUNT BADGE
+            if (hasDiscount)
+              Positioned(
+                top: 0,
+                left: 0,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF6B6B),
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(14),
+                      bottomRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    '${((service.oldPrice! - service.price!) / service.oldPrice! * 100).toStringAsFixed(0)}% OFF',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
           ],
         ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
+
+        const SizedBox(width: 12),
+
+        /// DETAILS (SearchServiceCard style)
+        Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
             children: [
-              // Discount Badge
-              if (hasDiscount)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B6B),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_offer_rounded,
-                          color: Colors.white, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${((service.oldPrice! - service.price!) / service.oldPrice! * 100).toStringAsFixed(0)}% OFF',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              SizedBox(height: hasDiscount ? 6 : 0),
-
-              // Service Title
+              /// TITLE
               Text(
                 service.name ?? 'No Title',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
                   fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                  height: 1.2,
-                  letterSpacing: -0.3,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.black,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
 
-              const SizedBox(height: 5),
+              const SizedBox(height: 4),
 
-              // Description
+              /// DESCRIPTION
               if (service.shortDescription != null &&
                   service.shortDescription!.isNotEmpty)
                 Text(
                   service.shortDescription!,
-                  style: TextStyle(
-                    fontSize: 10,
-                    color: Colors.grey[600],
-                    height: 1.2,
-                  ),
-                  maxLines: 2,
+                  maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 11,
+                    color: Colors.grey.shade600,
+                  ),
                 ),
 
               const SizedBox(height: 6),
 
-              // Duration and Gender Tags
+              /// DURATION + GENDER
               Row(
                 children: [
-                  // Duration Tag
-                  if (service.duration != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 11,
-                            color: kPrimaryColor,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${service.duration} min',
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: kPrimaryColor,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  if (service.duration != null && service.gender != null)
-                    const SizedBox(width: 6),
-
-                  // Gender Tag
-                  if (service.gender != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: service.gender?.toLowerCase() == 'male'
-                            ? Colors.blue.withOpacity(0.1)
-                            : service.gender?.toLowerCase() == 'female'
-                                ? Colors.pink.withOpacity(0.1)
-                                : Colors.purple.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            service.gender?.toLowerCase() == 'male'
-                                ? Icons.male
-                                : service.gender?.toLowerCase() == 'female'
-                                    ? Icons.female
-                                    : Icons.people,
-                            size: 11,
-                            color: service.gender?.toLowerCase() == 'male'
-                                ? Colors.blue.shade700
-                                : service.gender?.toLowerCase() == 'female'
-                                    ? Colors.pink.shade700
-                                    : Colors.purple.shade700,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            service.gender!.substring(0, 1).toUpperCase() +
-                                service.gender!.substring(1).toLowerCase(),
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: service.gender?.toLowerCase() == 'male'
-                                  ? Colors.blue.shade700
-                                  : service.gender?.toLowerCase() == 'female'
-                                      ? Colors.pink.shade700
-                                      : Colors.purple.shade700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
-              ),
-
-              SizedBox(
-                  height: (service.duration != null || service.gender != null)
-                      ? 6
-                      : 0),
-
-              // Salon Info
-              if (service.salon?.name != null)
-                Row(
-                  children: [
-                    Container(
-                      width: 28,
-                      height: 28,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(7),
-                        border: Border.all(
-                          color: kPrimaryColor.withOpacity(0.2),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5.5),
-                        child: (service.salon?.image != null &&
-                                service.salon!.image!.isNotEmpty)
-                            ? Image.network(
-                                service.salon!.image!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Icon(
-                                    Icons.store_rounded,
-                                    size: 16,
-                                    color: kPrimaryColor.withOpacity(0.5),
-                                  );
-                                },
-                              )
-                            : Icon(
-                                Icons.store_rounded,
-                                size: 16,
-                                color: kPrimaryColor.withOpacity(0.5),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 7),
-                    Expanded(
-                      child: Text(
-                        service.salon!.name!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+                  if (service.duration != null) ...[
+                    Icon(Icons.access_time_rounded,
+                        size: 15, color: Colors.grey.shade600),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${service.duration}',
+                      style: TextStyle(
+                        fontSize: 10,
+                        color: Colors.grey.shade700,
                       ),
                     ),
                   ],
-                ),
+
+                  if (service.gender != null) ...[
+                    const SizedBox(width: 10),
+                    Icon(
+                      service.gender!.toLowerCase() == 'male'
+                          ? Icons.male
+                          : Icons.female,
+                      size: 10,
+                      color: Colors.grey.shade600,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      service.gender!
+                          .substring(0, 1)
+                          .toUpperCase() +
+                          service.gender!.substring(1).toLowerCase(),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
 
               const SizedBox(height: 10),
 
-              // Price and Book Button
+              /// PRICE
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Price Section
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "PKR ${service.price ?? 0}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: kPrimaryColor,
-                            height: 1,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        if (hasDiscount) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            "PKR ${service.oldPrice}",
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: Colors.red[400],
-                              decorationThickness: 2,
-                            ),
-                          ),
-                        ],
-                      ],
+                  Text(
+                    "PKR ${service.price ?? 0}",
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
                     ),
                   ),
-
-                  const SizedBox(width: 8),
-
-                  // Book Button with Cart functionality
-                  Consumer<CartProvider>(
-                    builder: (context, cart, child) {
-                      final isInCart = cart.isInCart(service);
-                      return Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                          color:
-                              isInCart ? Colors.grey.shade400 : kPrimaryColor,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isInCart
-                                      ? Colors.grey.shade400
-                                      : kPrimaryColor)
-                                  .withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () async {
-                              final success = cart.toggleItem(service);
-
-                              if (!success && cart.isDifferentSalon(service)) {
-                                // Show confirmation dialog
-                                final shouldClear = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Change Salon?'),
-                                      content: Text(
-                                          'Your cart contains items from ${cart.salonName ?? "another salon"}. '
-                                          'Adding items from ${service.salon?.name ?? "this salon"} will clear your current cart. Continue?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: kPrimaryColor,
-                                            foregroundColor: Colors.white,
-                                          ),
-                                          child: const Text('Clear & Continue'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
-
-                                if (shouldClear == true) {
-                                  cart.toggleItem(service, forceClear: true);
-                                  cart.setSalonInfo(
-                                      service.salon?.id, service.salon?.name);
-                                }
-                              } else if (success) {
-                                cart.setSalonInfo(
-                                    service.salon?.id, service.salon?.name);
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(18),
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isInCart ? "Added" : "Book Now",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    isInCart
-                                        ? Icons.check_circle
-                                        : Icons.arrow_forward_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
+                  if (hasDiscount) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      "PKR ${service.oldPrice}",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: Colors.grey.shade500,
+                        decoration: TextDecoration.lineThrough,
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
+
+        const SizedBox(width: 10),
+
+        /// ARROW BUTTON
+        Container(
+          height: 42,
+          width: 42,
+          decoration: const BoxDecoration(
+            color: kPrimaryColor,
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.arrow_forward_ios_rounded,
+            color: Colors.white,
+            size: 18,
+          ),
+        ),
+      ],
+    ),
+  );
+}
 
   Widget _buildLoadingShimmer() {
+    final double screenWidth = MediaQuery.of(context).size.width;
+    final bool isWide = screenWidth > 500;
+    if (isWide) {
+      return GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 0.62,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return Shimmer.fromColors(
+            baseColor: Colors.grey[300]!,
+            highlightColor: Colors.grey[100]!,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+            ),
+          );
+        },
+      );
+    }
     return ListView.builder(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       itemCount: 6,
@@ -595,7 +531,7 @@ class _ServicesListScreenState extends State<ServicesListScreen> {
       baseColor: Colors.grey[300]!,
       highlightColor: Colors.grey[100]!,
       child: Container(
-        height: 200,
+        height: 100,
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
           color: Colors.white,

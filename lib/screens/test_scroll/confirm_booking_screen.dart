@@ -9,6 +9,7 @@ import '../../models/HomePageResponse.dart' as home_models;
 import 'package:app/constants.dart';
 import 'package:app/utils/restriction_handler.dart';
 import 'package:app/features/auth/utils/auth_manager.dart';
+import 'package:app/features/auth/presentation/screens/auth/auth_screen.dart';
 
 // TODO: [FEATURE] Add promo code/discount code input field
 // TODO: [FEATURE] Add ability to edit cart from confirmation screen
@@ -66,6 +67,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
             arguments['bookingProfessionals'] as List<Professional>? ??
                 _selectedProfessionals;
         _salonName = arguments['salonName'] as String?;
+        _salonImage = arguments['salonImage'] as String?;
         _salonAddress = arguments['salonAddress'] as String?;
         _salonId = arguments['salonId'] as int?;
 
@@ -117,6 +119,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 children: [
                   _buildSectionCard(
                     icon: Icons.storefront,
+                    imageUrl: _salonImage,
                     title: '$_salonName',
                     children: [
                       _buildDetailRow(Icons.location_on,
@@ -153,63 +156,99 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   _buildSectionCard(
                     icon: Icons.people_alt_rounded,
                     title: 'Professionals',
-                    children: _selectedProfessionals.isNotEmpty
+                    children: _bookingProfessionals.isNotEmpty
                         ? [
-                            Wrap(
-                              spacing: 10,
-                              runSpacing: 10,
-                              children: _selectedProfessionals
-                                  .map((prof) => Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 14,
-                                          vertical: 10,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color:
-                                              kPrimaryColor.withOpacity(0.08),
-                                          borderRadius:
-                                              BorderRadius.circular(10),
-                                          border: Border.all(
-                                            color:
-                                                kPrimaryColor.withOpacity(0.2),
-                                            width: 1,
-                                          ),
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
+                            Column(
+                              children: List.generate(
+                                  _bookingProfessionals.length, (index) {
+                                final prof = _bookingProfessionals[index];
+
+                                // Try to get matching service name (based on same index from cart)
+                                String serviceName = 'Service';
+                                if (_cartItems != null &&
+                                    index < _cartItems!.keys.length) {
+                                  final item =
+                                      _cartItems!.keys.elementAt(index);
+
+                                  if (item is salon_models.Service ||
+                                      item is home_models.Service) {
+                                    serviceName = item.name ?? 'Service';
+                                  } else if (item is salon_models.Deal ||
+                                      item is home_models.Deal) {
+                                    serviceName = item.name ?? 'Deal';
+                                  }
+                                }
+
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: kPrimaryColor.withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: kPrimaryColor.withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      // Professional image
+                                      CircleAvatar(
+                                        backgroundImage: prof.image != null &&
+                                                prof.image!.isNotEmpty
+                                            ? NetworkImage(prof.image!)
+                                            : null,
+                                        backgroundColor:
+                                            kPrimaryColor.withOpacity(0.2),
+                                        radius: 16,
+                                        child: prof.image == null ||
+                                                prof.image!.isEmpty
+                                            ? const Icon(Icons.person,
+                                                size: 18, color: kPrimaryColor)
+                                            : null,
+                                      ),
+
+                                      const SizedBox(width: 10),
+
+                                      // 👇 SERVICE + PROFESSIONAL INFO
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
-                                            CircleAvatar(
-                                              backgroundImage: prof.image !=
-                                                          null &&
-                                                      prof.image!.isNotEmpty
-                                                  ? NetworkImage(prof.image!)
-                                                  : null,
-                                              backgroundColor: kPrimaryColor
-                                                  .withOpacity(0.2),
-                                              radius: 16,
-                                              child: prof.image == null ||
-                                                      prof.image!.isEmpty
-                                                  ? const Icon(
-                                                      Icons.person,
-                                                      size: 18,
-                                                      color: kPrimaryColor,
-                                                    )
-                                                  : null,
-                                            ),
-                                            const SizedBox(width: 8),
                                             Text(
-                                              prof.name ?? "Unknown",
+                                              (prof.name != null &&
+                                                      prof.name!
+                                                              .toLowerCase() ==
+                                                          "any")
+                                                  ? "Any Professional"
+                                                  : (prof.name ?? "Unknown"),
                                               style: const TextStyle(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
-                                                color: Color(0xFF2D2D2D),
-                                                letterSpacing: -0.2,
+                                              ),
+                                            ),
+
+                                            const SizedBox(height: 2),
+
+                                            // 👉 NEW: Service name below professional
+                                            Text(
+                                              "For: $serviceName",
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey[600],
+                                                fontWeight: FontWeight.w500,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ))
-                                  .toList(),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }),
                             )
                           ]
                         : [
@@ -543,6 +582,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
 
   Widget _buildSectionCard({
     required IconData icon,
+    String? imageUrl,
     required String title,
     required List<Widget> children,
   }) {
@@ -569,14 +609,29 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    color: kPrimaryColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
+                    color: kPrimaryColor.withOpacity(0.12),
                   ),
-                  child: Icon(
-                    icon,
-                    color: kPrimaryColor,
-                    size: 22,
-                  ),
+                  child: imageUrl != null && imageUrl.isNotEmpty
+                      ? ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.network(
+                            imageUrl,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                icon ?? Icons.storefront,
+                                color: kPrimaryColor,
+                                size: 22,
+                              );
+                            },
+                          ),
+                        )
+                      : Icon(
+                          icon ?? Icons.storefront,
+                          color: kPrimaryColor,
+                          size: 22,
+                        ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -848,9 +903,11 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
         _cartItems!.isNotEmpty) {
       final firstItem = _cartItems!.keys.first;
       // Service/Deal no longer embed a Salon object in the new models; prefer passed-in salon image
-      if ((firstItem is salon_models.Service || firstItem is home_models.Service)) {
+      if ((firstItem is salon_models.Service ||
+          firstItem is home_models.Service)) {
         // no direct image available from Service; keep salonImageUrl from args
-      } else if ((firstItem is salon_models.Deal || firstItem is home_models.Deal)) {
+      } else if ((firstItem is salon_models.Deal ||
+          firstItem is home_models.Deal)) {
         // no direct image available from Deal; keep salonImageUrl from args
       }
     }
@@ -905,7 +962,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _salonName ?? 'Confirm Booking',
+                    'Confirm Booking',
                     style: const TextStyle(
                       color: Color(0xFF2D2D2D),
                       fontSize: 19,
@@ -920,40 +977,40 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               ),
             ),
             // Salon image
-            if (salonImageUrl != null && salonImageUrl.isNotEmpty)
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: kPrimaryColor.withOpacity(0.3),
-                    width: 2,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: kPrimaryColor.withOpacity(0.2),
-                      blurRadius: 8,
-                      offset: const Offset(0, 3),
-                    ),
-                  ],
-                ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Image.network(
-                    salonImageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      color: kPrimaryColor.withOpacity(0.1),
-                      child: const Icon(
-                        Icons.storefront_rounded,
-                        color: kPrimaryColor,
-                        size: 24,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
+            // if (salonImageUrl != null && salonImageUrl.isNotEmpty)
+            //   Container(
+            //     width: 48,
+            //     height: 48,
+            //     decoration: BoxDecoration(
+            //       borderRadius: BorderRadius.circular(12),
+            //       border: Border.all(
+            //         color: kPrimaryColor.withOpacity(0.3),
+            //         width: 2,
+            //       ),
+            //       boxShadow: [
+            //         BoxShadow(
+            //           color: kPrimaryColor.withOpacity(0.2),
+            //           blurRadius: 8,
+            //           offset: const Offset(0, 3),
+            //         ),
+            //       ],
+            //     ),
+            //     child: ClipRRect(
+            //       borderRadius: BorderRadius.circular(10),
+            //       child: Image.network(
+            //         salonImageUrl,
+            //         fit: BoxFit.cover,
+            //         errorBuilder: (context, error, stackTrace) => Container(
+            //           color: kPrimaryColor.withOpacity(0.1),
+            //           child: const Icon(
+            //             Icons.storefront_rounded,
+            //             color: kPrimaryColor,
+            //             size: 24,
+            //           ),
+            //         ),
+            //       ),
+            //     ),
+            //   ),
           ],
         ),
       ),
@@ -966,7 +1023,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
           (sum, entry) {
             final item = entry.key;
             final qty = entry.value;
-            
+
             // Handle salon_detail_models.Service (double? price)
             if (item is salon_models.Service) {
               final price = item.price ?? 0.0;
@@ -991,7 +1048,7 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
               final effectivePrice = totalPrice > 0 ? totalPrice : price;
               return sum + (effectivePrice * qty);
             }
-            
+
             return sum;
           },
         ) ??
@@ -999,11 +1056,51 @@ class _ConfirmBookingScreenState extends State<ConfirmBookingScreen> {
   }
 
   Future<void> _confirmBooking() async {
+    // Check if user is authenticated first
+    final token = await AuthManager.getToken();
+    if (token == null) {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Sign In Required'),
+            content: const Text(
+              'Please sign in to proceed with booking.',
+              style: TextStyle(fontSize: 15),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Sign In'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
     // Check user status and restriction before booking
     try {
       final userData = await AuthManager.getUserData();
       if (userData != null) {
         final canBook = await RestrictionHandler.canUserBook(
+          completeStatus: userData.completeStatus,
           isRestricted: userData.isRestricted,
           status: userData.status,
           context: context,

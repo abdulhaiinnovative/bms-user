@@ -1112,9 +1112,9 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                                       _selectedProfessionals,
                                   // For booking payload (always matches service count).
                                   'bookingProfessionals': _bookingProfessionals,
-                                  'salonName': _salonName,
-                                  'salonAddress': _salonAddress,
-                                  'salonImage': _salonImage,
+                                  'salonName': _salon!.name,
+                                  'salonAddress': _salon!.address,
+                                  'salonImage': _salon!.logo,
                                   'salonId': _salon?.id,
                                 },
                               ),
@@ -1190,7 +1190,7 @@ class _SelectDateScreenState extends State<SelectDateScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _salonName ?? 'Select Date',
+                    'Select Date',
                     style: const TextStyle(
                       color: Color(0xFF2D2D2D),
                       fontSize: 19,

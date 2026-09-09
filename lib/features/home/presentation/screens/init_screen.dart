@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:app/services/deep_link_service.dart';
 import '../../../../constants.dart';
 import '../../../../components/inactive_user_banner.dart';
 import 'home_screen.dart';
@@ -34,6 +35,8 @@ class _InitScreenState extends State<InitScreen> {
     // Load user profile data to check if user is inactive
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<ProfileViewModel>().loadProfile();
+      // Handle any deep link that arrived before the UI was ready
+      DeepLinkService.handlePendingLink();
     });
   }
 
@@ -221,17 +224,17 @@ class _FavouritesScreenWrapper extends StatefulWidget {
 }
 
 class _FavouritesScreenWrapperState extends State<_FavouritesScreenWrapper> {
-  final GlobalKey<State<FavouritesScreen>> _screenKey = GlobalKey();
+  int _refreshKey = 0;
 
   void refreshData() {
-    // Trigger a rebuild which will call initState of FavouritesScreen (debug log removed)
-    setState(() {});
+    setState(() {
+      _refreshKey++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Return a new instance on each build to trigger initState
-    return FavouritesScreen(key: _screenKey);
+    return FavouritesScreen(key: ValueKey(_refreshKey));
   }
 }
 
@@ -244,16 +247,16 @@ class _BookingsScreenWrapper extends StatefulWidget {
 }
 
 class _BookingsScreenWrapperState extends State<_BookingsScreenWrapper> {
-  final GlobalKey<State<MyBookings>> _screenKey = GlobalKey();
+  int _refreshKey = 0;
 
   void refreshData() {
-    // Trigger a rebuild which will call initState of MyBookings (debug log removed)
-    setState(() {});
+    setState(() {
+      _refreshKey++;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    // Return a new instance on each build to trigger initState
-    return MyBookings(key: _screenKey);
+    return MyBookings(key: ValueKey(_refreshKey));
   }
 }

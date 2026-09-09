@@ -72,8 +72,8 @@ class SalonData {
 
   factory SalonData.fromJson(Map<String, dynamic> json) {
     return SalonData(
-      id: json['id'] as int?,
-      vendor_id: json['vendor_id'] as int?,
+      id: (json['id'] as num?)?.toInt(),
+      vendor_id: (json['vendor_id'] as num?)?.toInt(),
       name: json['name'] as String?,
       logo: json['logo'] as String?,
       image: json['image'] as String?,
@@ -97,10 +97,10 @@ class SalonData {
       salon_policy: json['salon_policy'] as String?,
       additional_information: json['additional_information'] as String?,
       about: json['about'] as String?,
-      status: json['status'] as int?,
-      suspended: json['suspended'] as int?,
+      status: (json['status'] as num?)?.toInt(),
+      suspended: (json['suspended'] as num?)?.toInt(),
       average_rating: (json['average_rating'] as num?)?.toDouble(),
-      review_count: json['review_count'] as int?,
+      review_count: (json['review_count'] as num?)?.toInt(),
       is_favourite: json['is_favourite'] as bool?,
       active_days: (json['active_days'] as List<dynamic>?)?.map((e) => ActiveDay.fromJson(e as Map<String, dynamic>)).toList(),
       images: (json['images'] as List<dynamic>?)?.cast<String>(),

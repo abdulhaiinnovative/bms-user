@@ -7,7 +7,7 @@ class PriceRangeNew extends StatefulWidget {
   final double initialMaxPrice;
 
   const PriceRangeNew(
-      {Key? key, this.initialMinPrice = 100, this.initialMaxPrice = 100000})
+      {Key? key, this.initialMinPrice = 1, this.initialMaxPrice = 100000})
       : super(key: key);
 
   @override
@@ -68,16 +68,21 @@ class _PriceRangeNewState extends State<PriceRangeNew> {
           const SizedBox(height: 30),
           RangeSlider(
             values: _currentRangeValues,
-            min: 100,
+            min: 0,
             max: 100000,
-            divisions: 999,
+            divisions: 2000,
             labels: RangeLabels(
-              'Rs ${_currentRangeValues.start.toInt()}',
+              'Rs ${_currentRangeValues.start == 0 ? 1 : _currentRangeValues.start.toInt()}',
               'Rs ${_currentRangeValues.end.toInt()}',
             ),
             onChanged: (RangeValues values) {
               setState(() {
-                _currentRangeValues = values;
+                final snappedStart = ((values.start / 50).round() * 50).toDouble();
+                final snappedEnd = ((values.end / 50).round() * 50).toDouble();
+                _currentRangeValues = RangeValues(
+                  snappedStart == 0 ? 1 : snappedStart,
+                  snappedEnd == 0 ? 1 : snappedEnd,
+                );
               });
             },
             activeColor: kPrimaryColor,
@@ -161,7 +166,7 @@ class _PriceRangeNewState extends State<PriceRangeNew> {
                 child: OutlinedButton(
                   onPressed: () {
                     setState(() {
-                      _currentRangeValues = const RangeValues(100, 100000);
+                      _currentRangeValues = const RangeValues(0, 100000);
                     });
                     Navigator.pop(context);
                   },

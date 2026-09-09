@@ -86,7 +86,8 @@ class _SalonCategoryAndServicesListState
                     onPressed: () {
                       Navigator.pop(context);
                       cartProvider.clearCart();
-                      cartProvider.setSalonInfo(itemSalonId, mSalonName);
+                      cartProvider.setSalonInfo(itemSalonId, mSalonName
+                      );
                       cartProvider.addItem(item, quantity: 1);
                     },
                     style: ElevatedButton.styleFrom(

@@ -1,6 +1,7 @@
 import 'price_range_new.dart';
 import 'sorting_new.dart';
 import 'gender_filter_new.dart';
+import 'salon_filter_new.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../../constants.dart';
@@ -28,9 +29,9 @@ class ServicesHeaderNew extends StatefulWidget {
 
 class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
   TextEditingController searchController = TextEditingController();
-  int? selectedCategoryId;
-  String? selectedCategoryName;
-  double minPrice = 100;
+  List<int>? selectedCategoryIds;
+  List<String>? selectedCategoryNames;
+  double minPrice = 1;
   double maxPrice = 100000;
   String? sortBy = 'name';
   String? sortOrder = 'asc';
@@ -67,8 +68,9 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
     // Only auto-search if navigated with a pre-selected category
     // Otherwise, data stays empty until user explicitly searches
     if (widget.categoryId != null) {
-      selectedCategoryName = widget.categoryName;
-      selectedCategoryId = widget.categoryId;
+      selectedCategoryNames =
+          widget.categoryName != null ? [widget.categoryName!] : null;
+      selectedCategoryIds = [widget.categoryId!];
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _performSearch();
       });
@@ -91,8 +93,8 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
     ).then((value) {
       if (child is FilterCategoriesNew && value != null) {
         setState(() {
-          selectedCategoryId = value['id'];
-          selectedCategoryName = value['name'];
+          selectedCategoryIds = value['ids'];
+          selectedCategoryNames = value['names'];
           _performSearch();
         });
       } else if (child is PriceRangeNew && value != null) {
@@ -112,6 +114,15 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
           selectedGender = value['gender'];
           _performSearch();
         });
+      } else if (child is SalonFilterNew && value != null) {
+        final mode = value['mode'];
+        final searchProvider =
+            Provider.of<SearchProviderNew>(context, listen: false);
+        if (mode == 'top_rated') {
+          searchProvider.searchTopRatedSalons();
+        } else if (mode == 'popular') {
+          searchProvider.searchPopularSalons();
+        }
       }
     });
   }
@@ -155,8 +166,8 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
         // Services support: category, price, gender, sort
         searchProvider.searchServices(
           query,
-          categoryId: selectedCategoryId,
-          minPrice: minPrice != 100 ? minPrice : null,
+          categories: selectedCategoryIds,
+          minPrice: minPrice != 1 ? minPrice : null,
           maxPrice: maxPrice != 100000 ? maxPrice : null,
           gender: selectedGender, // Gender applies to services
           sortBy: _mapSortBy(sortBy, sortOrder),
@@ -166,8 +177,12 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
         // Deals support: category, price, sort (NO gender)
         searchProvider.searchDeals(
           query,
-          categoryId: selectedCategoryId,
-          minPrice: minPrice != 100 ? minPrice : null,
+          serviceCategoryId: selectedCategoryIds?.isNotEmpty == true
+              ? selectedCategoryIds!.first
+              : null,
+          categories:
+              selectedCategoryIds, // In case backend supports multiple categories for deals
+          minPrice: minPrice != 1 ? minPrice : null,
           maxPrice: maxPrice != 100000 ? maxPrice : null,
           sortBy: _mapSortBy(sortBy, sortOrder),
           // Note: Gender is NOT passed for deals as they don't have gender property
@@ -197,7 +212,7 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
       case 'rating':
         return 'rating';
       case 'name':
-        return 'relevance';
+        return sortOrder == 'asc' ? 'name_asc' : 'name_desc';
       case 'total_price':
         return sortOrder == 'asc' ? 'price_low' : 'price_high';
       case 'created_at':
@@ -210,15 +225,25 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
   List<Widget> _getFilterChips() {
     final chips = <Widget>[];
     final currentTab = widget.tabController.index;
+    final searchProvider =
+        Provider.of<SearchProviderNew>(context, listen: true);
 
     // Show category filter for all tabs
-    if (selectedCategoryId != null) {
+    // Show category filter for Services and Deals only
+    if (selectedCategoryIds != null &&
+        selectedCategoryIds!.isNotEmpty &&
+        (currentTab == 0 || currentTab == 1)) {
+      String label = selectedCategoryNames?.join(', ') ?? 'Category';
+      if (label.length > 20) {
+        label = '${selectedCategoryIds!.length} Categories';
+      }
       chips.add(FilterItem(
-        label: selectedCategoryName ?? 'Category $selectedCategoryId',
-        onTap: () => _showBottomSheet(const FilterCategoriesNew()),
+        label: label,
+        onTap: () => _showBottomSheet(
+            FilterCategoriesNew(selectedCategoryIds: selectedCategoryIds)),
         onClear: () => setState(() {
-          selectedCategoryId = null;
-          selectedCategoryName = null;
+          selectedCategoryIds = null;
+          selectedCategoryNames = null;
           _performSearch();
         }),
       ));
@@ -248,15 +273,34 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
 
     // Show price filter ONLY for Services (0) and Deals (1) tabs
     if ((currentTab == 0 || currentTab == 1) &&
-        (minPrice != 100 || maxPrice != 100000)) {
+        (minPrice != 1 || maxPrice != 100000)) {
       chips.add(FilterItem(
         label: 'Rs ${minPrice.toInt()} - Rs ${maxPrice.toInt()}',
-        onTap: () => _showBottomSheet(const PriceRangeNew()),
+        onTap: () => _showBottomSheet(PriceRangeNew(
+          initialMinPrice: minPrice,
+          initialMaxPrice: maxPrice,
+        )),
         onClear: () => setState(() {
-          minPrice = 100;
+          minPrice = 1;
           maxPrice = 100000;
           _performSearch();
         }),
+      ));
+    }
+
+    // Show active special salon filter for Salon (2) tab
+    if (currentTab == 2 && searchProvider.specialSalonFilter != null) {
+      final String filterLabel =
+          searchProvider.specialSalonFilter == 'top_rated'
+              ? 'Top Rated Salons'
+              : 'Popular Salons';
+      chips.add(FilterItem(
+        label: filterLabel,
+        onTap: () => _showBottomSheet(const SalonFilterNew()),
+        onClear: () {
+          // Normal search clears special filters
+          _performSearch();
+        },
       ));
     }
 
@@ -365,7 +409,6 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
                 //     },
                 //   ),
                 // ),
-
                 const SizedBox(width: 10),
                 Container(
                   decoration: BoxDecoration(
@@ -419,15 +462,24 @@ class _SerServicesHeaderNewState extends State<ServicesHeaderNew> {
                     },
                   ),
                   const SizedBox(width: 8),
-                  _buildFilterButton(
-                    icon: Icons.filter_list_rounded,
-                    label: 'Category',
-                    onTap: () {
-                      _showBottomSheet(FilterCategoriesNew(
-                        selectedCategoryId: selectedCategoryId,
-                      ));
-                    },
-                  ),
+                  if (widget.tabController.index != 2) // ❗ Salon tab = 2
+                    _buildFilterButton(
+                      icon: Icons.filter_list_rounded,
+                      label: 'Category',
+                      onTap: () {
+                        _showBottomSheet(FilterCategoriesNew(
+                          selectedCategoryIds: selectedCategoryIds,
+                        ));
+                      },
+                    ),
+                  if (widget.tabController.index == 2) // ❗ Salon tab = 2
+                    _buildFilterButton(
+                      icon: Icons.filter_list_rounded,
+                      label: 'Filter',
+                      onTap: () {
+                        _showBottomSheet(const SalonFilterNew());
+                      },
+                    ),
                   if (widget.tabController.index == 0 ||
                       widget.tabController.index == 1) ...[
                     const SizedBox(width: 8),

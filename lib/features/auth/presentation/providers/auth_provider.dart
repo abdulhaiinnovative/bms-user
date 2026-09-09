@@ -448,85 +448,95 @@ class AuthProvider extends ChangeNotifier {
   /// Sign in with Google
   /// Returns a map with 'success' and 'isComplete' status
   Future<Map<String, dynamic>> signInWithGoogle({String? fcmToken}) async {
-    try {
-      _setLoading(true);
-      _clearError();
+  try {
+    _setLoading(true);
+    _clearError();
 
-      // 1. Sign in with Google using new authenticate() API
-      final googleResult = await _googleSignInService.signInWithGoogle();
+    final googleResult =
+        await _googleSignInService.signInWithGoogle();
 
-      if (!googleResult.isSuccess) {
-        if (googleResult.isCancelled) {
-          _setError('Google sign-in cancelled');
-        } else {
-          _setError(googleResult.error ?? 'Google sign-in failed');
-        }
-        return {'success': false, 'isComplete': false};
-      }
 
-      // 2. Get user info from Google result
-      final userInfo = _googleSignInService.getUserInfoFromResult(googleResult);
-
-      if (userInfo.isEmpty) {
-        _setError('Failed to get user information from Google');
-        return {'success': false, 'isComplete': false};
-      }
-
-      // Store user info temporarily for profile completion
-      _tempGoogleUserInfo = userInfo;
-
-      // 3. Check if user already exists in our backend
-      final checkUserData = CheckUserExistsModel(
-        email: userInfo['email']!,
-        name: userInfo['name']!,
-        firstName: userInfo['first_name']!,
-        lastName: userInfo['last_name']!,
-      );
-
-      final checkResponse =
-          await _socialAuthService.checkUserIsAlreadyRegistered(checkUserData);
-
-      if (!checkResponse.status) {
-        _setError(checkResponse.message);
-        return {'success': false, 'isComplete': false};
-      }
-
-      // 4. Save auth data
-      if (checkResponse.data != null) {
-        // Convert SocialAuthData to AuthData for storage
-        final authData = _convertSocialToAuthData(checkResponse.data!);
-        final saved = await AuthManager.saveAuthData(authData);
-
-        if (saved) {
-          // Convert SocialUserData to UserData for current user
-          _currentUser = _convertSocialUserToUserData(checkResponse.data!.user);
-          _setState(AuthState.authenticated);
-
-          // Clear temp user info if profile is complete
-          if (checkResponse.isComplete == true) {
-            _tempGoogleUserInfo = null;
-          }
-
-          return {
-            'success': true,
-            'isComplete': checkResponse.isComplete ?? false,
-            'user': checkResponse.data!.user,
-          };
-        } else {
-          _setError('Failed to save authentication data');
-          return {'success': false, 'isComplete': false};
-        }
-      } else {
-        _setError('No user data received');
-        return {'success': false, 'isComplete': false};
-      }
-    } catch (e) {
-      _setError('Google sign-in failed: ${e.toString()}');
+    // ❌ USER CANCELLED
+    if (googleResult.isCancelled) {
+      print("Google Sign-In cancelled by user");
       return {'success': false, 'isComplete': false};
-    } finally {
-      _setLoading(false);
     }
+
+    // ❌ ERROR
+    if (!googleResult.isSuccess) {
+      _setError(googleResult.error ?? "Google sign-in failed");
+      return {'success': false, 'isComplete': false};
+    }
+
+    final userInfo =
+        _googleSignInService.getUserInfoFromResult(googleResult);
+
+
+    if (userInfo.isEmpty) {
+      _setError("Google user info empty");
+      return {'success': false, 'isComplete': false};
+    }
+
+    _tempGoogleUserInfo = userInfo;
+
+    final checkUserData = CheckUserExistsModel(
+      email: userInfo['email'] ?? '',
+      name: userInfo['name'] ?? '',
+      firstName: userInfo['first_name'] ?? '',
+      lastName: userInfo['last_name'] ?? '',
+      fcmToken: fcmToken,
+    );
+    print("APKA FCM: ${fcmToken}");
+
+    final checkResponse = await _socialAuthService
+        .checkUserIsAlreadyRegistered(checkUserData)
+        .catchError((e) {
+      print("CHECK USER ERROR: $e");
+      return null;
+    });
+
+    // ❌ BACKEND FAIL SAFE
+    if (checkResponse == null || !checkResponse.status) {
+      _setError(checkResponse?.message ?? "Failed to check user registration");
+      return {'success': false, 'isComplete': false};
+    }
+
+    if (checkResponse.data == null) {
+      _setError("No user data from server");
+      return {'success': false, 'isComplete': false};
+    }
+
+    final authData =
+        _convertSocialToAuthData(checkResponse.data!);
+
+    final saved = await AuthManager.saveAuthData(authData);
+
+    if (!saved) {
+      _setError("Failed to save auth data");
+      return {'success': false, 'isComplete': false};
+    }
+
+    _currentUser =
+        _convertSocialUserToUserData(checkResponse.data!.user);
+
+    _setState(AuthState.authenticated);
+
+    if (checkResponse.isComplete == true) {
+      _tempGoogleUserInfo = null;
+    }
+
+    return {
+      'success': true,
+      'isComplete': checkResponse.isComplete ?? false,
+      'user': checkResponse.data!.user,
+    };
+  } catch (e) {
+    _setError("Google Sign-In failed: $e");
+    return {'success': false, 'isComplete': false};
+  } finally {
+    _setLoading(false);
   }
+}
 
   /// Complete social auth profile
   /// Used when user signs in with Google but profile is incomplete
@@ -640,6 +650,20 @@ class AuthProvider extends ChangeNotifier {
       provider: socialUser.provider,
       providerId: socialUser.providerId,
       completeStatus: socialUser.completeStatus,
+      status: socialUser.status,
+      isRestricted: socialUser.isRestricted,
+      cancelCount: socialUser.cancelCount,
+      appointment: socialUser.appointment,
+      emailMarketing: socialUser.emailMarketing,
+      marketingNotification: socialUser.marketingNotification,
+      loyalty: socialUser.loyalty,
+      role: socialUser.role,
+      isNumberVerified: socialUser.isNumberVerified,
+      deviceToken: socialUser.deviceToken,
+      appleUniqueId: socialUser.appleUniqueId,
+      appleEmail: socialUser.appleEmail,
+      googleUniqueId: socialUser.googleUniqueId,
+      facebookUniqueId: socialUser.facebookUniqueId,
       emailVerifiedAt: null, // Social users are considered verified
       createdAt: null,
       updatedAt: null,

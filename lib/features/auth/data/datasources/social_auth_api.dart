@@ -26,17 +26,19 @@ class SocialAuthAPI {
         body: jsonEncode(data.toJson()),
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = jsonDecode(response.body);
         final socialAuthResponse = SocialAuthResponse.fromJson(responseData);
         return socialAuthResponse;
       } else {
+        print('CheckUser API Error: Status ${response.statusCode}, Body: ${response.body}');
         return SocialAuthResponse(
           status: false,
-          message: 'Failed to check user registration',
+          message: 'Failed to check user registration: HTTP ${response.statusCode}',
         );
       }
     } catch (e) {
+      print('CheckUser Exception: $e');
       return SocialAuthResponse(
         status: false,
         message: 'An unexpected error occurred: $e',

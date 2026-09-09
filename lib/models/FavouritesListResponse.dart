@@ -96,7 +96,7 @@ class PaginatedData {
 
 class FavouriteSalon {
   final int id;
-  final int vendorId;
+  final int? vendorId;
   final String name;
   final String logo;
   final String image;
@@ -130,7 +130,7 @@ class FavouriteSalon {
 
   FavouriteSalon({
     required this.id,
-    required this.vendorId,
+    this.vendorId,
     required this.name,
     required this.logo,
     required this.image,
@@ -165,37 +165,37 @@ class FavouriteSalon {
 
   factory FavouriteSalon.fromJson(Map<String, dynamic> json) {
     return FavouriteSalon(
-      id: json['id'],
-      vendorId: json['vendor_id'],
-      name: json['name'],
-      logo: json['logo'],
-      image: json['image'],
-      country: json['country'],
-      state: json['state'],
-      city: json['city'],
-      area: json['area'],
-      address: json['address'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      minBookingTime: json['min_booking_time'].toString(),
-      maxBookingTime: json['max_booking_time'].toString(),
-      minCancellationTime: json['min_cancellation_time'].toString(),
-      type: json['type'],
-      kind: json['kind'],
-      facebook: json['facebook'],
-      instagram: json['instagram'],
-      linkedin: json['linkedin'],
-      twitter: json['twitter'],
-      salonFor: json['salon_for'],
-      mapLocation: json['map_location'],
-      salonPolicy: json['salon_policy'],
-      additionalInformation: json['additional_information'],
-      about: json['about'],
-      status: json['status'],
-      suspended: json['suspended'],
-      averageRating: (json['average_rating'] ?? 0).toDouble(),
-      reviewCount: json['review_count'] ?? 0,
-      isFavourite: json['is_favourite'] ?? false,
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      vendorId: json['vendor_id'] is int ? json['vendor_id'] : int.tryParse(json['vendor_id']?.toString() ?? ''),
+      name: json['name']?.toString() ?? '',
+      logo: json['logo']?.toString() ?? json['image']?.toString() ?? '',
+      image: json['image']?.toString() ?? '',
+      country: json['country']?.toString() ?? '',
+      state: json['state']?.toString() ?? '',
+      city: json['city']?.toString() ?? '',
+      area: json['area']?.toString() ?? '',
+      address: json['address']?.toString() ?? '',
+      latitude: json['latitude']?.toString() ?? '',
+      longitude: json['longitude']?.toString() ?? '',
+      minBookingTime: json['min_booking_time']?.toString() ?? '',
+      maxBookingTime: json['max_booking_time']?.toString() ?? '',
+      minCancellationTime: json['min_cancellation_time']?.toString() ?? '',
+      type: json['type']?.toString() ?? '',
+      kind: json['kind']?.toString() ?? '',
+      facebook: json['facebook']?.toString(),
+      instagram: json['instagram']?.toString(),
+      linkedin: json['linkedin']?.toString(),
+      twitter: json['twitter']?.toString(),
+      salonFor: json['salon_for']?.toString() ?? '',
+      mapLocation: json['map_location']?.toString(),
+      salonPolicy: json['salon_policy']?.toString() ?? '',
+      additionalInformation: json['additional_information']?.toString(),
+      about: json['about']?.toString() ?? '',
+      status: json['status'] is int ? json['status'] : int.tryParse(json['status']?.toString() ?? '0') ?? 0,
+      suspended: json['suspended'] is int ? json['suspended'] : int.tryParse(json['suspended']?.toString() ?? '0') ?? 0,
+      averageRating: json['average_rating'] is num ? (json['average_rating'] as num).toDouble() : double.tryParse(json['average_rating']?.toString() ?? '0') ?? 0.0,
+      reviewCount: json['review_count'] is int ? json['review_count'] : int.tryParse(json['review_count']?.toString() ?? '0') ?? 0,
+      isFavourite: json['is_favourite'] == true || json['is_favourite'] == 1 || json['is_favourite'] == '1',
       activeDays: (json['active_days'] as List? ?? [])
           .map((e) => ActiveDay.fromJson(e))
           .toList(),

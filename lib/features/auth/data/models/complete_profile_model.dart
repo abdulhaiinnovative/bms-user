@@ -18,6 +18,7 @@ class CompleteProfileModel {
   final bool? emailMarketing;
   final bool? marketingNotification;
   final String? image; // Can be file path or URL
+  final String? fcmToken;
 
   CompleteProfileModel({
     required this.email,
@@ -38,6 +39,7 @@ class CompleteProfileModel {
     this.emailMarketing,
     this.marketingNotification,
     this.image,
+    this.fcmToken,
   });
 
   Map<String, dynamic> toJson() {

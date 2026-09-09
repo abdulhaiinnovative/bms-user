@@ -11,6 +11,8 @@ import '../test_scroll/select_professionals.dart';
 import '../test_scroll/SelectDateScreen.dart';
 import '../../utils/restriction_handler.dart';
 import '../../features/profile/presentation/viewmodels/profile_view_model.dart';
+import '../../features/auth/utils/auth_manager.dart';
+import '../../features/auth/presentation/screens/auth/auth_screen.dart';
 
 class CartScreen extends StatelessWidget {
   static String routeName = "/cart";
@@ -25,6 +27,45 @@ class CartScreen extends StatelessWidget {
 
   void _handleProceed(BuildContext context, CartProvider cart) async {
     if (cart.itemCount == 0) return;
+
+    // Check if user is authenticated first
+    final token = await AuthManager.getToken();
+    if (token == null) {
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('Sign In Required'),
+            content: const Text(
+              'Please sign in to proceed with checkout.',
+              style: TextStyle(fontSize: 15),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: kPrimaryColor,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Sign In'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
 
     // Get user profile data
     final profileViewModel =
@@ -153,16 +194,27 @@ class CartScreen extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: kPrimaryColor.withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Icon(
-                              Icons.store,
-                              color: kPrimaryColor,
-                              size: 20,
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: (cart.salonLogo != null && cart.salonLogo!.isNotEmpty)
+                                ? Image.network(
+                              cart.salonLogo!,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                                : (cart.salonImage != null && cart.salonImage!.isNotEmpty)
+                                ? Image.network(
+                              cart.salonImage!,
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                            )
+                                : Container(
+                              width: 40,
+                              height: 40,
+                              color: Colors.grey[200],
+                              child: const Icon(Icons.store, size: 18),
                             ),
                           ),
                           const SizedBox(width: 12),

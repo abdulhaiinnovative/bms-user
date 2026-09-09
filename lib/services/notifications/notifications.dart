@@ -18,15 +18,15 @@ export 'notification_config.dart';
 // 1. Initialize notification services in main.dart:
 //    ```dart
 //    import 'package:your_app/services/notifications/notification_service.dart';
-//    
+//
 //    void main() async {
 //      WidgetsFlutterBinding.ensureInitialized();
-//      
+//
 //      final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
-//      
+//
 //      // Initialize notification service
 //      await NotificationService.initialize(navigatorKey: navigatorKey);
-//      
+//
 //      runApp(MyApp(navigatorKey: navigatorKey));
 //    }
 //    ```

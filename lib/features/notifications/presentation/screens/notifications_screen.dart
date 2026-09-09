@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:app/models/notification/notification_model.dart';
 import 'package:app/constants.dart';
@@ -6,6 +7,8 @@ import '../viewmodels/notifications_view_model.dart';
 import '../widgets/notification_card.dart';
 import '../../../auth/presentation/screens/auth/auth_screen.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../services/notifications/notification_handler.dart';
+import '../../../../services/notifications/notification_config.dart';
 
 class NotificationsScreen extends StatefulWidget {
   static String routeName = "/notifications";
@@ -276,44 +279,96 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       await viewModel.markAsRead(notification.id);
     }
 
-    // Check if widget is still mounted before using context
     if (!mounted) return;
 
-    // Handle navigation based on notification data
-    if (notification.appRoute != null && notification.appRoute!.isNotEmpty) {
-      // Navigate to app route based on route name
-      // For now, handle common routes directly. Extend as needed.
-      if (notification.appRoute == '/notifications') {
-        // Already on notifications screen, do nothing
-        return;
-      }
+    final Map<String, dynamic> data = {
+      ...notification.toJson(),
+      'id': notification.routeId,
+      'appointmentId': notification.routeId,
+      'bookingId': notification.routeId,
+    };
 
-      // For other routes, show a message or implement specific navigation
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Navigating to: ${notification.appRoute}'),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    debugPrint('NotificationsScreen (Features): Tapped notification ID: ${notification.id}');
+    debugPrint('NotificationsScreen (Features): Category: ${notification.category}');
+    debugPrint('NotificationsScreen (Features): Route ID: ${notification.routeId}');
+    debugPrint('NotificationsScreen (Features): App Route: ${notification.appRoute}');
+
+    String? route = notification.appRoute;
+
+    // Auto-detect booking route if category is booking but route is missing
+    if ((route == null || route.isEmpty) &&
+        notification.category.toLowerCase() == 'booking' &&
+        notification.routeId != null) {
+      route = NotificationConfig.appointmentScreen;
+    }
+
+    if (route != null && route.isNotEmpty) {
+      if (route == '/notifications') return;
+      NotificationHandler.navigateToScreen(route, data);
     } else if (notification.url != null && notification.url!.isNotEmpty) {
-      // Launch external URL
       final Uri url = Uri.parse(notification.url!);
       try {
-        await launchUrl(
-          url,
-          mode: LaunchMode.platformDefault,
-        );
+        await launchUrl(url, mode: LaunchMode.platformDefault);
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error opening URL: $e'),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 2),
-            ),
+            SnackBar(content: Text('Error opening URL: $e')),
           );
         }
       }
+    } else {
+      _showDetailDialog(context, notification);
     }
+  }
+
+
+
+String formatReadableDate(String dateString) {
+  try {
+    DateTime dateTime;
+
+    // Try normal parse
+    try {
+      dateTime = DateTime.parse(dateString);
+    } catch (_) {
+      // Fallback for custom formats
+      dateTime = DateFormat("yyyy-MM-dd HH:mm:ss").parse(dateString);
+    }
+
+    return DateFormat('dd MMM yyyy, hh:mm a').format(dateTime.toLocal());
+  } catch (e) {
+    debugPrint("Date parse error: $e");
+    return dateString;
+  }
+}
+  String capitalizeFirst(String text) {
+    if (text.isEmpty) return text;
+    return text[0].toUpperCase() + text.substring(1);
+  }
+  void _showDetailDialog(BuildContext context, NotificationItem notification) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(capitalizeFirst(notification.subject)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(capitalizeFirst(notification.message)),
+            const SizedBox(height: 16),
+            Text(
+              'Received: ${formatReadableDate(notification.createdAt)}',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 }

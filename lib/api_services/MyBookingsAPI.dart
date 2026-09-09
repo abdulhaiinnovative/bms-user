@@ -3,11 +3,12 @@ import 'package:app/services/protected_http_client.dart';
 import '../../models/MyBookingResponse.dart';
 
 class MyBookingsAPI {
-  Future<MyBookingResponse?> getBooking({int page = 1, String? url}) async {
+  Future<MyBookingResponse?> getBooking({int page = 1, String? url, String? status}) async {
     try {
-      final String endpoint = url != null
-          ? url.replaceFirst('https://bms.innovativewidget.com/api', '')
-          : '/appointments?page=$page';
+      String endpoint = '/appointments?page=$page';
+      if (status != null && status.isNotEmpty) {
+        endpoint += '&status=${Uri.encodeComponent(status)}';
+      }
 
       final response = await ProtectedHttpClient.get(endpoint);
 
@@ -39,7 +40,7 @@ class MyBookingsAPI {
                 }
               };
               final bookingResponse =
-                  MyBookingResponse.fromJson(wrappedResponse);
+              MyBookingResponse.fromJson(wrappedResponse);
               return bookingResponse;
             }
             throw Exception(
@@ -67,6 +68,30 @@ class MyBookingsAPI {
       } else {
         throw Exception(
             'Failed to fetch bookings: HTTP ${response.statusCode}');
+      }
+    } on UnauthorizedException {
+      rethrow;
+    } on ApiException {
+      rethrow;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<bool> cancelBooking(int bookingId) async {
+    try {
+      final response = await ProtectedHttpClient.post(
+        '/cancel-booking',
+        body: {'bookingId': bookingId},
+      );
+
+      final responseData = jsonDecode(response.body);
+      print("RESSS: $responseData");
+      if (response.statusCode == 200 && responseData['status'] == true) {
+        return true;
+      } else {
+        throw Exception(
+            responseData['message'] ?? 'Failed to cancel booking');
       }
     } on UnauthorizedException {
       rethrow;

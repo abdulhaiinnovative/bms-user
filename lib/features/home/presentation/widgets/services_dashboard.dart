@@ -7,6 +7,7 @@ import 'package:app/models/salon_detail_models.dart'
 import 'package:app/screens/test_scroll/salon_category_and_services_list.dart';
 import 'package:app/providers/cart_provider.dart';
 import '../screens/services_list_screen.dart';
+import '../screens/service_detail_screen.dart';
 import '../viewmodels/services_view_model.dart';
 import 'section_title.dart';
 
@@ -37,7 +38,7 @@ class _ServicesDashboardState extends State<ServicesDashboard> {
     return Column(
       children: filteredSections.map((section) {
         return Container(
-          height: 280,
+          height: 340,
           margin: const EdgeInsets.only(bottom: 15),
           child: Column(
             children: [
@@ -64,20 +65,23 @@ class _ServicesDashboardState extends State<ServicesDashboard> {
                 ),
               ),
               const SizedBox(height: 10),
+              // Men Services
               Expanded(
                 child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: section.data.length,
                   itemBuilder: (BuildContext context, int index) {
                     final item = section.data[index];
+
+                    // ←←← Yeh line add karo
+                    print("🔍 SERVICE IMAGE URL → ${item.image}");
                     return ServicesCard(
                       service: item,
                       title: item.name ?? 'No Title',
-                      //image: item.image ?? logo,
-                      image: "",
+                      image: item.image?.trim() ?? "", // trim added for safety
                       salon: item.salon!,
-                      desc: item.name ?? '',
-                      width: 320,
+                      desc: item.shortDescription ?? item.name ?? '',
+                      width: 180,
                     );
                   },
                 ),
@@ -99,6 +103,7 @@ class ServicesCard extends StatelessWidget {
     this.salon, // Made optional since Service objects don't have salon data
     this.salonName, // Optional salon name for when salon object is not available
     required this.service,
+    this.isFeatured = false,
     this.width,
   }) : super(key: key);
 
@@ -107,6 +112,7 @@ class ServicesCard extends StatelessWidget {
   final Salon? salon; // Made optional
   final String? salonName; // Added for search results
   final Service service;
+  final bool isFeatured;
 
   final double? width;
 
@@ -117,386 +123,483 @@ class ServicesCard extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.only(left: 10, top: 5, bottom: 5),
-      child: Container(
-        width: width,
-        constraints: const BoxConstraints(
-          minHeight: 180,
-        ),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(
-            color: kPrimaryColor.withOpacity(0.15),
-            width: 2,
+      child: GestureDetector(
+        onTap: () {
+          // Navigate to service detail screen with service ID
+          print("SERVICE ${service.id}");
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ServiceDetailScreen(serviceId: service.id!),
+            ),
+          );
+        },
+        child: Container(
+          width: width,
+          constraints: const BoxConstraints(
+            minHeight: 120,
           ),
-          boxShadow: [
-            BoxShadow(
-              color: kPrimaryColor.withOpacity(0.12),
-              blurRadius: 24,
-              offset: const Offset(0, 8),
-              spreadRadius: -4,
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: kPrimaryColor.withOpacity(0.15),
+              width: 2,
             ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
+            boxShadow: [
+              BoxShadow(
+                color: kPrimaryColor.withOpacity(0.12),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+                spreadRadius: -4,
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.04),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Discount Badge
-              if (hasDiscount)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6B6B),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFFF6B6B).withOpacity(0.3),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.local_offer_rounded,
-                          color: Colors.white, size: 12),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${((service.oldPrice! - service.price!) / service.oldPrice! * 100).toStringAsFixed(0)}% OFF',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-              SizedBox(height: hasDiscount ? 6 : 0),
-
-              // Service Title
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.black87,
-                  height: 1.2,
-                  letterSpacing: -0.3,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              const SizedBox(height: 5),
-
-              // Description
-              Text(
-                desc,
-                style: TextStyle(
-                  fontSize: 10,
-                  color: Colors.grey[600],
-                  height: 1.2,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-
-              const SizedBox(height: 6),
-
-              // Duration and Gender Tags
-              Row(
+              // Service Image
+              // Service Image
+              // Service Image
+              Stack(
                 children: [
-                  // Duration Tag
-                  if (service.duration != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: kPrimaryColor.withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(
-                            Icons.access_time_rounded,
-                            size: 11,
-                            color: kPrimaryColor,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            '${service.duration} min',
-                            style: const TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: kPrimaryColor,
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: (image.isNotEmpty)
+                        ? Image.network(
+                      image,
+                      width: double.infinity,
+                      height: 110,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        print("❌ IMAGE FAILED TO LOAD: $image");
+                        return Container(
+                          height: 110,
+                          color: Colors.grey[200],
+                          child: const Center(
+                            child: Column(
+                              mainAxisAlignment:
+                              MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.image_not_supported,
+                                    size: 36, color: Colors.grey),
+                                SizedBox(height: 4),
+                                Text(
+                                  "Image not available",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+                        );
+                      },
+                    )
+                        : Container(
+                      height: 110,
+                      color: Colors.grey[200],
+                      child: const Center(
+                        child: Icon(
+                          Icons.image_not_supported,
+                          size: 36,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ),
+                  ),
+
+                  /// 🔥 DISCOUNT BADGE (TOP LEFT)
+                  if (hasDiscount)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFF6B6B),
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color:
+                              const Color(0xFFFF6B6B).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.local_offer_rounded,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                            const SizedBox(width: 2),
+                            Text(
+                              '${((service.oldPrice! - service.price!) / service.oldPrice! * 100).toStringAsFixed(0)}% OFF',
+                              style: const TextStyle(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w900,
+                                color: Colors.white,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
 
-                  if (service.duration != null && service.gender != null)
-                    const SizedBox(width: 6),
-
-                  // Gender Tag
-                  if (service.gender != null)
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: service.gender?.toLowerCase() == 'male'
-                            ? Colors.blue.withOpacity(0.1)
-                            : service.gender?.toLowerCase() == 'female'
-                                ? Colors.pink.withOpacity(0.1)
-                                : Colors.purple.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(7),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            service.gender?.toLowerCase() == 'male'
-                                ? Icons.male
-                                : service.gender?.toLowerCase() == 'female'
-                                    ? Icons.female
-                                    : Icons.people,
-                            size: 11,
-                            color: service.gender?.toLowerCase() == 'male'
-                                ? Colors.blue.shade700
-                                : service.gender?.toLowerCase() == 'female'
-                                    ? Colors.pink.shade700
-                                    : Colors.purple.shade700,
-                          ),
-                          const SizedBox(width: 3),
-                          Text(
-                            service.gender!.substring(0, 1).toUpperCase() +
-                                service.gender!.substring(1).toLowerCase(),
-                            style: TextStyle(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w600,
-                              color: service.gender?.toLowerCase() == 'male'
-                                  ? Colors.blue.shade700
-                                  : service.gender?.toLowerCase() == 'female'
-                                      ? Colors.pink.shade700
-                                      : Colors.purple.shade700,
+                  /// 🔥 FEATURED BADGE (TOP RIGHT)
+                  if (isFeatured)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE8B640), // Gold/yellow color for featured
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFFE8B640).withOpacity(0.3),
+                              blurRadius: 6,
+                              offset: const Offset(0, 1),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: const [
+                            Icon(
+                              Icons.star_rounded,
+                              color: Colors.white,
+                              size: 10,
+                            ),
+                            // SizedBox(width: 2),
+                            // Text(
+                            //   'FEATURED',
+                            //   style: TextStyle(
+                            //     fontSize: 9,
+                            //     fontWeight: FontWeight.w900,
+                            //     color: Colors.white,
+                            //   ),
+                            // ),
+                          ],
+                        ),
                       ),
                     ),
                 ],
               ),
-
-              SizedBox(
-                  height: (service.duration != null || service.gender != null)
-                      ? 6
-                      : 0),
-
-              // Salon Info
-              Row(
-                children: [
-                  Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(7),
-                      border: Border.all(
-                        color: kPrimaryColor.withOpacity(0.2),
-                        width: 1.5,
-                      ),
-                    ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(5.5),
-                      child: (salon?.image != null && salon!.image!.isNotEmpty)
-                          ? Image.network(
-                              salon!.image!,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Icon(
-                                  Icons.store_rounded,
-                                  size: 16,
-                                  color: kPrimaryColor.withOpacity(0.5),
-                                );
-                              },
-                            )
-                          : Icon(
-                              Icons.store_rounded,
-                              size: 16,
-                              color: kPrimaryColor.withOpacity(0.5),
+              const SizedBox(height: 6),
+              // Discount Badge
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Title
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.black87,
+                              height: 1.2,
+                              letterSpacing: -0.3,
                             ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Discount Badge (Right Side)
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 7),
-                  Expanded(
-                    child: Text(
-                      salonName ?? salon?.name ?? 'Unknown Salon',
+
+                    const SizedBox(height: 4),
+
+                    // Description
+                    Text(
+                      desc,
                       style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[800],
+                        fontSize: 10,
+                        color: Colors.grey[600],
+                        height: 1.2,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 10),
+                    const SizedBox(height: 4),
 
-              // Price and Book Button
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  // Price Section
-                  Flexible(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
+                    // Duration and Gender Tags
+                    Row(
                       children: [
-                        Text(
-                          "PKR ${service.price ?? 0}",
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                            color: kPrimaryColor,
-                            height: 1,
-                            letterSpacing: -0.5,
-                          ),
-                        ),
-                        if (hasDiscount) ...[
-                          const SizedBox(height: 2),
-                          Text(
-                            "PKR ${service.oldPrice}",
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.grey[600],
-                              decoration: TextDecoration.lineThrough,
-                              decorationColor: Colors.red[400],
-                              decorationThickness: 2,
+                        // Duration Tag
+                        if (service.duration != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: kPrimaryColor.withOpacity(0.08),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.access_time_rounded,
+                                  size: 10,
+                                  color: kPrimaryColor,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${service.duration}',
+                                  style: const TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: kPrimaryColor,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
-                        ],
+
+                        if (service.duration != null &&
+                            service.gender != null)
+                          const SizedBox(width: 6),
+
+                        // Gender Tag
+                        if (service.gender != null)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: service.gender?.toLowerCase() == 'male'
+                                  ? Colors.blue.withOpacity(0.1)
+                                  : service.gender?.toLowerCase() == 'female'
+                                      ? Colors.pink.withOpacity(0.1)
+                                      : Colors.purple.withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  service.gender?.toLowerCase() == 'male'
+                                      ? Icons.male
+                                      : service.gender?.toLowerCase() ==
+                                              'female'
+                                          ? Icons.female
+                                          : Icons.people,
+                                  size: 10,
+                                  color:
+                                      service.gender?.toLowerCase() == 'male'
+                                          ? Colors.blue.shade700
+                                          : service.gender?.toLowerCase() ==
+                                                  'female'
+                                              ? Colors.pink.shade700
+                                              : Colors.purple.shade700,
+                                ),
+                                const SizedBox(width: 2),
+                                Text(
+                                  service.gender!
+                                          .substring(0, 1)
+                                          .toUpperCase() +
+                                      service.gender!
+                                          .substring(1)
+                                          .toLowerCase(),
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    fontWeight: FontWeight.w600,
+                                    color: service.gender?.toLowerCase() ==
+                                            'male'
+                                        ? Colors.blue.shade700
+                                        : service.gender?.toLowerCase() ==
+                                                'female'
+                                            ? Colors.pink.shade700
+                                            : Colors.purple.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
-                  ),
 
-                  const SizedBox(width: 8),
+                    SizedBox(
+                        height: (service.duration != null ||
+                                service.gender != null)
+                            ? 4
+                            : 0),
 
-                  // Book Button with Cart functionality
-                  Consumer<CartProvider>(
-                    builder: (context, cart, child) {
-                      final isInCart = cart.isInCart(service);
-                      return Container(
-                        height: 36,
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        decoration: BoxDecoration(
-                          color:
-                              isInCart ? Colors.grey.shade400 : kPrimaryColor,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              color: (isInCart
-                                      ? Colors.grey.shade400
-                                      : kPrimaryColor)
-                                  .withOpacity(0.4),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+                    const SizedBox(height: 6),
+
+                    // Price Section in a full-width light-grey container
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 4, horizontal: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                        border:
+                            Border.all(color: Colors.grey.shade200, width: 1),
+                      ),
+                      child: Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              "PKR ${service.price ?? 0}",
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w900,
+                                color: kPrimaryColor,
+                                letterSpacing: -0.3,
+                              ),
                             ),
+                            if (hasDiscount) ...[
+                              const SizedBox(width: 6),
+                              Text(
+                                "PKR ${service.oldPrice}",
+                                style: TextStyle(
+                                  fontSize: 9,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[600],
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationColor: Colors.red[400],
+                                  decorationThickness: 1.5,
+                                ),
+                              ),
+                            ],
                           ],
                         ),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () async {
-                              final success = cart.toggleItem(service);
+                      ),
+                    ),
 
-                              if (!success && cart.isDifferentSalon(service)) {
-                                // Show confirmation dialog
-                                final shouldClear = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Change Salon?'),
-                                      content: Text(
-                                          'Your cart contains items from ${cart.salonName ?? "another salon"}. '
-                                          'Adding items from ${salon?.name ?? "this salon"} will clear your current cart. Continue?'),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, false),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context, true),
-                                          style: ElevatedButton.styleFrom(
-                                            backgroundColor: kPrimaryColor,
-                                            foregroundColor: Colors.white,
+                    const SizedBox(height: 6),
+
+                    // Book Button with Cart functionality
+                    Consumer<CartProvider>(
+                      builder: (context, cart, child) {
+                        final isInCart = cart.isInCart(service);
+                        return Container(
+                          width: double.infinity,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            color: isInCart
+                                ? Colors.grey.shade400
+                                : kPrimaryColor,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              onTap: () async {
+                                final success = cart.toggleItem(service);
+
+                                if (!success &&
+                                    cart.isDifferentSalon(service)) {
+                                  // Show confirmation dialog
+                                  final shouldClear = await showDialog<bool>(
+                                    context: context,
+                                    builder: (BuildContext context) {
+                                      return AlertDialog(
+                                        title: const Text('Change Salon?'),
+                                        content: Text(
+                                            'Your cart contains items from ${cart.salonName ?? "another salon"}. '
+                                            'Adding items from ${salon?.name ?? "this salon"} will clear your current cart. Continue?'),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, false),
+                                            child: const Text('Cancel'),
                                           ),
-                                          child: const Text('Clear & Continue'),
-                                        ),
-                                      ],
-                                    );
-                                  },
-                                );
+                                          ElevatedButton(
+                                            onPressed: () =>
+                                                Navigator.pop(context, true),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: kPrimaryColor,
+                                              foregroundColor: Colors.white,
+                                            ),
+                                            child: const Text(
+                                                'Clear & Continue'),
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  );
 
-                                if (shouldClear == true) {
-                                  cart.toggleItem(service, forceClear: true);
+                                  if (shouldClear == true) {
+                                    cart.toggleItem(service,
+                                        forceClear: true);
+                                    cart.setSalonInfo(salon?.id, salon?.name);
+                                  }
+                                } else if (success) {
                                   cart.setSalonInfo(salon?.id, salon?.name);
                                 }
-                              } else if (success) {
-                                cart.setSalonInfo(salon?.id, salon?.name);
-                              }
-                            },
-                            borderRadius: BorderRadius.circular(18),
-                            child: Center(
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    isInCart ? "Added" : "Book Now",
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w700,
-                                      letterSpacing: 0.3,
+                              },
+                              borderRadius: BorderRadius.circular(8),
+                              child: Center(
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      isInCart ? "Added" : "Book Now",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w700,
+                                        letterSpacing: 0.3,
+                                      ),
                                     ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Icon(
-                                    isInCart
-                                        ? Icons.check_circle
-                                        : Icons.arrow_forward_rounded,
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                                ],
+                                    const SizedBox(width: 4),
+                                    Icon(
+                                      isInCart
+                                          ? Icons.check_circle
+                                          : Icons.arrow_forward_rounded,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
-              ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              )
             ],
           ),
         ),

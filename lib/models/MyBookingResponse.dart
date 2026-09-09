@@ -134,6 +134,7 @@ class Booking {
   final int? usedLoyaltyPoints;
   final Salon? salon;
   final List<BookingService>? services;
+  final List<dynamic>? deal;
 
   Booking({
     this.id,
@@ -152,6 +153,7 @@ class Booking {
     this.usedLoyaltyPoints,
     this.salon,
     this.services,
+    this.deal,
   });
 
   factory Booking.fromJson(Map<String, dynamic> json) {
@@ -180,6 +182,7 @@ class Booking {
               .map((e) => BookingService.fromJson(e as Map<String, dynamic>))
               .toList()
           : null,
+      deal: json['deal'] != null ? json['deal'] as List<dynamic> : null,
     );
   }
 }
